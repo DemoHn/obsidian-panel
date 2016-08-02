@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>初始化 - 完成</title>
+    <!-- Material Design fonts -->
+    <!--<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">-->
+    <!-- Admin LTE-->
+    <link rel="stylesheet" href="/static/css/AdminLTE.min.css">
+    <!--jquery-->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/static/css/ionicons.min.css">
+    <!-- Bootstrap Material Design -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap-material-design.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/ripples.min.css">
+    <link rel="stylesheet" href="/static/css/skins/skin-blue.min.css">
+
+    <script src="/static/js/material.min.js"></script>
+    <script src="/static/js/ripples.min.js"></script>
+
+
+
+    <script>
+      var AdminLTEOptions = {
+        //Enable sidebar expand on hover effect for sidebar mini
+        //This option is forced to true if both the fixed layout and sidebar mini
+        //are used together
+        sidebarExpandOnHover: true,
+        //BoxRefresh Plugin
+        enableBoxRefresh: true,
+        //Bootstrap.js tooltip
+        enableBSToppltip: true
+      };
+
+      $.material.init();
+    </script>
+
+    <style>
+        #reg-box-msg{
+            padding-bottom:0;
+        }
+
+        div.form-group{
+            margin-top: 0 !important;
+        }
+    </style>
+</head>
+
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+    <a href="##"><b>Obsidian</b> Panel</a>
+  </div>
+  <!-- /.login-logo -->
+  <div class="login-box-body">
+    <p class="login-box-msg" id="reg-box-msg">
+        欢迎使用Obsidian Panel! <br>
+        请先注册管理员账号以开始使用。
+    </p>
+      <hr>
+    <form action="#" method="post">
+        <div class="form-group has-feedback">
+            <input type="text" class="form-control" placeholder="用户名">
+            <span class="fa fa-user form-control-feedback"></span>
+        </div>
+
+      <div class="form-group has-feedback">
+        <input type="email" class="form-control" placeholder="E-mail">
+        <span class="fa fa-envelope form-control-feedback"></span>
+      </div>
+
+      <div class="form-group has-feedback">
+        <input id="pa" type="password" class="form-control" placeholder="密码">
+        <span class="fa fa-lock form-control-feedback"></span>
+      </div>
+
+      <div class="form-group has-feedback">
+        <input id="pa" type="password" class="form-control" placeholder="密码（重复）">
+        <span class="fa fa-lock form-control-feedback"></span>
+      </div>
+
+      <div class="row">
+        <div class="col-xs-4">
+        </div>
+        <!-- /.col -->
+          <div class="col-xs-8" style="text-align:right;">
+              <button type="submit" class="btn btn-raised btn-info">下一步</button>
+          </div>
+        <!-- /.col -->
+      </div>
+    </form>
+
+  </div>
+  <!-- /.login-box-body -->
+</div>
+<!-- /.login-box -->
+
+<script>
+  $(function () {
+    $('input').iCheck({
+      checkboxClass: 'icheckbox_square-blue',
+      radioClass: 'iradio_square-blue',
+      increaseArea: '20%' // optional
+    });
+  });
+</script>
+</body>
+
+</html>

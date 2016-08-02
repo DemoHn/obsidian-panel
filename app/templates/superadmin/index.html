@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <!-- Material Design fonts -->
+    <!--<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">-->
+    <!--jquery-->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/static/css/ionicons.min.css">
+    <!-- Bootstrap Material Design -->
+    <!--<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-material-design.min.css">-->
+    <!--<link rel="stylesheet" type="text/css" href="/static/css/ripples.min.css">-->
+    <link rel="stylesheet" href="/static/css/skins/skin-blue.min.css">
+    <script src="/static/js/material.min.js"></script>
+    <script src="/static/js/ripples.min.js"></script>
+
+    <link rel="stylesheet" href="/static/css/AdminLTE.min.css">
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/slimscroll.min.js"></script>
+
+<script>
+  var AdminLTEOptions = {
+    //Enable sidebar expand on hover effect for sidebar mini
+    //This option is forced to true if both the fixed layout and sidebar mini
+    //are used together
+    sidebarExpandOnHover: true,
+    //BoxRefresh Plugin
+    enableBoxRefresh: true,
+    //Bootstrap.js tooltip
+    enableBSToppltip: true
+  };
+</script>
+
+</head>
+<body class="skin-blue fixed">
+<header class="main-header">
+  <a href="#" class="logo">
+    <!-- LOGO -->
+    AdminLTE
+  </a>
+  <!-- Header Navbar: style can be found in header.less -->
+  <nav class="navbar navbar-static-top" role="navigation">
+      <a href="#" class="sidebar-toggle" role="button" data-toggle="offcanvas"><span class="sr-only">Toggle navigation</span></a>
+
+      <!-- Navbar Right Menu -->
+      <div class="navbar-custom-menu">
+
+      <ul class="nav navbar-nav">
+
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<div class="main-sidebar">
+  <!-- Inner sidebar -->
+  <div class="sidebar">
+    <!-- user panel (Optional) -->
+    <div class="user-panel">
+      <div class="pull-left image">
+        <img src="/static/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+      </div>
+      <div class="pull-left info">
+        <p>User Name</p>
+
+        <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+      </div>
+    </div><!-- /.user-panel -->
+
+    <!-- Search Form (Optional) -->
+    <form action="#" method="get" class="sidebar-form">
+      <div class="input-group">
+        <input type="text" name="q" class="form-control" placeholder="Search...">
+        <span class="input-group-btn">
+          <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button>
+        </span>
+      </div>
+    </form><!-- /.sidebar-form -->
+
+    <!-- Sidebar Menu -->
+    <ul class="sidebar-menu">
+      <li class="header">HEADER</li>
+      <!-- Optionally, you can add icons to the links -->
+      <li class="active"><a href="#"><span>Link</span></a><</li>
+      <li><a href="#"><span>Another Link</span></a></li>
+      <li class="treeview">
+        <a href="#"><span>Multilevel</span> <i class="fa fa-angle-left pull-right"></i></a>
+        <ul class="treeview-menu">
+          <li><a href="#">Link in level 2</a></li>
+          <li><a href="#">Link in level 2</a></li>
+        </ul>
+      </li>
+    </ul><!-- /.sidebar-menu -->
+
+  </div><!-- /.sidebar -->
+</div><!-- /.main-sidebar -->
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <!-- div row -->
+    <div class="row">
+      <div class="col-sm-12">
+        Class
+        <div class="row">
+          <div class="col-xs-8 col-sm-6">
+            <a href="##">Link Hello</a>
+            <button type="button" class="btn btn-primary btn-xs" disabled="disabled">Primary</button>
+            <button type="button" class="btn btn-success">Success</button>
+            <button type="button" class="btn btn-info">Info</button>
+            <button type="button" class="btn btn-danger" data-toggle="control-sidebar">Danger</button>
+          </div>
+          <div class="col-xs-4 col-sm-6">
+            <a href="#">Inbox <span class="badge">42</span></a>
+          </div>
+
+        </div>
+
+        <div class="content row">
+
+          <div class="col-md-4">
+            <!-- COMPONENT I-->
+            <div class="info-box">
+              <!-- Apply any bg-* class to to the icon to color it -->
+              <span class="info-box-icon bg-red"><i class="fa fa-star-o"></i></span>
+              <div class="info-box-content">
+                <span class="info-box-text">Likes</span>
+                <span class="info-box-number">93,139</span>
+              </div>
+            </div>
+
+          </div>
+          <div class="col-md-4">
+
+            <!-- COMPONENT II : BOX-->
+            <div class="box box-danger">
+
+              <div class="box-header with-border">
+                <h3 class="box-title">Default Box Example</h3>
+                <div class="box-tools pull-right">
+                  <!-- Buttons, labels, and many other things can be placed here! -->
+                  <!-- Here is a label for example -->
+                  <span class="label label-primary">Label</span>
+                  <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+
+                  </div>
+
+                </div>
+              </div>
+              <div class="box-body">
+                The body of the box
+              </div>
+              <div class="box-footer">
+                The footer of the box
+              </div>
+
+              <div class="overlay">
+                <i class="fa fa-refresh fa-spin"></i>
+              </div>
+            </div>
+
+          </div>
+          <div class="col-md-4">
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <section class="content">
+    <div class="row">
+      <div class="col-sm-10">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default">Left</button>
+        <button type="button" class="btn btn-default">Middle</button>
+        <button type="button" class="btn btn-default">Right</button>
+      </div>
+        </div>
+    </div>
+  </section>
+
+  <aside class="control-sidebar control-sidebar-dark">
+  <!-- Content of the sidebar goes here -->
+  </aside>
+  <div class="control-sidebar-bg"></div>
+<!-- The sidebar's background -->
+<!-- This div must placed right after the sidebar for it to work-->
+
+</div>
+</body>
+</html>

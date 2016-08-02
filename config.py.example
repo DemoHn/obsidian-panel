@@ -1,0 +1,28 @@
+import os
+
+BASE_DIR = os.path.join(
+    os.path.expanduser("~"),
+    "ob_panel")
+
+# file uploads directory
+UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
+DOWNLOADS_DIR = os.path.join(BASE_DIR, "files")
+SERVERS_DIR = os.path.join(BASE_DIR, "servers")
+LIB_BIN_DIR = os.path.join(BASE_DIR, "env")
+
+DATABASE_TYPE = "sqlite" # database type. :value: "sqlite" or "mysql"
+DATABASE_NAME = "ob_panel"
+
+# DATABASE_TYPE = "mysql"
+MYSQL_USERNAME = "root"
+MYSQL_PASSWORD = "<mysql password>"
+MYSQL_CONNECT_IP = "127.0.0.1"
+
+# DATABASE_TYPE = "sqlite"
+SQLITE_DIR = os.path.join(BASE_DIR ,"sql")
+
+# I don't understand the meaning of this variable,
+# but the warning message from flask_sqlalchemy asked me to do so LOL.
+SQLALCHEMY_TRACK_MODIFICATIONS = True
+
+SQLALCHEMY_ECHO=True

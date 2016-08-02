@@ -1,0 +1,8 @@
+_draft/
+draft.py # my draft file for testing functions quickly
+*.pyc
+env/
+config.py
+.idea/
+__pycache__/
+app/__pycache__/
