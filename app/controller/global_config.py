@@ -1,7 +1,6 @@
 __author__ = "Nigshoxiz"
 
 import sqlite3
-from config import SQLITE_DIR
 import os
 import traceback
 import logging
@@ -13,6 +12,11 @@ class GlobalConfigDatabase(object):
     to execute SQL operations.
     """
     def __init__(self):
+        self.BASE_DIR = os.path.join(os.path.expanduser("~"),"ob_panel")
+        self.SQLITE_DIR = os.path.join(self.BASE_DIR, "sql")
+
+        SQLITE_DIR = self.SQLITE_DIR
+
         if not os.path.isdir(SQLITE_DIR):
             os.makedirs(SQLITE_DIR)
         config_db_file = os.path.join(SQLITE_DIR, "_global_config.db")
@@ -115,6 +119,7 @@ class GlobalConfig(object):
     GlobalConfig class
     """
     instance = None
+
     def __init__(self):
         """
         Frankly, 'gdb' means 'Global config DataBase',
@@ -123,9 +128,18 @@ class GlobalConfig(object):
         self.gdb = GlobalConfigDatabase()
         self.logger = logging.getLogger("ob_panel")
 
+        base_dir = self.gdb.BASE_DIR
+
         self.default_values = {
-            "init_super_admin" : "False"
+            "init_super_admin" : "False",
+            "base_dir": base_dir,
+            "uploads_dir" : os.path.join(base_dir,"uploads"),
+            "files_dir" : os.path.join(base_dir,"files"),
+            "servers_dir" : os.path.join(base_dir,"servers"),
+            "lib_bin_dir" : os.path.join(base_dir,"env"),
+            "sqlite_dir" : self.gdb.SQLITE_DIR
         }
+
         # set 'ob_init_flag=False' and so on
         if self.gdb.read("ob_init_flag") == None:
             self.gdb.init_data(self.default_values)
@@ -142,9 +156,9 @@ class GlobalConfig(object):
         data = self.gdb.read(property)
 
         # string to bool
-        if data == "False":
+        if data == "False" or data == "false":
             return False
-        elif data == "True":
+        elif data == "True" or data == "true":
             return True
         else:
             return data

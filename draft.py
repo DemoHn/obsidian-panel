@@ -1,6 +1,7 @@
 __author__ = "Nigshoxiz"
 
 from app.tools.mc_downloader import Downloader
+from app.controller.config_env import DatabaseEnv, JavaEnv
 config = {
     "jar_file" : "/home/demohn/spigot-1.7.10-SNAPSHOT-b1652.jar",
     "proc_cwd" : "/data/hello/E",
@@ -23,4 +24,9 @@ u.disableSSLCert()
 u.setHeaders({
    "Cookie": "oraclelicense=accept-securebackup-cookie"
 })
-print(u.download())
+#print(u.download())
+
+j = JavaEnv()
+print(j.findSystemJavaInfo())
+
+

@@ -1,12 +1,8 @@
 __author__ = "Nigshoxiz"
 
+from app.model.ob_user import AdminUsers
 from flask import Blueprint, render_template, abort, request
 from jinja2 import TemplateNotFound
-
-import traceback
-
-from app.model.ob_user import AdminUsers
-from app.controller.start.global_config import GlobalConfig
 
 start_page = Blueprint("start_page", __name__,
                        template_folder='templates',
@@ -47,7 +43,6 @@ def handle_init_config():
             try:
                 u = AdminUsers(username, password, privilege=privilege, email=email)
                 u.create()
-                print(AdminUsers.query.all())
                 #u.create()
             except:
                 return abort(500)

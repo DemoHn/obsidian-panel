@@ -1,9 +1,7 @@
-from flask import render_template,request, redirect
-from app.controller.start.global_config import GlobalConfig
+from app import app
+from app.controller.global_config import GlobalConfig
+from flask import render_template, redirect
 
-from app import db, app
-from app.model.ob_user import AdminUsers
-from datetime import datetime
 
 @app.route("/")
 def index():
