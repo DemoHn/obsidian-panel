@@ -1,47 +1,10 @@
 #!flask/bin/python
 import os
 import logging
-from app import app, db
-from sqlalchemy_utils import create_database,database_exists
 
-# init database
 from app.controller.global_config import GlobalConfig
-from app.controller.config_env import DatabaseEnv
-import logging
-
-def init_database(logger=None):
-    gc = GlobalConfig.getInstance()
-    db_env = DatabaseEnv()
-
-    #database_uri = config
-    config = app.config
-    db_type = db_env.getDatabaseType()
-
-    if gc.get("init_super_admin") == True:
-        if db_type == "sqlite":
-            database_uri = "sqlite:///%s/%s.db" % (db_env.get("sqlite_dir"),
-                                                   db_env.get("db_name"))
-        # elif db_type == "mysql":
-        else:
-            database_uri = "mysql+pymysql://%s:%s@%s/%s" % (
-                db_env.get("db_mysql_username"),
-                db_env.get("db_mysql_password"),
-                db_env.get("db_mysql_ip"),
-                db_env.get("db_name")
-            )
-
-        # let SQLAlchemy know the database URI
-        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
-        app.config["SQLALCHEMY_ECHO"] = False
-
-        if not database_exists(database_uri):
-            create_database(database_uri)
-
-        db.create_all(app=app)
-    else:
-        logger.warning("Main database NOT initialized as starter configuration not finished yet.")
-
+from app.controller.init_main_db import init_database
+from app import app, db
 
 def init_directory():
     gc = GlobalConfig.getInstance()
