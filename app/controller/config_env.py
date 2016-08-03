@@ -14,7 +14,6 @@ import traceback
 class DatabaseEnv(GlobalConfig):
     """
     class DatabaseEnvironment:
-
     """
     def __init__(self):
         GlobalConfig.__init__(self)

@@ -7,7 +7,6 @@ import re, os
 import json
 import calendar
 from app.error_code import errcode
-import pytz
 
 def get_file_directory():
     full_path = os.path.realpath(__file__)
@@ -231,8 +230,7 @@ def get_line_number(directory):
         _item = item
         item = os.path.normpath(directory+"/"+item)
         # if it is file and it is *.py
-        if os.path.isfile(item) and item.find(".py") > 0 and item.find(".pyc") < 0 \
-                and item.find("bottle.py") < 0:
+        if os.path.isfile(item) and item.find(".py") > 0 and item.find(".pyc") < 0:
             f = open(item,"rb")
             nums = len(f.readlines())
             num += nums

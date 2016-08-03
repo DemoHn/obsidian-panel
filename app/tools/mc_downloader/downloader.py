@@ -22,7 +22,7 @@ class Downloader(object):
         self.force_multithread  = force_multithread
         self.force_singlethread = force_singlethread
 
-        self.stop_flag = False
+        self.dw_type_flag = None
         self.download_correct_flag = True
         self.slices = []
 
@@ -80,6 +80,25 @@ class Downloader(object):
 
         self.ctx = ctx
 
+    def getProgress(self):
+        """
+        get downloaded size of file
+        :return:
+        """
+        if self.dw_type_flag == "single":
+            if os.path.exists(self.filename+".tmp"):
+                _size = os.path.getsize(self.filename+".tmp")
+                return (_size, self.filesize)
+            else:
+                return (0, self.filesize)
+        elif self.dw_type_flag == "multi":
+            _total = 0
+            for si in self.slices:
+                _total += si[1]
+            return (_total, self.filesize)
+        else:
+            return (None, self.filesize)
+
     def makeReport(self,slices):
         # generate *.report file when download process is abnormally terminated.
         # it is a json file , like:
@@ -112,9 +131,15 @@ class Downloader(object):
     def download(self):
         def __download_singlethread():
             print("[MC Downloader] directly downloading...")
+            self.dw_type_flag = "single"
             try:
                 req = Request(url=self.url, headers=self.headers)
                 resp = urlopen(req, context=self.ctx)
+
+                if self.filesize < 0:
+                    _header = resp.info()
+                    _len = _header.get("Content-Length")
+                    self.filesize = _len
                 #self.fd.write(resp.read())
                 shutil.copyfileobj(resp, self.fd)
                 '''
@@ -135,6 +160,7 @@ class Downloader(object):
             return True
 
         def __download_multithread():
+            self.dw_type_flag = "multi"
             _, slices = self.readReport()
             __exists  = os.path.exists(self.filename+".tmp")
 
@@ -222,7 +248,6 @@ class Downloader(object):
             try:
                 resp = urlopen(req, timeout=self.timeout, context=self.ctx)
                 # add lock
-
                 self.lock.acquire()
                 print("range = %s-%s" % (range_item))
                 self.fd.seek(range_item[0], 0)

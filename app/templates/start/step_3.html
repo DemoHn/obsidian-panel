@@ -51,11 +51,52 @@
         [v-cloak]{
             display: none;
         }
+        div.login-box{
+            width: 400px;
+        }
     </style>
 
     <script>
+        Vue.config.delimiters = ['${','}'];
         $(document).ready(function () {
-
+            var vm = new Vue({
+                el :"#database_env",
+                data : {
+                    db_type_mysql: false,
+                    connection_result : "",
+                    test_btn_enable: false
+                },
+                computed:{
+                    "db_type_mysql": function () {
+                        return (this.db_type == "mysql")
+                    },
+                    "test_btn_enable": function () {
+                        return !!(this.mysql_password.length > 0 &&
+                        this.mysql_username.length > 0);
+                    }
+                },
+                methods:{
+                    "test_connection": function (e) {
+                        var self = this;
+                        var payloads = {
+                            "mysql_username" : this.mysql_username,
+                            "mysql_password" : this.mysql_password
+                        };
+                        $.post("/start/test_mysql_connection",payloads, function (data) {
+                            try{
+                                var d = JSON.parse(data);
+                                if(d.info){
+                                    self.connection_result = "连接成功";
+                                }else{
+                                    self.connection_result = "连接失败";
+                                }
+                            }catch (e){
+                                self.connection_result = "未知错误";
+                            }
+                        })
+                    }
+                }
+            })
         });
     </script>
 </head>
@@ -71,40 +112,39 @@
         <b>STEP 3</b>: 数据库环境设置
     </p>
       <hr>
-    <form action="/start/finish" method="post">
-
+    <form action="/start/finish" method="post" id="database_env">
         <div class="form-group">
             <p>请选择数据库环境：</p>
             <div class="radio"><label>
-                <input type="radio" name="db_env" value="sqlite" checked>
+                <input type="radio" name="db_env" value="sqlite" checked v-model="db_type">
                 <span class="circle"></span><span class="check"></span>
                 SQLite (推荐)
             </label></div>
 
             <div class="radio"><label>
-                <input type="radio" name="db_env" value="mysql">
+                <input type="radio" name="db_env" value="mysql" v-model="db_type">
                 <span class="circle"></span><span class="check"></span>
                 MySQL
             </label></div>
         </div>
 
-        <div id="mysql-account" style="margin-left:3em;">
+        <div id="mysql-account" style="margin-left:3em;" v-show="db_type_mysql">
             <p><cite>请输入MySQL数据库的用户名和密码：</cite></p>
             <div class="form-group has-feedback">
-                <input id="username" type="text" class="form-control" placeholder="用户名">
+                <input id="username" type="text" class="form-control" placeholder="用户名" v-model="mysql_username">
                 <span class="fa fa-user form-control-feedback"></span>
             </div>
 
             <div class="form-group has-feedback">
-                <input id="pa" type="password" class="form-control" placeholder="密码">
+                <input id="pa" type="password" class="form-control" placeholder="密码" v-model="mysql_password">
                 <span class="fa fa-lock form-control-feedback"></span>
             </div>
 
             <div class="row">
                 <div class="col-xs-8">
-                    <button class="btn btn-raised btn-default btn-sm" type="button">测试</button>
+                    <button class="btn btn-raised btn-default btn-sm" type="button" v-on:click="test_connection" :disabled="!test_btn_enable">测试</button>
                     &nbsp;&nbsp;
-                    <span style="color:red;">连接成功</span>
+                    <span style="color:red;">${ connection_result }</span>
                 </div>
 
             </div>
@@ -119,21 +159,10 @@
         <!-- /.col -->
         </div>
     </form>
-
   </div>
   <!-- /.login-box-body -->
 </div>
 <!-- /.login-box -->
-
-<script>
-  $(function () {
-    $('input').iCheck({
-      checkboxClass: 'icheckbox_square-blue',
-      radioClass: 'iradio_square-blue',
-      increaseArea: '20%' // optional
-    });
-  });
-</script>
 </body>
 
 </html>

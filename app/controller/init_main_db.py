@@ -9,8 +9,6 @@ def init_database(logger=None):
     gc = GlobalConfig.getInstance()
     db_env = DatabaseEnv()
 
-    #database_uri = config
-    config = app.config
     db_type = db_env.getDatabaseType()
 
     if gc.get("init_super_admin") == True:
@@ -35,4 +33,3 @@ def init_database(logger=None):
         db.create_all(app=app)
     else:
         logger.warning("Main database NOT initialized as starter configuration not finished yet.")
-
