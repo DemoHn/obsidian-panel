@@ -12,7 +12,7 @@ class AdminUsers(db.Model):
     """
     username
     """
-    username = db.Column(db.String(80))
+    username = db.Column(db.String(80),unique=True)
 
     """
     User password (hashed of course.)
@@ -51,7 +51,7 @@ class AdminUsers(db.Model):
         if len(self.username) > 32:
             raise ValueError("username `%s` is too long!" % self.username)
 
-        password_re = "^\w{6,18}$"
+        password_re = "^\w{6,30}$"
         if re.match(password_re,self._password) == None:
             raise ValueError("password format doesn't matches!")
 

@@ -24,9 +24,8 @@
 
     <script src="/static/js/material.min.js"></script>
     <script src="/static/js/ripples.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/noUiSlider/6.2.0/jquery.nouislider.min.js"></script>
-    <script src="/static/js/jquery.dropdown.js"></script>
-    <link href="//cdn.rawgit.com/FezVrasta/dropdown.js/master/jquery.dropdown.css" rel="stylesheet">
+    <script src="/static/js/vue.min.js"></script>
+
     <script>
       var AdminLTEOptions = {
         //Enable sidebar expand on hover effect for sidebar mini
@@ -50,37 +49,72 @@
         div.form-group{
             margin-top: 0 !important;
         }
+
+        div.radio label{
+            color: #1a2226 !important;
+        }
+
+        p.hint-msg{
+            text-align: center;
+            font-size:16px;
+        }
     </style>
+
+    <script>
+        $(document).ready(function () {
+            var vm = new Vue({
+                el:"#java-form"
+            });
+        });
+    </script>
 </head>
 
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="##"><b>Obsidian</b> Panel</a>
+    <b>Obsidian</b> Panel
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">
     <p class="login-box-msg" id="reg-box-msg">
-        STEP 2: JAVA 环境设置
+        <b>STEP 2</b>: JAVA 环境设置
     </p>
       <hr>
-    <form action="#" method="post">
+
+    <form action="/start/?step=3" method="post" id="java-form">
+
+        <div class="row">
+            <div class="col-xs-12 hint-msg" >
+                <p class="hint-msg">未检测到java环境，是否现在安装之？</p>
+                <p class="hint-msg"><button type="button" class="btn btn-raised btn-sm">安装java环境</button></p>
+            </div>
+        </div>
         <div class="form-group">
             <div class="radio"><label>
-                <input type="radio" name="sample1" value="option1" checked="">
+                <input type="radio" name="java_env" value="sys_java" checked="">
                 <span class="circle"></span><span class="check"></span>
-                  Always
+                  java (/usr/bin/java)
                 </label>
             </div>
 
             <div class="radio"><label>
-                <input type="radio" name="sample1" value="option1" checked="">
+                <input type="radio" name="java_env" value="jdk_8u92">
                 <span class="circle"></span><span class="check"></span>
-                  JAVA
+                  jdk 8u92
+                </label>
+            </div>
+
+            <div class="radio"><label>
+                <input type="radio" name="java_env" value="jdk_8u101">
+                <span class="circle"></span><span class="check"></span>
+                  jdk 8u101
                 </label>
             </div>
         </div>
       <div class="row">
+          <div class="col-xs-12">
+              <div style="text-align: right;"><a href="/start/?step=3">跳过此步骤</a></div>
+          </div>
         <div class="col-xs-4">
         </div>
         <!-- /.col -->

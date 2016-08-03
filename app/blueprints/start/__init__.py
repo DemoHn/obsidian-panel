@@ -3,6 +3,8 @@ __author__ = "Nigshoxiz"
 from flask import Blueprint, render_template, abort, request
 from jinja2 import TemplateNotFound
 
+import traceback
+
 from app.model.ob_user import AdminUsers
 from app.controller.start.global_config import GlobalConfig
 
@@ -40,19 +42,18 @@ def handle_init_config():
             email = F.get("email")
             username = F.get("username")
             password = F.get("password")
-
             privilege = 1
 
             try:
                 u = AdminUsers(username, password, privilege=privilege, email=email)
-                res = u.create()
-
-                if res:
-                    gc = GlobalConfig.getInstance()
-                    gc.enableInitFlag()
+                u.create()
+                print(AdminUsers.query.all())
+                #u.create()
             except:
                 return abort(500)
             return render_template("start/step_2.html")
+        elif _step == 3:
+            return render_template("start/step_3.html")
         else:
             abort(404)
     except TemplateNotFound:
