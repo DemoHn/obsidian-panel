@@ -100,4 +100,5 @@ class JavaEnv(GlobalConfig):
             return (java_dir, version)
 
     def downloadJavaBinary(self):
+        # TODO why not try websocket?
         pass

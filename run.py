@@ -5,48 +5,58 @@ from app import app, db
 from sqlalchemy_utils import create_database,database_exists
 
 # init database
-config = app.config
+from app.controller.global_config import GlobalConfig
+from app.controller.config_env import DatabaseEnv
+import logging
 
-def init_database(config):
+def init_database(logger=None):
+    gc = GlobalConfig.getInstance()
+    db_env = DatabaseEnv()
+
     #database_uri = config
     config = app.config
-    db_type = config["DATABASE_TYPE"]
+    db_type = db_env.getDatabaseType()
 
-    if db_type == "sqlite":
-        database_uri = "sqlite:///%s/%s.db" % (config["SQLITE_DIR"], config["DATABASE_NAME"])
-    # elif db_type == "mysql":
+    if gc.get("init_super_admin") == True:
+        if db_type == "sqlite":
+            database_uri = "sqlite:///%s/%s.db" % (db_env.get("sqlite_dir"),
+                                                   db_env.get("db_name"))
+        # elif db_type == "mysql":
+        else:
+            database_uri = "mysql+pymysql://%s:%s@%s/%s" % (
+                db_env.get("db_mysql_username"),
+                db_env.get("db_mysql_password"),
+                db_env.get("db_mysql_ip"),
+                db_env.get("db_name")
+            )
+
+        # let SQLAlchemy know the database URI
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+        app.config["SQLALCHEMY_ECHO"] = False
+
+        if not database_exists(database_uri):
+            create_database(database_uri)
+
+        db.create_all(app=app)
     else:
-        database_uri = "mysql+pymysql://%s:%s@%s/%s" % (
-            config["MYSQL_USERNAME"],
-            config["MYSQL_PASSWORD"],
-            config["MYSQL_CONNECT_IP"],
-            config["DATABASE_NAME"]
-        )
+        logger.warning("Main database NOT initialized as starter configuration not finished yet.")
 
-    # let SQLAlchemy know the database URI
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 
-    if not database_exists(database_uri):
-        create_database(database_uri)
-
-    db.create_all(app=app)
-
-def init_directory(config):
+def init_directory():
+    gc = GlobalConfig.getInstance()
     dirs = [
-        config["BASE_DIR"],
-        config["UPLOADS_DIR"],
-        config["DOWNLOADS_DIR"],
-        config["SERVERS_DIR"],
-        config["LIB_BIN_DIR"]
+        gc.get("base_dir"),
+        gc.get("uploads_dir"),
+        gc.get("files_dir"),
+        gc.get("servers_dir"),
+        gc.get("lib_bin_dir"),
+        gc.get("sqlite_dir")
     ]
 
     for item in dirs:
         if not os.path.isdir(item):
             os.makedirs(item)
-
-    if config["DATABASE_TYPE"] == "sqlite":
-        if not os.path.isdir(config["SQLITE_DIR"]):
-            os.makedirs(config["SQLITE_DIR"])
 
 def init_logger(debug=False):
     logger = logging.getLogger("ob_panel")
@@ -65,9 +75,9 @@ def init_logger(debug=False):
     logger.addHandler(s_handler)
     return logger
 
+logger = init_logger(debug=True)
 # init directories
-init_directory(config)
-init_database(config)
-init_logger(debug=True)
+init_directory()
+init_database(logger=logger)
 
 app.run(debug=True)
