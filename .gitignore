@@ -1,5 +1,5 @@
 _draft/
-draft.py # my draft file for testing functions quickly
+draft.py
 *.pyc
 env/
 config.py

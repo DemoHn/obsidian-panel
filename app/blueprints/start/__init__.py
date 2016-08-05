@@ -83,6 +83,8 @@ def test_mysql_connection():
     except:
         return rtn.error(500)
 
+'''
 @socketio.on('my event')
 def handle_my_custom_event(wtf):
     print(wtf)
+'''
