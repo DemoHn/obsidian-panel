@@ -4,7 +4,7 @@ __author__ = "Nigshoxiz"
 from app.model.ob_user import AdminUsers
 from flask import Blueprint, render_template, abort, request
 from jinja2 import TemplateNotFound
-
+from app import socketio
 from app.utils import returnModel
 
 # import controllers
@@ -82,3 +82,7 @@ def test_mysql_connection():
         return rtn.success(db_env.testMySQLdb(mysql_username, mysql_password))
     except:
         return rtn.error(500)
+
+@socketio.on('my event')
+def handle_my_custom_event(wtf):
+    print(wtf)

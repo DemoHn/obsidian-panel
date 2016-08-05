@@ -180,10 +180,10 @@ class Downloader(object):
             print("[MC downloader] Start Downloading... threads = %s" % len(ranges))
             _i = 0
             for threads in range(len(ranges)):
-                self.slices.append([ranges[_i][0], 0, ranges[_i][1] ])
+                self.slices.append([ranges[_i][0], 0, ranges[_i][1]])
 
                 range_item = ranges[_i]
-                t = threading.Thread(target=self.downloadThread , args=(range_item, _i))
+                t = threading.Thread(target=self.downloadThread, args=(range_item, _i))
                 t.setDaemon(True)
                 t.start()
                 self.threads.append(t)
@@ -235,51 +235,53 @@ class Downloader(object):
 
         return ranges
 
-    def downloadThread(self, range_item, _index):
-        MAX_RETRY = 3
 
-        req = Request(url=self.url)
-        req.add_header("Range","bytes=%s-%s" % range_item)
-        # add header
-        for i in self.headers:
-            req.add_header(i, self.headers.get(i))
-        retry = 0
-        while True:
-            try:
-                resp = urlopen(req, timeout=self.timeout, context=self.ctx)
-                # add lock
-                self.lock.acquire()
-                print("range = %s-%s" % (range_item))
-                self.fd.seek(range_item[0], 0)
+def downloadThread(self, range_item, _index):
+    MAX_RETRY = 3
 
-                while 1:
-                    buf = resp.read(16*1024)
-                    if not buf:
-                        break
-                    self.fd.write(buf)
-                    self.slices[_index][1] += len(buf)
+    req = Request(url=self.url)
+    req.add_header("Range", "bytes=%s-%s" % range_item)
+    # add header
+    for i in self.headers:
+        req.add_header(i, self.headers.get(i))
+    retry = 0
+    while True:
+        try:
+            resp = urlopen(req, timeout=self.timeout, context=self.ctx)
+            # add lock
+            self.lock.acquire()
+            print("range = %s-%s" % (range_item))
+            self.fd.seek(range_item[0], 0)
 
-                #shutil.copyfileobj(resp, self.fd)
-                print("%s finished!"% threading.current_thread().getName())
+            while 1:
+                buf = resp.read(16 * 1024)
+                if not buf:
+                    break
+                self.fd.write(buf)
+                self.slices[_index][1] += len(buf)
+
+            # shutil.copyfileobj(resp, self.fd)
+            print("%s finished!" % threading.current_thread().getName())
+            self.lock.release()
+
+            break
+        except TypeError:
+            traceback.print_exc()
+            if self.lock.locked():
+                self.lock.release()
+            self.download_correct_flag = False
+            break
+        except:
+            traceback.print_exc()
+            print("%s - HTTP connection error %s - %s" % (
+            threading.current_thread().getName(), range_item[0], range_item[1]))
+            retry += 1
+            if retry <= MAX_RETRY:
+                print("retry %s time" % retry)
+
+            if self.lock.locked():
                 self.lock.release()
 
-                break
-            except TypeError:
-                traceback.print_exc()
-                if self.lock.locked():
-                    self.lock.release()
-                self.download_correct_flag = False
-                break
-            except :
-                traceback.print_exc()
-                print("%s - HTTP connection error %s - %s" % (threading.current_thread().getName(),range_item[0], range_item[1]) )
-                retry += 1
-                if retry <= MAX_RETRY:
-                    print("retry %s time" % retry)
-
-                if self.lock.locked():
-                    self.lock.release()
-
-            if retry == MAX_RETRY + 1:
-                self.download_correct_flag = False
-                break
+        if retry == MAX_RETRY + 1:
+            self.download_correct_flag = False
+            break

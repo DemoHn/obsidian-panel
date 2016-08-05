@@ -4,7 +4,7 @@ import logging
 
 from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
-from app import app
+from app import socketio, app
 
 def init_directory():
     gc = GlobalConfig.getInstance()
@@ -43,4 +43,5 @@ logger = init_logger(debug=True)
 init_directory()
 init_database(logger=logger)
 
-app.run(debug=True)
+socketio.run(app)
+#app.run(debug=True)

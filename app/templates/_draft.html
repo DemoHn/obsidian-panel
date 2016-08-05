@@ -25,6 +25,8 @@
     <script src="/static/js/app.js"></script>
     <script src="/static/js/slimscroll.min.js"></script>
     <script src="/static/js/vue.min.js"></script>
+    <script src="/static/js/socketio.min.js"></script>
+
 <script>
   var AdminLTEOptions = {
     //Enable sidebar expand on hover effect for sidebar mini
@@ -190,6 +192,11 @@
         }
 
     })
+
+    var socket = io.connect('http://localhost:5000');
+    socket.on('connect', function() {
+        socket.emit('my event', {data: 'I\'m connected!'});
+    });
 </script>
 
 </body>
