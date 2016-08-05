@@ -10,7 +10,7 @@ import ssl
 
 class Downloader(object):
 
-    def __init__(self,url, force_multithread=False , force_singlethread=False):
+    def __init__(self,url, force_multithread=False , force_singlethread=False, download_dir=""):
         self.url = url
         self.filesize = 0
         self.support_range = False
@@ -25,17 +25,19 @@ class Downloader(object):
         self.dw_type_flag = None
         self.download_correct_flag = True
         self.slices = []
-
+        self.download_dir = download_dir
         # urlopen's ctx
         self.ctx = None
         self.headers = {}
         try:
             self.filename = self.url.split("/")[-1]
+            _tmp_file = os.path.join(download_dir, self.filename + ".tmp")
+
             _ , __ = self.readReport()
             if __ == None:
-                self.fd = open(self.filename + ".tmp", "wb")
+                self.fd = open(_tmp_file, "wb")
             else:
-                self.fd = open(self.filename + ".tmp", "r+b")
+                self.fd = open(_tmp_file, "r+b")
         except:
             self.fd.close()
 
@@ -89,8 +91,9 @@ class Downloader(object):
         :return:
         """
         if self.dw_type_flag == "single":
-            if os.path.exists(self.filename+".tmp"):
-                _size = os.path.getsize(self.filename+".tmp")
+            _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
+            if os.path.exists(_tmp_file):
+                _size = os.path.getsize(_tmp_file)
                 return (_size, self.filesize)
             else:
                 return (0, self.filesize)
@@ -103,6 +106,7 @@ class Downloader(object):
             return (None, self.filesize)
 
     def makeReport(self,slices):
+        _report_file = os.path.join(self.download_dir, self.filename+".report")
         # generate *.report file when download process is abnormally terminated.
         # it is a json file , like:
         # {
@@ -114,12 +118,12 @@ class Downloader(object):
             "support_range": self.support_range,
             "slices": slices
         }
-        f = open(self.filename+".report", "w+")
+        f = open(_report_file, "w+")
         f.write(json.dumps(rtn))
         f.close()
 
     def readReport(self):
-        _filename = self.filename+".report"
+        _filename = os.path.join(self.download_dir, self.filename+".report")
 
         if os.path.isfile(_filename):
             f = open(_filename,"r")
@@ -156,7 +160,8 @@ class Downloader(object):
         def __download_multithread():
             self.dw_type_flag = "multi"
             _, slices = self.readReport()
-            __exists  = os.path.exists(self.filename+".tmp")
+            _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
+            __exists  = os.path.exists(_tmp_file)
 
             ranges = []
             if slices != None and __exists == True:
@@ -177,7 +182,7 @@ class Downloader(object):
                 self.slices.append([ranges[_i][0], 0, ranges[_i][1]])
 
                 range_item = ranges[_i]
-                t = threading.Thread(target=self.downloadThread, args=(range_item, _i))
+                t = threading.Thread(target=self.download_thread, args=(range_item, _i))
                 t.setDaemon(True)
                 t.start()
                 self.threads.append(t)
@@ -210,18 +215,20 @@ class Downloader(object):
 
         if res:
             __repeat_file_counter = 0
+            _fn = os.path.join(self.download_dir, self.filename)
             _filename = self.filename
 
             while True:
                 if os.path.exists(_filename):
                     __repeat_file_counter += 1
-                    _filename = self.filename + "." + str(__repeat_file_counter)
+                    _filename = _fn + "." + str(__repeat_file_counter)
                 else:
-                    shutil.move(self.filename+".tmp",_filename)
+                    shutil.move(_fn+".tmp",_filename)
                     break
 
-            if os.path.exists(self.filename+".report"):
-                os.remove(self.filename+".report")
+            _report_file = os.path.join(self.download_dir, self.filename) + ".report"
+            if os.path.exists(_report_file):
+                os.remove(_report_file)
         return res
 
     def splitRange(self):
@@ -239,7 +246,7 @@ class Downloader(object):
 
         return ranges
 
-    def downloadThread(self, range_item, _index):
+    def download_thread(self, range_item, _index):
         MAX_RETRY = 3
 
         req = Request(url=self.url)

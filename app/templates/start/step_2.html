@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>初始化 - 数据库</title>
+    <title>初始化 - JAVA</title>
     <!-- Material Design fonts -->
     <!--<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">-->
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
@@ -25,7 +25,7 @@
     <script src="/static/js/material.min.js"></script>
     <script src="/static/js/ripples.min.js"></script>
     <script src="/static/js/vue.min.js"></script>
-
+    <script src="/static/js/socketio.min.js"></script>
     <script>
       var AdminLTEOptions = {
         //Enable sidebar expand on hover effect for sidebar mini
@@ -61,6 +61,10 @@
 
         div.login-box{
             width: 400px;
+        }
+        
+        [v-cloak]{
+            display: none;
         }
     </style>
 
