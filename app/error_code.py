@@ -8,11 +8,11 @@ errcode['300'] = "outdated"
 
 # refuse op
 errcode['340'] = "refuse operation"
-# sock
+
 errcode['400'] = "json parsing error"
 errcode['401'] = "input data is not complete"
 errcode['402'] = "operation is not allowed"
-errcode['403'] = "client IP not Host!"
+errcode['403'] = "Operation Forbidden"
 errcode['405'] = "invalid keyword"
 # new_service dispatch error
 errcode['420'] = "dispatch unknown error"

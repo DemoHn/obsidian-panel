@@ -7,7 +7,7 @@ from app import socketio
 from app.utils import returnModel, salt
 import hashlib
 # import controllers
-from app.controller.config_env import DatabaseEnv
+from app.controller.config_env import DatabaseEnv, JavaEnv
 from app.controller.global_config import GlobalConfig
 
 start_page = Blueprint("start_page", __name__,
@@ -44,10 +44,9 @@ def handle_init_config():
             email = F.get("email")
             username = F.get("username")
             password = F.get("password")
-            privilege = 1
 
             try:
-                # NOTICE: At the beginning, we use temperate sqlite database to store superadmin's
+                # NOTICE: At the beginning, wejava_executable use temperate sqlite database to store superadmin's
                 # username and password. Then after initialization, just migrate them to the formal
                 # database.
                 gc = GlobalConfig.getInstance()
@@ -69,6 +68,7 @@ def handle_init_config():
 def init_finish():
     try:
         F = request.form
+        # TODO 1
         return render_template("start/finish.html")
     except TemplateNotFound:
         abort(404)
@@ -81,10 +81,47 @@ def init_finish():
 # to operate. Thus, it's better to warn users to finish the starter steps as soon as possible.
 @start_page.route("/detect_java_environment")
 def detect_java_environment():
+    rtn = returnModel("string")
+    gc  = GlobalConfig.getInstance()
+
+    if gc.get("init_super_admin") == True:
+        return rtn.error(403)
+    try:
+        env = JavaEnv()
+        java_envs = []
+        __dir, __ver = env.findSystemJavaInfo()
+        if __dir != None:
+            _model = {
+                "name" : "java",
+                "dir" : "(%s)" % __dir
+            }
+            java_envs.append(_model)
+
+        _arr = env.findUserJavaInfo()
+        for java_ver in _arr:
+            _model = {
+                "name" : "jdk %s" % java_ver['version'],
+                "dir" : "(%s)" % java_ver["dir"]
+            }
+
+            java_envs.append(_model)
+        return rtn.success(java_envs)
+    except:
+        return rtn.error(500)
     pass
 
 @start_page.route("/download_java")
 def download_java():
+    rtn = returnModel("string")
+    gc  = GlobalConfig.getInstance()
+
+    if gc.get("init_super_admin") == True:
+        return rtn.error(403)
+
+    bin_dir   = gc.get("lib_bin_dir")
+    files_dir = gc.get("files_dir")
+
+    
     pass
 
 # in step=3 (test MySQL connection)

@@ -134,8 +134,7 @@ class JavaEnv(GlobalConfig):
 
         return user_java_infos
 
-    def downloadJavaBinary(self):
-
+    def ___downloadJavaBinary(self):
         def download_thread(dl):
             dl.download()
         # by default, we just download jdk 8u92
