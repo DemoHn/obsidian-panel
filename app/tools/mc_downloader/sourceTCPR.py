@@ -137,5 +137,4 @@ class sourceTCPR(TCPRfilters):
         if html == None:
             return list
         else:
-            print(self.filter("bukkit",html))
-            return list
+            return self.filter("bukkit",html)
