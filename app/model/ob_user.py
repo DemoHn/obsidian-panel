@@ -2,9 +2,9 @@ from app import db
 import datetime
 import hashlib
 import re
-
+from app.utils import salt
 # password salt
-SALT = b"\x87\x93\xfb\x00\xfa\xc2\x88\xba$\x86\x98\'\xba\xa8\xc6"
+SALT = salt
 
 class AdminUsers(db.Model):
     __tablename__ = "ob_user"

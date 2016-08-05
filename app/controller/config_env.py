@@ -89,8 +89,9 @@ class JavaEnv(GlobalConfig):
         else:
             self.set("sys_java_dir", java_dir)
             p = subprocess.Popen(java_dir+" -version", shell=True,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.STDOUT)
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT
+                                 )
 
             _pb = p.communicate()
             version_string_arr = _pb[0].decode("utf-8").split("\n")
@@ -99,13 +100,46 @@ class JavaEnv(GlobalConfig):
             self.set("sys_java_version", version)
             return (java_dir, version)
 
+    def findUserJavaInfo(self):
+        bin_dir = self.get("lib_bin_dir")
+        dirs = []
+
+        user_java_infos = []
+        # add subdirs in this directory
+        for item in os.listdir(bin_dir):
+            if os.path.isdir(item):
+                # java executable exists
+                if os.path.isfile(os.path.join(item,"bin/java")):
+                    dirs.append(item)
+
+        # next, check java version
+        for item in dirs:
+            java_executable = os.path.join(item, "bin/java")
+            p = subprocess.Popen(java_executable+" -version", shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+
+            _pb = p.communicate()
+
+            version_string_arr = _pb[0].decode("utf-8").split("\n")
+            g = re.search("[0-9\.\_]+", version_string_arr[0])
+
+            if g != None:
+                version = g.group()
+                _model = {
+                    "dir" : item, # parent directory
+                    "version" : version
+                }
+                user_java_infos.append(_model)
+
     def downloadJavaBinary(self):
 
         def download_thread(dl):
             dl.download()
         # by default, we just download jdk 8u92
-        url = "http://download.oracle.com/otn-pub/java/jdk/8u92-b14/jdk-8u92-linux-x64.tar.gz"
+        url = "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz"
         #url = "https://ftp.gnu.org/gnu/gcc/gcc-2.8.1.tar.gz"
+
         dl = Downloader(url,force_singlethread=False, download_dir=self.get("files_dir"))
         dl.disableSSLCert()
         dl.setHeaders({
@@ -114,8 +148,8 @@ class JavaEnv(GlobalConfig):
 
         t = threading.Thread(target=download_thread,args=(dl,))
         t.start()
-        import time
 
+        import time
         last = 0
         while True:
             prog = dl.getProgress()
@@ -130,4 +164,5 @@ class JavaEnv(GlobalConfig):
                     print("Download percent %s%%, velocity:%s KiB/s" % (_percent,_velocity))
                     last = prog[0]
             time.sleep(1)
+
         pass

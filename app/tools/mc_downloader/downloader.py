@@ -10,7 +10,7 @@ import ssl
 
 class Downloader(object):
 
-    def __init__(self,url, force_multithread=False , force_singlethread=False, download_dir=""):
+    def __init__(self, url, force_multithread=False , force_singlethread=False, download_dir=""):
         self.url = url
         self.filesize = 0
         self.support_range = False
@@ -21,19 +21,23 @@ class Downloader(object):
 
         self.force_multithread  = force_multithread
         self.force_singlethread = force_singlethread
+        self.download_dir = download_dir
 
         self.dw_type_flag = None
         self.download_correct_flag = True
         self.slices = []
-        self.download_dir = download_dir
-        # urlopen's ctx
+
+        self.THREADS_NUM = 8
+
+        # headers
+        # urlopen SSL ctx
         self.ctx = None
         self.headers = {}
         try:
+            # get filename from url
             self.filename = self.url.split("/")[-1]
-            _tmp_file = os.path.join(download_dir, self.filename + ".tmp")
-
-            _ , __ = self.readReport()
+            _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
+            _ , __ = self._read_report()
             if __ == None:
                 self.fd = open(_tmp_file, "wb")
             else:
@@ -41,13 +45,21 @@ class Downloader(object):
         except:
             self.fd.close()
 
-        self.THREADS_NUM = 8
-
+    # del constructor. After all, all d
     def __del__(self):
         self.fd.close()
 
-    def setThreadNumbers(self,num):
-        self.THREADS_NUM = num
+    def setThreads(self,thread_num):
+        """
+        indicate the number of creating threads when using
+        multithread download mode.
+        :param thread_num: the number of threads to create. Default is 8.
+        :return:
+        """
+        self.THREADS_NUM = thread_num
+
+    def setHeaders(self,headers):
+        self.headers = headers
 
     def analyse(self,headers):
         req = Request(url=self.url, method="HEAD")
@@ -75,15 +87,16 @@ class Downloader(object):
             self.support_range = False
             self.filesize = -1
 
-    def setHeaders(self,headers):
-        self.headers = headers
-
     def disableSSLCert(self):
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
 
         self.ctx = ctx
+
+    def downloadEnd(self):
+        if self.download_correct_flag == False:
+            return True
 
     def getProgress(self):
         """
@@ -105,7 +118,7 @@ class Downloader(object):
         else:
             return (None, self.filesize)
 
-    def makeReport(self,slices):
+    def _make_report(self,slices):
         _report_file = os.path.join(self.download_dir, self.filename+".report")
         # generate *.report file when download process is abnormally terminated.
         # it is a json file , like:
@@ -122,7 +135,7 @@ class Downloader(object):
         f.write(json.dumps(rtn))
         f.close()
 
-    def readReport(self):
+    def _read_report(self):
         _filename = os.path.join(self.download_dir, self.filename+".report")
 
         if os.path.isfile(_filename):
@@ -159,7 +172,7 @@ class Downloader(object):
 
         def __download_multithread():
             self.dw_type_flag = "multi"
-            _, slices = self.readReport()
+            _, slices = self._read_report()
             _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
             __exists  = os.path.exists(_tmp_file)
 
@@ -174,7 +187,7 @@ class Downloader(object):
                         ranges.append( (item[0] + item[1], item[2]) )
                 print("[MC downloader] Resume Downloading...")
             else:
-                ranges = self.splitRange()
+                ranges = self._split_range()
 
             print("[MC downloader] Start Downloading... threads = %s" % len(ranges))
             _i = 0
@@ -192,13 +205,13 @@ class Downloader(object):
                 for t in self.threads:
                     t.join()
             except KeyboardInterrupt:
-                self.makeReport(self.slices)
+                self._make_report(self.slices)
                 return False
 
             if self.download_correct_flag == True:
                 return True
             else:
-                self.makeReport(self.slices)
+                self._make_report(self.slices)
                 return False
         # get filesize, Partial Support, etc.
         self.analyse(self.headers)
@@ -213,25 +226,27 @@ class Downloader(object):
             else:
                 res = __download_singlethread()
 
+        # after file is successfully downloaded
         if res:
             __repeat_file_counter = 0
             _fn = os.path.join(self.download_dir, self.filename)
-            _filename = self.filename
-
+            _filename = _fn
             while True:
                 if os.path.exists(_filename):
                     __repeat_file_counter += 1
                     _filename = _fn + "." + str(__repeat_file_counter)
                 else:
-                    shutil.move(_fn+".tmp",_filename)
+                    _tmp_file = _fn + ".tmp"
+                    shutil.move(_tmp_file, _filename)
                     break
 
-            _report_file = os.path.join(self.download_dir, self.filename) + ".report"
+            _report_file = os.path.join(self.download_dir, self.filename + ".report")
             if os.path.exists(_report_file):
                 os.remove(_report_file)
+
         return res
 
-    def splitRange(self):
+    def _split_range(self):
         onceDownloadSize = int(self.filesize / self.THREADS_NUM)
         ranges = []
         _index = 0
@@ -259,11 +274,22 @@ class Downloader(object):
         while True:
             try:
                 resp = urlopen(req, timeout=self.timeout, context=self.ctx)
+
+                # slices format: [<start size>, <downloaded size>,<end size>]
+                _download_slice = self.slices[_index][1]
+
+                _range_item = [0,0]
+                if self.slices[_index][1] == 0:
+                    _range_item[0] = range_item[0]
+                    _range_item[1] = range_item[1]
+                else:
+                    _range_item[0] = range_item[0] + _download_slice
+                    _range_item[1] = range_item[1]
+                print("range = %s-%s" % (_range_item[0], _range_item[1]))
+
                 # add lock
                 self.lock.acquire()
-                print("range = %s-%s" % (range_item))
-                self.slices[_index][1] = 0
-                self.fd.seek(range_item[0], 0)
+                self.fd.seek(range_item[0] + _download_slice, 0)
                 self.lock.release()
 
                 while 1:
@@ -285,6 +311,7 @@ class Downloader(object):
                 traceback.print_exc()
                 if self.lock.locked():
                     self.lock.release()
+
                 self.download_correct_flag = False
                 break
             except:

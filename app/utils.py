@@ -8,6 +8,8 @@ import json
 import calendar
 from app.error_code import errcode
 
+# password hash salt
+salt = b"\x87\x93\xfb\x00\xfa\xc2\x88\xba$\x86\x98\'\xba\xa8\xc6"
 def get_file_directory():
     full_path = os.path.realpath(__file__)
     path,file = os.path.split(full_path)
