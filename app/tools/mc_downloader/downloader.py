@@ -44,6 +44,9 @@ class Downloader(object):
     def __del__(self):
         self.fd.close()
 
+    def setThreadNumbers(self,num):
+        self.THREADS_NUM = num
+
     def analyse(self,headers):
         req = Request(url=self.url, method="HEAD")
         req.add_header("Range","bytes=0-")
@@ -141,20 +144,11 @@ class Downloader(object):
                     _len = _header.get("Content-Length")
                     self.filesize = _len
                 #self.fd.write(resp.read())
-                shutil.copyfileobj(resp, self.fd)
-                '''
-                while True:
-                    buffer = resp.read(1024)
-                    if not buffer:
-                        break
-                    self.fd.write(buffer)
-                '''
+                shutil.copyfileobj(resp, self.fd,length=8*1024)
+
             except HTTPError:
-                print("HTTP error.")
                 return False
             except:
-                traceback.print_exc()
-                print("error")
                 return False
 
             return True
@@ -215,7 +209,17 @@ class Downloader(object):
                 res = __download_singlethread()
 
         if res:
-            shutil.move(self.filename+".tmp",self.filename)
+            __repeat_file_counter = 0
+            _filename = self.filename
+
+            while True:
+                if os.path.exists(_filename):
+                    __repeat_file_counter += 1
+                    _filename = self.filename + "." + str(__repeat_file_counter)
+                else:
+                    shutil.move(self.filename+".tmp",_filename)
+                    break
+
             if os.path.exists(self.filename+".report"):
                 os.remove(self.filename+".report")
         return res
@@ -235,53 +239,58 @@ class Downloader(object):
 
         return ranges
 
+    def downloadThread(self, range_item, _index):
+        MAX_RETRY = 3
 
-def downloadThread(self, range_item, _index):
-    MAX_RETRY = 3
+        req = Request(url=self.url)
+        req.add_header("Range", "bytes=%s-%s" % range_item)
+        # add header
+        for i in self.headers:
+            req.add_header(i, self.headers.get(i))
 
-    req = Request(url=self.url)
-    req.add_header("Range", "bytes=%s-%s" % range_item)
-    # add header
-    for i in self.headers:
-        req.add_header(i, self.headers.get(i))
-    retry = 0
-    while True:
-        try:
-            resp = urlopen(req, timeout=self.timeout, context=self.ctx)
-            # add lock
-            self.lock.acquire()
-            print("range = %s-%s" % (range_item))
-            self.fd.seek(range_item[0], 0)
-
-            while 1:
-                buf = resp.read(16 * 1024)
-                if not buf:
-                    break
-                self.fd.write(buf)
-                self.slices[_index][1] += len(buf)
-
-            # shutil.copyfileobj(resp, self.fd)
-            print("%s finished!" % threading.current_thread().getName())
-            self.lock.release()
-
-            break
-        except TypeError:
-            traceback.print_exc()
-            if self.lock.locked():
-                self.lock.release()
-            self.download_correct_flag = False
-            break
-        except:
-            traceback.print_exc()
-            print("%s - HTTP connection error %s - %s" % (
-            threading.current_thread().getName(), range_item[0], range_item[1]))
-            retry += 1
-            if retry <= MAX_RETRY:
-                print("retry %s time" % retry)
-
-            if self.lock.locked():
+        retry = 0
+        while True:
+            try:
+                resp = urlopen(req, timeout=self.timeout, context=self.ctx)
+                # add lock
+                self.lock.acquire()
+                print("range = %s-%s" % (range_item))
+                self.slices[_index][1] = 0
+                self.fd.seek(range_item[0], 0)
                 self.lock.release()
 
-        if retry == MAX_RETRY + 1:
-            self.download_correct_flag = False
-            break
+                while 1:
+                    buf = resp.read(8 * 1024)
+                    if not buf:
+                        break
+
+                    self.lock.acquire()
+                    self.fd.write(buf)
+                    self.lock.release()
+
+                    self.slices[_index][1] += len(buf)
+
+                # shutil.copyfileobj(resp, self.fd)
+                print("%s finished!" % threading.current_thread().getName())
+
+                break
+            except TypeError:
+                traceback.print_exc()
+                if self.lock.locked():
+                    self.lock.release()
+                self.download_correct_flag = False
+                break
+            except:
+                traceback.print_exc()
+                print("%s - HTTP connection error %s - %s" % (
+                threading.current_thread().getName(), range_item[0], range_item[1]))
+                retry += 1
+                if retry <= MAX_RETRY:
+                    print("retry %s time" % retry)
+
+                if self.lock.locked():
+                    self.lock.release()
+
+            if retry == MAX_RETRY + 1:
+                self.download_correct_flag = False
+                break

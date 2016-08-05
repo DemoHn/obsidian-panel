@@ -10,6 +10,7 @@ import subprocess
 import pymysql
 import logging
 import traceback
+import threading
 
 class DatabaseEnv(GlobalConfig):
     """
@@ -99,5 +100,34 @@ class JavaEnv(GlobalConfig):
             return (java_dir, version)
 
     def downloadJavaBinary(self):
-        # TODO why not try websocket?
+
+        def download_thread(dl):
+            dl.download()
+        # by default, we just download jdk 8u92
+        url = "http://download.oracle.com/otn-pub/java/jdk/8u92-b14/jdk-8u92-linux-x64.tar.gz"
+        #url = "https://ftp.gnu.org/gnu/gcc/gcc-2.8.1.tar.gz"
+        dl = Downloader(url,force_singlethread=False)
+        dl.disableSSLCert()
+        dl.setHeaders({
+            "Cookie": "oraclelicense=accept-securebackup-cookie"
+        })
+
+        t = threading.Thread(target=download_thread,args=(dl,))
+        t.start()
+        import time
+
+        last = 0
+        while True:
+            prog = dl.getProgress()
+
+            if prog[1] > 0 and prog[0] != None:
+                if prog[1] == prog[0]:
+                    break
+                else:
+                    _percent = round(prog[0] / prog[1] * 100, 1)
+                    _velocity = round((prog[0] - last) / 1024,1)
+
+                    print("Download percent %s%%, velocity:%s KiB/s" % (_percent,_velocity))
+                    last = prog[0]
+            time.sleep(1)
         pass
