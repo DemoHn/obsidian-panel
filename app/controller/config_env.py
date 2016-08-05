@@ -103,14 +103,14 @@ class JavaEnv(GlobalConfig):
     def findUserJavaInfo(self):
         bin_dir = self.get("lib_bin_dir")
         dirs = []
-
         user_java_infos = []
         # add subdirs in this directory
         for item in os.listdir(bin_dir):
-            if os.path.isdir(item):
+            _dir = os.path.join(bin_dir, item)
+            if os.path.isdir(_dir):
                 # java executable exists
-                if os.path.isfile(os.path.join(item,"bin/java")):
-                    dirs.append(item)
+                if os.path.isfile(os.path.join(_dir,"bin/java")):
+                    dirs.append(_dir)
 
         # next, check java version
         for item in dirs:
@@ -131,6 +131,8 @@ class JavaEnv(GlobalConfig):
                     "version" : version
                 }
                 user_java_infos.append(_model)
+
+        return user_java_infos
 
     def downloadJavaBinary(self):
 
