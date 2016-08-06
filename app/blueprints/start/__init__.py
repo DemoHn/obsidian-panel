@@ -5,10 +5,13 @@ from flask import Blueprint, render_template, abort, request
 from jinja2 import TemplateNotFound
 from app import socketio
 from app.utils import returnModel, salt
+
+import threading
 import hashlib
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
 from app.controller.global_config import GlobalConfig
+from app.tools.mc_downloader import  Downloader
 
 start_page = Blueprint("start_page", __name__,
                        template_folder='templates',
@@ -82,7 +85,7 @@ def init_finish():
 @start_page.route("/detect_java_environment")
 def detect_java_environment():
     rtn = returnModel("string")
-    gc  = GlobalConfig.getInstance()
+    gc  = GlobalConfig()
 
     if gc.get("init_super_admin") == True:
         return rtn.error(403)
@@ -100,7 +103,7 @@ def detect_java_environment():
         _arr = env.findUserJavaInfo()
         for java_ver in _arr:
             _model = {
-                "name" : "jdk %s" % java_ver['version'],
+                "name" : "JDK %s" % java_ver['version'],
                 "dir" : "(%s)" % java_ver["dir"]
             }
 
@@ -112,6 +115,10 @@ def detect_java_environment():
 
 @start_page.route("/download_java")
 def download_java():
+
+    def _download_thread(dl):
+        dl.download()
+
     rtn = returnModel("string")
     gc  = GlobalConfig.getInstance()
 
@@ -121,8 +128,22 @@ def download_java():
     bin_dir   = gc.get("lib_bin_dir")
     files_dir = gc.get("files_dir")
 
-    
-    pass
+    # TODO only jdk 8u102?
+    java_url = "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz"
+
+    try:
+        dl = Downloader(java_url, force_singlethread=False, download_dir=files_dir)
+        dl.disableSSLCert()
+        dl.setHeaders({
+            "Cookie": "oraclelicense=accept-securebackup-cookie"
+        })
+
+        t = threading.Thread(target=_download_thread, args=(dl,))
+        t.start()
+
+        return rtn.success("success")
+    except:
+        return rtn.error(500)
 
 # in step=3 (test MySQL connection)
 @start_page.route("/test_mysql_connection", methods=["POST"])

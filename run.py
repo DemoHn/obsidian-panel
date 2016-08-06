@@ -43,5 +43,5 @@ logger = init_logger(debug=True)
 init_directory()
 init_database(logger=logger)
 
-socketio.run(app)
+socketio.run(app,debug=True)
 #app.run(debug=True)

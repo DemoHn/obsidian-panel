@@ -63,15 +63,84 @@
             width: 400px;
         }
         
+        div.msg-box{
+            position: relative;
+            margin-bottom:10px;
+        }
+        div.overlay{
+            background-color: rgba(180,180,180,0.08);
+            height:100%;
+            width:100%;
+            position:absolute;
+            padding-top:1.6em;
+        }
+
+        div.overlay-msg{
+            font-size:18px;
+            margin-top:0.5em;
+            text-align: center;
+            color: #777;
+        }
         [v-cloak]{
             display: none;
+        }
+        label span._sys_dir{
+            -ms-word-break: break-word;
+            word-break:break-word;
+        }
+
+        label{
+            display: block;
+            padding-left:2.4em !important;
+        }
+        label span._sys_name{
+            display: inline-block;
+            color: black;
+        }
+
+        label span._sys_dir{
+            color: gray;
+            font-size : 0.8em;
+            display: inline-block;
+        }
+
+        span._float{
+            position:relative;
         }
     </style>
 
     <script>
+        Vue.config.delimiters = ['${','}'];
         $(document).ready(function () {
             var vm = new Vue({
-                el:"#java-form"
+                el:"#java-form",
+                data:{
+                    "loading" : true,
+                    "no_java_env" : false,
+                    "fetch_java_data_error" : false,
+                    "java_info" : []
+                },
+                ready:function () {
+                    var self = this;
+                    $.get("/start/detect_java_environment",function (data) {
+                        try{
+                            d = JSON.parse(data);
+                            if(d.status == "success"){
+                                var info = d.info;
+                                self.loading = false;
+                                if(info.length == 0){
+                                    self.no_java_env = true;
+                                }else{
+                                    self.java_info = info;
+                                }
+                            }else{
+                                self.fetch_java_data_error = true;
+                            }
+                        }catch (e){
+                            self.fetch_java_data_error = true;
+                        }
+                    })
+                }
             });
         });
     </script>
@@ -90,49 +159,49 @@
       <hr>
 
     <form action="/start/?step=3" method="post" id="java-form">
+        <div class="msg-box" style="min-height: 150px;">
+            <div class="overlay" v-show="loading" v-cloak>
+                <div class="overlay-msg">
+                    正在检测JAVA环境中...请稍候片刻
+                </div>
+                <div class="overlay-msg" style="font-size:30px;"><i class="fa fa-spin fa-refresh"></i></div>
+                <div class="overlay-msg" id="refresh_error" v-show="fetch_java_data_error" v-cloak>读取数据出错:-( 请刷新以重试</div>
+            </div>
+
+            <div class="row" v-show="!loading && no_java_env" v-cloak>
+                <div class="col-xs-12 hint-msg" >
+                    <p class="hint-msg">未检测到java环境，是否现在安装？</p>
+                    <p class="hint-msg"><button type="button" class="btn btn-raised btn-sm">安装java环境</button></p>
+                </div>
+            </div>
+            <div class="form-group" v-show="!loading && !no_java_env" v-cloak>
+                <div v-for="item in java_info">
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="java_env" value="sys_java" checked="">
+                            <span class="circle"></span><span class="check"></span>
+                            <span class="_sys_name _float">${item.name}</span> <br>
+                            <span class="_sys_dir _float">${item.dir}</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
 
         <div class="row">
-            <div class="col-xs-12 hint-msg" >
-                <p class="hint-msg">未检测到java环境，是否现在安装之？</p>
-                <p class="hint-msg"><button type="button" class="btn btn-raised btn-sm">安装java环境</button></p>
+            <div class="col-xs-12">
+                <div style="text-align: right;"><a href="/start/?step=3">跳过此步骤</a></div>
             </div>
+            <div class="col-xs-4">
+            </div>
+            <!-- /.col -->
+            <div class="col-xs-8" style="text-align:right;">
+                <button type="submit" class="btn btn-raised btn-info">下一步</button>
+            </div>
+            <!-- /.col -->
         </div>
-        <div class="form-group">
-            <div v-for="java-environment"></div>
-            <!-- system jdk -->
-            <div class="radio"><label>
-                <input type="radio" name="java_env" value="sys_java" checked="">
-                <span class="circle"></span><span class="check"></span>
-                  java (/usr/bin/java)
-                </label>
-            </div>
-            <!-- downloading files-->
-            <div class="radio"><label>
-                <input type="radio" name="java_env" value="jdk_8u92">
-                <span class="circle"></span><span class="check"></span>
-                  jdk 8u92
-                </label>
-            </div>
-            <!-- downloading files-->
-            <div class="radio"><label>
-                <input type="radio" name="java_env" value="jdk_8u101">
-                <span class="circle"></span><span class="check"></span>
-                  jdk 8u101
-                </label>
-            </div>
-        </div>
-      <div class="row">
-          <div class="col-xs-12">
-              <div style="text-align: right;"><a href="/start/?step=3">跳过此步骤</a></div>
-          </div>
-        <div class="col-xs-4">
-        </div>
-        <!-- /.col -->
-          <div class="col-xs-8" style="text-align:right;">
-              <button type="submit" class="btn btn-raised btn-info">下一步</button>
-          </div>
-        <!-- /.col -->
-      </div>
     </form>
 
   </div>

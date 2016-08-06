@@ -141,7 +141,7 @@ class JavaEnv(GlobalConfig):
         url = "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz"
         #url = "https://ftp.gnu.org/gnu/gcc/gcc-2.8.1.tar.gz"
 
-        dl = Downloader(url,force_singlethread=False, download_dir=self.get("files_dir"))
+        dl = Downloader(url, force_singlethread=False, download_dir=self.get("files_dir"))
         dl.disableSSLCert()
         dl.setHeaders({
             "Cookie": "oraclelicense=accept-securebackup-cookie"
