@@ -118,6 +118,10 @@
 
     <script>
         Vue.config.delimiters = ['${','}'];
+
+        var _idf;
+        var socket = io.connect('/');
+
         $(document).ready(function () {
             var vm = new Vue({
                 el:"#java-form",
@@ -147,11 +151,65 @@
                             self.fetch_java_data_error = true;
                         }
                     })
+                },
+                methods:{
+                    "down_java" : function (e) {
+                        $.get("/start/download_java", function (data) {
+                            try{
+                                d = JSON.parse(data);
+                                if(d.status == "success"){
+                                    hash = d.info;
+
+                                    _idf = setInterval(function () {
+                                        socket.emit("ask_download_progess",hash)
+                                    },1000)
+                                }
+                            }catch (e){
+
+                            }
+                        });
+                        $('#download_java_modal').modal();
+                    }
                 }
             });
 
             var modal_vm = new Vue({
+                el:"#download_java_modal",
+                data:{
+                    download_size:"0",
+                    total_size:"0",
+                    percent:"0%",
+                    "modal_finish": false
+                }
+            });
 
+            socket.on("download_progress", function (data) {
+                function _to_file_size(size){
+                    // GB
+                    if(size > 1024 * 1024 * 1024){
+                        _s = size / (1024 * 1024 * 1024);
+                        return _s.toFixed(1)+"G"
+                    }else if(size > 1024 * 1024){
+                        _s = size / (1024 * 1024);
+                        return _s.toFixed(1)+"M"
+                    }else if(size > 1024){
+                        _s = size / (1024);
+                        return _s.toFixed(1)+"K"
+                    }else{
+                        _s = size;
+                        return _s.toFixed(1)+"K"
+                    }
+                }
+
+                if(data.finished == false){
+                    modal_vm.download_size = _to_file_size(data.current);
+                    modal_vm.total_size = _to_file_size(data.total);
+
+                    modal_vm.percent = (data.current / data.total * 100).toFixed(1) + "%";
+                }else{
+                    clearInterval(_idf);
+                    modal_vm.modal_finish = true;
+                }
             })
         });
     </script>
@@ -182,7 +240,7 @@
             <div class="row" v-show="!loading && no_java_env" v-cloak>
                 <div class="col-xs-12 hint-msg" >
                     <p class="hint-msg">未检测到java环境，是否现在安装？</p>
-                    <p class="hint-msg"><button type="button" class="btn btn-raised btn-sm">安装java环境</button></p>
+                    <p class="hint-msg"><button type="button" class="btn btn-raised btn-sm" v-on:click="down_java">安装java环境</button></p>
                 </div>
             </div>
             <div class="form-group" v-show="!loading && !no_java_env" v-cloak>
@@ -250,7 +308,6 @@
 
 </body>
 <script>
-    $('#download_java_modal').modal();
     $.material.init();
 </script>
 </html>

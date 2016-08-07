@@ -1,7 +1,6 @@
 __author__ = "Nigshoxiz"
 
 from app.controller.global_config import GlobalConfig
-from app.tools.mc_downloader import Downloader
 
 import tarfile
 import os,re
@@ -133,37 +132,3 @@ class JavaEnv(GlobalConfig):
                 user_java_infos.append(_model)
 
         return user_java_infos
-
-    def ___downloadJavaBinary(self):
-        def download_thread(dl):
-            dl.download()
-        # by default, we just download jdk 8u92
-        url = "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz"
-        #url = "https://ftp.gnu.org/gnu/gcc/gcc-2.8.1.tar.gz"
-
-        dl = Downloader(url, force_singlethread=False, download_dir=self.get("files_dir"))
-        dl.disableSSLCert()
-        dl.setHeaders({
-            "Cookie": "oraclelicense=accept-securebackup-cookie"
-        })
-
-        t = threading.Thread(target=download_thread,args=(dl,))
-        t.start()
-
-        import time
-        last = 0
-        while True:
-            prog = dl.getProgress()
-
-            if prog[1] > 0 and prog[0] != None:
-                if prog[1] == prog[0]:
-                    break
-                else:
-                    _percent = round(prog[0] / prog[1] * 100, 1)
-                    _velocity = round((prog[0] - last) / 1024,1)
-
-                    print("Download percent %s%%, velocity:%s KiB/s" % (_percent,_velocity))
-                    last = prog[0]
-            time.sleep(1)
-
-        pass

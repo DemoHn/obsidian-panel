@@ -423,14 +423,13 @@ class Downloader(object):
         retry = 0
         while True:
             try:
-                print(self.ssl_ctx)
                 resp = urlopen(req, timeout=self.timeout, context=self.ssl_ctx)
 
                 # slices format: [<start size>, <downloaded size>,<end size>]
                 _download_slice = self.slices[_index][1]
 
                 _range_item = [0, 0]
-                if self.slices[_index][1] == 0:
+                if _download_slice == 0:
                     _range_item[0] = range_item[0]
                     _range_item[1] = range_item[1]
                 else:
@@ -438,17 +437,13 @@ class Downloader(object):
                     _range_item[1] = range_item[1]
                 print("range = %s-%s" % (_range_item[0], _range_item[1]))
 
-                # add lock
-                self.lock.acquire()
-                self.fd.seek(range_item[0] + _download_slice, 0)
-                self.lock.release()
-
                 while True:
                     buf = resp.read(8 * 1024)
                     if not buf:
                         break
 
                     self.lock.acquire()
+                    self.fd.seek(_range_item[0] + self.slices[_index][1], 0)
                     self.fd.write(buf)
                     self.lock.release()
 

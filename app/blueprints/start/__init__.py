@@ -2,6 +2,7 @@ __author__ = "Nigshoxiz"
 
 # import models
 from flask import Blueprint, render_template, abort, request
+from flask_socketio import send, emit
 from jinja2 import TemplateNotFound
 from app import socketio
 from app.utils import returnModel, salt
@@ -13,7 +14,7 @@ import logging
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
 from app.controller.global_config import GlobalConfig
-from app.tools.mc_downloader import  Downloader
+from app.tools.mc_downloader import  DownloaderPool
 
 start_page = Blueprint("start_page", __name__,
                        template_folder='templates',
@@ -131,8 +132,8 @@ def download_java():
     logger = logging.getLogger("ob_panel")
     rtn = returnModel("string")
     gc  = GlobalConfig.getInstance()
-    logger = logging.getLogger("ob_panel")
 
+    # this interface is only available at start time
     if gc.get("init_super_admin") == True:
         return rtn.error(403)
 
@@ -141,21 +142,45 @@ def download_java():
 
     # TODO only jdk 8u102?
     java_url = "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz"
-
+    #java_url = "http://mirrors.zju.edu.cn/debian/indices/Maintainers"
     try:
-        dl = Downloader(java_url, force_singlethread=False, download_dir=files_dir)
-        dl.disableSSLCert()
-        dl.setHeaders({
+        dp = DownloaderPool.getInstance()
+        inst,_hash = dp.newTask(java_url, download_dir=files_dir)
+
+        inst.disableSSLCert()
+        inst.setHeaders({
             "Cookie": "oraclelicense=accept-securebackup-cookie"
         })
 
-        t = threading.Thread(target=_download_thread, args=(dl,))
-        t.start()
-
-        return rtn.success("success")
+        dp.start(_hash)
+        return rtn.success(_hash)
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
+
+# download progress socket
+@socketio.on("ask_download_progess")
+def get_java_download_progess(msg):
+    logger = logging.getLogger("ob_panel")
+    _model = {
+        "current": None,
+        "total": None,
+        "hash": msg,
+        "finished": False
+    }
+    logger.debug("<ws> hash: %s" % msg)
+    dp = DownloaderPool.getInstance()
+    inst = dp.get(msg)
+    if inst == None:
+        _model["finished"] = True
+    else:
+        prog = inst.dl.getProgress()
+        _model["current"] = prog[0]
+        _model["total"] = prog[1]
+
+        logger.debug(_model)
+
+    emit("download_progress",_model)
 
 # in step=3 (test MySQL connection)
 @start_page.route("/test_mysql_connection", methods=["POST"])
@@ -171,9 +196,3 @@ def test_mysql_connection():
         return rtn.success(db_env.testMySQLdb(mysql_username, mysql_password))
     except:
         return rtn.error(500)
-
-'''
-@socketio.on('my event')
-def handle_my_custom_event(wtf):
-    print(wtf)
-'''
