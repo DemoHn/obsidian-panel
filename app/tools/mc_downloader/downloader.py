@@ -70,10 +70,8 @@ class DownloaderPool(object):
             _inst.dl.clear()
             self.remove(downloader_hash)
 
+    # TODO fix it!!
     def resume(self, downloader_hash):
-        def _finish(e):
-            print("hook")
-            self.remove(downloader_hash)
 
         _inst = self.pool.get(downloader_hash)
 
@@ -87,7 +85,6 @@ class DownloaderPool(object):
             self.remove(downloader_hash)
             new_dt_inst = DownloaderThread('',_dl = _dl_obj)
             self.pool[downloader_hash] = new_dt_inst
-            new_dt_inst.dl.addDownloadFinishHook(_finish)
             new_dt_inst.start()
         pass
 
@@ -446,7 +443,7 @@ class Downloader(object):
                 self.fd.seek(range_item[0] + _download_slice, 0)
                 self.lock.release()
 
-                while 1:
+                while True:
                     buf = resp.read(8 * 1024)
                     if not buf:
                         break
