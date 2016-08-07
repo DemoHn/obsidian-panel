@@ -10,12 +10,14 @@ import ssl
 import inspect
 import random
 import string
+import copy
 
 class DownloaderPool(object):
 
     instance = None
     def __init__(self):
         self.pool = {}
+
         pass
 
     @staticmethod
@@ -27,24 +29,27 @@ class DownloaderPool(object):
     def newTask(self, url, **kwargs):
         """
         :param downloader_instance:
-        :return: downloader hash
+        :return: (instance, instance hash)
         """
         def _finish(e):
+            print("hook")
             self.remove(_hash)
+
         dt_inst = DownloaderThread(url, **kwargs)
         dt_inst.dl.addDownloadFinishHook(_finish)
 
         _hash = dt_inst.hash()
         self.pool[_hash] = dt_inst
-        return _hash
+        return (dt_inst.dl, _hash)
 
     def get(self, downloader_hash):
         return self.pool.get(downloader_hash)
 
     def remove(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
-        _inst.__del__()
-        del self.pool[downloader_hash]
+        if _inst != None:
+            _inst.dl.__del__()
+            del self.pool[downloader_hash]
 
     def start(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
@@ -54,18 +59,52 @@ class DownloaderPool(object):
 
     def pause(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
-        print("stop")
-        _inst.stop()
+        if _inst != None:
+            _inst.dl._make_report()
+            _inst.stop()
 
     def terminate(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
-        _inst.stop()
+        if _inst != None:
+            _inst.stop()
+            _inst.dl.clear()
+            self.remove(downloader_hash)
+
+    def resume(self, downloader_hash):
+        def _finish(e):
+            print("hook")
+            self.remove(downloader_hash)
+
+        _inst = self.pool.get(downloader_hash)
+
+        if _inst.stopped() != True:
+            _inst.stop()
+
+        if _inst != None:
+            # copy Downloader object
+            _dl_obj = copy.copy(_inst.dl)
+            # remove old thread
+            self.remove(downloader_hash)
+            new_dt_inst = DownloaderThread('',_dl = _dl_obj)
+            self.pool[downloader_hash] = new_dt_inst
+            new_dt_inst.dl.addDownloadFinishHook(_finish)
+            new_dt_inst.start()
+        pass
+
 
 class DownloaderThread(threading.Thread):
-    def __init__(self, url, **kwargs):
+
+    def __init__(self, url, _dl = None, **kwargs):
         super(DownloaderThread, self).__init__()
-        self.dl = Downloader(url, **kwargs)
+
+        if isinstance(_dl, Downloader):
+            self.dl = _dl
+            self.dl._reopen_file()
+        else:
+            self.dl = Downloader(url, **kwargs)
+
         self._stopper = threading.Event()
+        self._can_run = threading.Event()
 
     def run(self):
         self.dl.download()
@@ -106,11 +145,13 @@ class Downloader(object):
         # SSL context
         self.ssl_ctx = None
         self.headers = {}
+
+        # response
         try:
             # get filename from url
             self.filename = self.url.split("/")[-1]
             _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
-            _ , __ = self._read_report()
+            _, __ = self._read_report()
             if __ == None:
                 self.fd = open(_tmp_file, "wb")
             else:
@@ -177,10 +218,15 @@ class Downloader(object):
 
     # terminate downloading and remove tmp file
     # WARNING : this operation will remove tep file PERMANENTLY!
-    def terminate(self):
-        pass
+    def clear(self):
+        _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
+        _report_file = os.path.join(self.download_dir, self.filename + ".report")
+        if os.path.exists(_tmp_file):
+            os.remove(_tmp_file)
 
-    def pause(self):
+        if os.path.exists(_report_file):
+            os.remove(_report_file)
+
         pass
 
     def getProgress(self):
@@ -203,8 +249,8 @@ class Downloader(object):
         else:
             return (None, self.filesize)
 
-    def _make_report(self,slices):
-        _report_file = os.path.join(self.download_dir, self.filename+".report")
+    def _make_report(self):
+        _report_file = os.path.join(self.download_dir, self.filename + ".report")
         # generate *.report file when download process is abnormally terminated.
         # it is a json file , like:
         # {
@@ -214,7 +260,7 @@ class Downloader(object):
         # slices = None when ranging download is not supported.
         rtn = {
             "support_range": self.support_range,
-            "slices": slices
+            "slices": self.slices
         }
         f = open(_report_file, "w+")
         f.write(json.dumps(rtn))
@@ -232,6 +278,20 @@ class Downloader(object):
                 return None, None
         else:
             return None, None
+
+    # when fd has been abruptly closed, this function is to recover it
+    def _reopen_file(self):
+        try:
+            # get filename from url
+            self.filename = self.url.split("/")[-1]
+            _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
+            _ , __ = self._read_report()
+            if __ == None:
+                self.fd = open(_tmp_file, "wb")
+            else:
+                self.fd = open(_tmp_file, "r+b")
+        except:
+            self.fd.close()
 
     def download(self):
         def _download_singlethread():
@@ -252,7 +312,6 @@ class Downloader(object):
                 return False
             except:
                 return False
-
             return True
 
         def _download_multithread():
@@ -290,13 +349,13 @@ class Downloader(object):
                 for t in self.threads:
                     t.join()
             except KeyboardInterrupt:
-                self._make_report(self.slices)
+                self._make_report()
                 return False
 
             if self.download_correct_flag == True:
                 return True
             else:
-                self._make_report(self.slices)
+                self._make_report()
                 return False
         # get filesize, Partial Support, etc.
         self.analyse(self.headers)
@@ -367,6 +426,7 @@ class Downloader(object):
         retry = 0
         while True:
             try:
+                print(self.ssl_ctx)
                 resp = urlopen(req, timeout=self.timeout, context=self.ssl_ctx)
 
                 # slices format: [<start size>, <downloaded size>,<end size>]
