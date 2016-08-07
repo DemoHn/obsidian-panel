@@ -127,7 +127,7 @@ class JavaEnv(GlobalConfig):
             if g != None:
                 version = g.group()
                 _model = {
-                    "dir" : item, # parent directory
+                    "dir" : java_executable, # parent directory
                     "version" : version
                 }
                 user_java_infos.append(_model)

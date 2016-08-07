@@ -7,6 +7,77 @@ import traceback
 import json
 import os
 import ssl
+import inspect
+import random
+import string
+
+class DownloaderPool(object):
+
+    instance = None
+    def __init__(self):
+        self.pool = {}
+        pass
+
+    @staticmethod
+    def getInstance():
+        if DownloaderPool.instance == None:
+            DownloaderPool.instance = DownloaderPool()
+        return DownloaderPool.instance
+
+    def newTask(self, url, **kwargs):
+        """
+        :param downloader_instance:
+        :return: downloader hash
+        """
+        def _finish(e):
+            self.remove(_hash)
+        dt_inst = DownloaderThread(url, **kwargs)
+        dt_inst.dl.addDownloadFinishHook(_finish)
+
+        _hash = dt_inst.hash()
+        self.pool[_hash] = dt_inst
+        return _hash
+
+    def get(self, downloader_hash):
+        return self.pool.get(downloader_hash)
+
+    def remove(self, downloader_hash):
+        _inst = self.pool.get(downloader_hash)
+        _inst.__del__()
+        del self.pool[downloader_hash]
+
+    def start(self, downloader_hash):
+        _inst = self.pool.get(downloader_hash)
+        _inst.setDaemon(True)
+        # just start a thread
+        _inst.start()
+
+    def pause(self, downloader_hash):
+        _inst = self.pool.get(downloader_hash)
+        print("stop")
+        _inst.stop()
+
+    def terminate(self, downloader_hash):
+        _inst = self.pool.get(downloader_hash)
+        _inst.stop()
+
+class DownloaderThread(threading.Thread):
+    def __init__(self, url, **kwargs):
+        super(DownloaderThread, self).__init__()
+        self.dl = Downloader(url, **kwargs)
+        self._stopper = threading.Event()
+
+    def run(self):
+        self.dl.download()
+
+    def stop(self):
+        self._stopper.set()
+
+    def stopped(self):
+        self._stopper.isSet()
+
+    def hash(self):
+        return self.dl.__hash__()
 
 class Downloader(object):
 
@@ -29,9 +100,11 @@ class Downloader(object):
 
         self.THREADS_NUM = 8
 
-        # headers
-        # urlopen SSL ctx
-        self.ctx = None
+        self._download_finish_hook = []
+        self._network_error_hook = []
+
+        # SSL context
+        self.ssl_ctx = None
         self.headers = {}
         try:
             # get filename from url
@@ -48,6 +121,9 @@ class Downloader(object):
     # del constructor. After all, all d
     def __del__(self):
         self.fd.close()
+
+    def __hash__(self):
+        return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(16))
 
     def setThreads(self,thread_num):
         """
@@ -68,7 +144,8 @@ class Downloader(object):
         for i in headers:
             req.add_header(i, headers.get(i))
         try:
-            result = urlopen(req)
+            print("start analysing URL...")
+            result = urlopen(req, timeout=30)
 
             headers = result.info()
             _len = headers.get("Content-Length")
@@ -91,12 +168,20 @@ class Downloader(object):
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
+        self.ssl_ctx = ctx
 
-        self.ctx = ctx
+    # just a wrapper :-)
+    def addDownloadFinishHook(self,fn):
+        if inspect.isfunction(fn):
+            self._download_finish_hook.append(fn)
 
-    def downloadEnd(self):
-        if self.download_correct_flag == False:
-            return True
+    # terminate downloading and remove tmp file
+    # WARNING : this operation will remove tep file PERMANENTLY!
+    def terminate(self):
+        pass
+
+    def pause(self):
+        pass
 
     def getProgress(self):
         """
@@ -149,12 +234,12 @@ class Downloader(object):
             return None, None
 
     def download(self):
-        def __download_singlethread():
+        def _download_singlethread():
             print("[MC Downloader] directly downloading...")
             self.dw_type_flag = "single"
             try:
                 req = Request(url=self.url, headers=self.headers)
-                resp = urlopen(req, context=self.ctx)
+                resp = urlopen(req, context=self.ssl_ctx)
 
                 if self.filesize < 0:
                     _header = resp.info()
@@ -170,7 +255,7 @@ class Downloader(object):
 
             return True
 
-        def __download_multithread():
+        def _download_multithread():
             self.dw_type_flag = "multi"
             _, slices = self._read_report()
             _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
@@ -217,17 +302,17 @@ class Downloader(object):
         self.analyse(self.headers)
 
         if self.force_multithread:
-            res = __download_multithread()
+            result = _download_multithread()
         elif self.force_singlethread:
-            res = __download_singlethread()
+            result = _download_singlethread()
         else:
             if self.support_range == True:
-                res = __download_multithread()
+                result = _download_multithread()
             else:
-                res = __download_singlethread()
+                result = _download_singlethread()
 
         # after file is successfully downloaded
-        if res:
+        if result:
             __repeat_file_counter = 0
             _fn = os.path.join(self.download_dir, self.filename)
             _filename = _fn
@@ -244,7 +329,16 @@ class Downloader(object):
             if os.path.exists(_report_file):
                 os.remove(_report_file)
 
-        return res
+            # run finish hook
+            for _hook in self._download_finish_hook:
+                if inspect.isfunction(_hook):
+                    _hook(True)
+        else:
+            # run finish hook
+            for _hook in self._download_finish_hook:
+                if inspect.isfunction(_hook):
+                    _hook(False)
+        return result
 
     def _split_range(self):
         onceDownloadSize = int(self.filesize / self.THREADS_NUM)
@@ -262,7 +356,7 @@ class Downloader(object):
         return ranges
 
     def download_thread(self, range_item, _index):
-        MAX_RETRY = 3
+        MAX_RETRY = 5
 
         req = Request(url=self.url)
         req.add_header("Range", "bytes=%s-%s" % range_item)
@@ -273,12 +367,12 @@ class Downloader(object):
         retry = 0
         while True:
             try:
-                resp = urlopen(req, timeout=self.timeout, context=self.ctx)
+                resp = urlopen(req, timeout=self.timeout, context=self.ssl_ctx)
 
                 # slices format: [<start size>, <downloaded size>,<end size>]
                 _download_slice = self.slices[_index][1]
 
-                _range_item = [0,0]
+                _range_item = [0, 0]
                 if self.slices[_index][1] == 0:
                     _range_item[0] = range_item[0]
                     _range_item[1] = range_item[1]
@@ -317,7 +411,7 @@ class Downloader(object):
             except:
                 traceback.print_exc()
                 print("%s - HTTP connection error %s - %s" % (
-                threading.current_thread().getName(), range_item[0], range_item[1]))
+                    threading.current_thread().getName(), range_item[0], range_item[1]))
                 retry += 1
                 if retry <= MAX_RETRY:
                     print("retry %s time" % retry)

@@ -107,6 +107,13 @@
         span._float{
             position:relative;
         }
+
+        div.modal-body span.pg{
+            display: inline-block;
+            margin-bottom: 5px;
+            color: #777;
+            font-size: 13px;
+        }
     </style>
 
     <script>
@@ -142,6 +149,10 @@
                     })
                 }
             });
+
+            var modal_vm = new Vue({
+
+            })
         });
     </script>
 </head>
@@ -209,8 +220,38 @@
 </div>
 <!-- /.login-box -->
 
+<!-- Modal -->
+<div class="modal fade" id="download_java_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel_tag">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel_tag">下载 JAVA</h4>
+      </div>
+      <div class="modal-body">
+          <div class="row">
+              <div class="col-xs-6"><span class="pg">${download_size} / ${total_size}</span></div>
+              <div class="col-xs-6" style="text-align:right;"><span class="pg">${percent}</span></div>
+          </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="progress">
+                    <div class="progress-bar" v-bind:style="{width: percent}"></div>
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal" v-show="!modal_finish" v-cloak>取消</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal" v-show="modal_finish" v-cloak>完成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 <script>
+    $('#download_java_modal').modal();
     $.material.init();
 </script>
 </html>
+

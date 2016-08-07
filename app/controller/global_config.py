@@ -22,7 +22,7 @@ class GlobalConfigDatabase(object):
         config_db_file = os.path.join(SQLITE_DIR, "_global_config.db")
 
         # NOTE : set isolation_level to None to close autocommit mode
-        self.conn = sqlite3.connect(config_db_file, isolation_level=None)
+        self.conn = sqlite3.connect(config_db_file, isolation_level=None, check_same_thread=False)
         self.db_name = "_global_config"
         self.logger = logging.getLogger("ob_panel")
         self.init_table()

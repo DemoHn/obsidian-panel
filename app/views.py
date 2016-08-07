@@ -2,7 +2,7 @@ from app import app
 from app.controller.global_config import GlobalConfig
 from flask import render_template, redirect
 
-
+import threading
 @app.route("/")
 def index():
     gc = GlobalConfig.getInstance()

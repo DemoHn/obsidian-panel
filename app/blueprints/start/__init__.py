@@ -8,6 +8,8 @@ from app.utils import returnModel, salt
 
 import threading
 import hashlib
+import traceback
+import logging
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
 from app.controller.global_config import GlobalConfig
@@ -39,6 +41,7 @@ def show_starter_page():
 
 @start_page.route("/", methods=["POST"])
 def handle_init_config():
+    logger = logging.getLogger("ob_panel")
     try:
         F = request.form
         _step = request.args.get('step')
@@ -58,6 +61,7 @@ def handle_init_config():
                 gc.set("temp_superadmin_hash", hashlib.md5(password.encode('utf-8')+salt).hexdigest())
 
             except:
+                logger.error(traceback.format_exc())
                 return abort(500)
             return render_template("start/step_2.html")
         elif _step == 3:
@@ -85,7 +89,7 @@ def init_finish():
 @start_page.route("/detect_java_environment")
 def detect_java_environment():
     rtn = returnModel("string")
-    gc  = GlobalConfig()
+    gc  = GlobalConfig.getInstance()
 
     if gc.get("init_super_admin") == True:
         return rtn.error(403)
@@ -108,7 +112,8 @@ def detect_java_environment():
             }
 
             java_envs.append(_model)
-        return rtn.success(java_envs)
+        #return rtn.success(java_envs)
+        return rtn.success([])
     except:
         return rtn.error(500)
     pass
@@ -119,8 +124,14 @@ def download_java():
     def _download_thread(dl):
         dl.download()
 
+    def _extract_file(download_result):
+        logger.debug("Start Extract File Hook.")
+        logger.debug("Download Result: %s"% download_result)
+
+    logger = logging.getLogger("ob_panel")
     rtn = returnModel("string")
     gc  = GlobalConfig.getInstance()
+    logger = logging.getLogger("ob_panel")
 
     if gc.get("init_super_admin") == True:
         return rtn.error(403)
@@ -143,6 +154,7 @@ def download_java():
 
         return rtn.success("success")
     except:
+        logger.error(traceback.format_exc())
         return rtn.error(500)
 
 # in step=3 (test MySQL connection)
