@@ -78,6 +78,7 @@ class GlobalConfigDatabase(object):
         try:
             sel_str = "insert or replace into config (conf_key, conf_value) VALUES (?,?)"
             c.execute(sel_str, [key, new_value])
+            self.conn.commit()
         except self.conn.Error:
             self.logger.error(traceback.format_exc())
 
@@ -86,6 +87,7 @@ class GlobalConfigDatabase(object):
         try:
             sel_str = "update config set conf_value = ? where conf_key = ?"
             c.execute(sel_str, [new_value, key])
+            self.conn.commit()
         except self.conn.Error:
             self.logger.error(traceback.format_exc())
 

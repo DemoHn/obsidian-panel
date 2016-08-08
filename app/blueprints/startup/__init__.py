@@ -46,11 +46,11 @@ def show_starter_page():
         _step = int(_step)
 
         if _step == 1:
-            return render_template("start/step_1.html")
+            return render_template("startup/step_1.html")
         elif _step == 2:
-            return render_template("start/step_2.html")
+            return render_template("startup/step_2.html")
         elif _step == 3:
-            return render_template("start/step_3.html",g_error_hidden="none")
+            return render_template("startup/step_3.html",g_error_hidden="none")
         else:
             abort(404)
     except TemplateNotFound:
@@ -81,9 +81,9 @@ def handle_init_config():
             except:
                 logger.error(traceback.format_exc())
                 return abort(500)
-            return render_template("start/step_2.html")
+            return render_template("startup/step_2.html")
         elif _step == 3:
-            return render_template("start/step_3.html",g_error_hidden="none")
+            return render_template("startup/step_3.html",g_error_hidden="none")
         else:
             abort(404)
     except TemplateNotFound:
@@ -108,7 +108,7 @@ def starter_finish():
             gc.set("init_super_admin", "True")
             migrate_superadmin()
 
-            return render_template("start/finish.html")
+            return render_template("startup/finish.html")
         elif db_env == "mysql":
             db.setDatabaseType("mysql")
 
@@ -117,11 +117,12 @@ def starter_finish():
             if db.testMySQLdb(_u,_p) == True:
                 init_database()
                 gc.set("init_super_admin","True")
+                db.setMySQLinfo(_u, _p)
                 migrate_superadmin()
 
-                return render_template("start/finish.html")
+                return render_template("startup/finish.html")
             else:
-                return render_template("start/step_3.html",g_error_hidden="block")
+                return render_template("startup/step_3.html",g_error_hidden="block")
 
     except TemplateNotFound:
         abort(404)

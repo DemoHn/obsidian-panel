@@ -25,11 +25,13 @@ class DatabaseEnv(GlobalConfig):
             "db_mysql_password"
         )
 
-        if not self.get("init_super_admin"):
+        if self.get("init_super_admin") == False:
             self.gdb.init_data({
                 "db_type" : "sqlite",
                 "db_name" : "ob_panel",
-                "db_mysql_ip" : "127.0.0.1"
+                "db_mysql_ip" : "127.0.0.1",
+                "db_mysql_username" : "root",
+                "db_mysql_password" : ""
             })
 
         self._logger = logging.getLogger("ob_panel")
