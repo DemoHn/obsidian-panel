@@ -13,9 +13,10 @@ import traceback
 import logging
 import tarfile
 import json
+from functools import wraps
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
-from app.controller.init_main_db import init_database
+from app.controller.init_main_db import init_database, migrate_superadmin
 from app.controller.global_config import GlobalConfig
 from app.tools.mc_downloader import  DownloaderPool
 
@@ -23,7 +24,19 @@ start_page = Blueprint("start_page", __name__,
                        template_folder='templates',
                        url_prefix="/start")
 
+# filter requests after start-up settings has been done.
+def only_on_startup(fn):
+    @wraps(fn)
+    def decorated_function(*args, **kwargs):
+        gc = GlobalConfig.getInstance()
+        if gc.get("init_super_admin") == True:
+            return abort(403)
+        else:
+            return fn(*args, **kwargs)
+    return decorated_function
+
 @start_page.route("/", methods=["GET"])
+@only_on_startup
 def show_starter_page():
     try:
         _step = request.args.get("step")
@@ -44,6 +57,7 @@ def show_starter_page():
         abort(404)
 
 @start_page.route("/", methods=["POST"])
+@only_on_startup
 def handle_init_config():
     logger = logging.getLogger("ob_panel")
     try:
@@ -76,6 +90,7 @@ def handle_init_config():
         abort(404)
 
 @start_page.route("/finish", methods=["POST"])
+@only_on_startup
 def starter_finish():
     try:
         logger = logging.getLogger("ob_panel")
@@ -85,15 +100,14 @@ def starter_finish():
 
         db_env = F.get("db_env")
 
-        if gc.get("init_super_admin") == True:
-            return abort(403)
-
         if db_env == "sqlite":
             db.setDatabaseType("sqlite")
-            init_database(logger=logger)
+            init_database()
 
             # set init flag = True
             gc.set("init_super_admin", "True")
+            migrate_superadmin()
+
             return render_template("start/finish.html")
         elif db_env == "mysql":
             db.setDatabaseType("mysql")
@@ -101,8 +115,10 @@ def starter_finish():
             _u = F.get("mysql_username")
             _p = F.get("mysql_password")
             if db.testMySQLdb(_u,_p) == True:
-                init_database(logger=logger)
+                init_database()
                 gc.set("init_super_admin","True")
+                migrate_superadmin()
+
                 return render_template("start/finish.html")
             else:
                 return render_template("start/step_3.html",g_error_hidden="block")
@@ -117,12 +133,11 @@ def starter_finish():
 # NOTE : this route (and the following 'download java' route) is somehow dangerous since anyone has privilege
 # to operate. Thus, it's better to warn users to finish the starter steps as soon as possible.
 @start_page.route("/detect_java_environment")
+@only_on_startup
 def detect_java_environment():
     rtn = returnModel("string")
     gc  = GlobalConfig.getInstance()
 
-    if gc.get("init_super_admin") == True:
-        return rtn.error(403)
     try:
         env = JavaEnv()
         java_envs = []
@@ -150,6 +165,7 @@ def detect_java_environment():
 
 # TODO socketio.emit<download_result> not WORK!!!
 @start_page.route("/download_java")
+@only_on_startup
 def download_java():
     #socketio.emit("download_event",{"dat":42})
     def _extract_file(download_result, filename):
@@ -198,10 +214,6 @@ def download_java():
     rtn = returnModel("string")
     gc  = GlobalConfig.getInstance()
 
-    # this interface is only available at start time
-    if gc.get("init_super_admin") == True:
-        return rtn.error(403)
-
     bin_dir   = gc.get("lib_bin_dir")
     files_dir = gc.get("files_dir")
 
@@ -226,14 +238,12 @@ def download_java():
         return rtn.error(500)
 
 @start_page.route("/terminate_download_java/<hash>")
+@only_on_startup
 def terminate_downloading_java(hash):
     logger = logging.getLogger("ob_panel")
     rtn = returnModel("string")
-    gc = GlobalConfig.getInstance()
     dp = DownloaderPool.getInstance()
 
-    if gc.get("init_super_admin") == True:
-        return rtn.error(403)
     try:
         dp.terminate(hash)
         return rtn.success(True)
@@ -242,6 +252,7 @@ def terminate_downloading_java(hash):
 
 #  download progress socket
 @socketio.on("ask_download_progess")
+@only_on_startup
 def get_java_download_progess(msg):
     logger = logging.getLogger("ob_panel")
     _model = {
@@ -265,6 +276,7 @@ def get_java_download_progess(msg):
 
 # in step=3 (test MySQL connection)
 @start_page.route("/test_mysql_connection", methods=["POST"])
+@only_on_startup
 def test_mysql_connection():
     rtn = returnModel(type="string")
     try:

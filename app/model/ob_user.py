@@ -6,7 +6,7 @@ from app.utils import salt
 # password salt
 SALT = salt
 
-class AdminUsers(db.Model):
+class Users(db.Model):
     __tablename__ = "ob_user"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     """
@@ -31,18 +31,20 @@ class AdminUsers(db.Model):
 
     """
     :privilege: defines the user's authorization group.
+    <del> OBSOLETE:
     There are 2 kinds of users:
     1) Super User (only 1), Owns all privileges and can control all instances. [privilege=0]
     2) Ordinary Admin User. Owns all privileges in self-created instance. [privilege=1]
+    </del>
     """
     privilege = db.Column(db.Integer , default=0)
 
-    def __init__(self, username, _password, privilege, email=None):
+    def __init__(self, username,privilege, email=None, hash = None, password = None):
         self.username   = username
-        self._password  = _password
+        self._password  = password
         self.privilege  = privilege
         self.email = email
-        self.hash = None
+        self.hash = hash
 
     def __repr__(self):
         return "<User %s, priv=%s>" % (self.username, self.privilege)

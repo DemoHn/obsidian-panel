@@ -166,6 +166,9 @@ class GlobalConfig(object):
     def set(self, property, name):
         self.gdb.update(property, name)
 
+    def delete(self, key):
+        self.gdb.delete(key)
+
     # ob_init_flag
     def enableInitFlag(self):
         self.gdb.update("ob_init_flag","True")
