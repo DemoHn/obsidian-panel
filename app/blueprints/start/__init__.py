@@ -11,6 +11,8 @@ import threading
 import hashlib
 import traceback
 import logging
+import tarfile
+import json
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
 from app.controller.global_config import GlobalConfig
@@ -119,15 +121,51 @@ def detect_java_environment():
         return rtn.error(500)
     pass
 
+# TODO socketio.emit<download_result> not WORK!!!
 @start_page.route("/download_java")
 def download_java():
+    #socketio.emit("download_event",{"dat":42})
+    def _extract_file(download_result, filename):
+        _event_model = {
+            "event": "_extract_finish",
+            "hash": _hash,
+            "success": True
+        }
 
-    def _download_thread(dl):
-        dl.download()
+        logger.debug("Download Result: %s" % download_result)
+        logger.debug("Start Extracting File...")
 
-    def _extract_file(download_result):
-        logger.debug("Start Extract File Hook.")
-        logger.debug("Download Result: %s"% download_result)
+        # send extract_start event
+        _event_model["event"] = "_extract_start"
+        _event_model["success"] = True
+        socketio.emit("download_event", _event_model)
+
+        archive = tarfile.open(filename)
+        try:
+            archive.extractall(path=bin_dir)
+        except:
+            archive.close()
+
+            # send extract_finish event (when extract failed)
+            _event_model["event"] = "_extract_finish"
+            _event_model["success"] = False
+            socketio.emit("download_event", _event_model)
+
+        logger.debug("extract dir: %s, finish!" % bin_dir)
+        archive.close()
+
+        _event_model["event"] = "_extract_finish"
+        _event_model["success"] = True
+        socketio.emit("download_event", _event_model)
+
+    def _send_finish_event(download_result, filename):
+        _model = {
+            "event":"_finish",
+            "hash": _hash,
+            "success" : download_result
+        }
+        logger.debug('<ws> ' + json.dumps(_model))
+        socketio.emit("download_event", _model)
 
     logger = logging.getLogger("ob_panel")
     rtn = returnModel("string")
@@ -152,12 +190,28 @@ def download_java():
             "Cookie": "oraclelicense=accept-securebackup-cookie"
         })
 
+        inst.addDownloadFinishHook(_send_finish_event)
+        inst.addDownloadFinishHook(_extract_file)
         dp.start(_hash)
         return rtn.success(_hash)
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
 
+@start_page.route("/terminate_download_java/<hash>")
+def terminate_downloading_java(hash):
+    logger = logging.getLogger("ob_panel")
+    rtn = returnModel("string")
+    gc = GlobalConfig.getInstance()
+    dp = DownloaderPool.getInstance()
+
+    if gc.get("init_super_admin") == True:
+        return rtn.error(403)
+    try:
+        dp.terminate(hash)
+        return rtn.success(True)
+    except:
+        return rtn.error(500)
 # download progress socket
 @socketio.on("ask_download_progess")
 def get_java_download_progess(msg):
@@ -168,7 +222,6 @@ def get_java_download_progess(msg):
         "hash": msg,
         "finished": False
     }
-    logger.debug("<ws> hash: %s" % msg)
     dp = DownloaderPool.getInstance()
     inst = dp.get(msg)
     if inst == None:

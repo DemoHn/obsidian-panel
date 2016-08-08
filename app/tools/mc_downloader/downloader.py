@@ -11,7 +11,7 @@ import inspect
 import random
 import string
 import copy
-
+import time
 class DownloaderPool(object):
 
     instance = None
@@ -31,8 +31,7 @@ class DownloaderPool(object):
         :param downloader_instance:
         :return: (instance, instance hash)
         """
-        def _finish(e):
-            print("hook")
+        def _finish(e, file):
             self.remove(_hash)
 
         dt_inst = DownloaderThread(url, **kwargs)
@@ -67,8 +66,10 @@ class DownloaderPool(object):
         _inst = self.pool.get(downloader_hash)
         if _inst != None:
             _inst.stop()
+            #time.sleep(0.5)
+            
             _inst.dl.clear()
-            self.remove(downloader_hash)
+            #self.remove(downloader_hash)
 
     # TODO fix it!!
     def resume(self, downloader_hash):
@@ -388,12 +389,12 @@ class Downloader(object):
             # run finish hook
             for _hook in self._download_finish_hook:
                 if inspect.isfunction(_hook):
-                    _hook(True)
+                    _hook(True, _filename)
         else:
             # run finish hook
             for _hook in self._download_finish_hook:
                 if inspect.isfunction(_hook):
-                    _hook(False)
+                    _hook(False, None)
         return result
 
     def _split_range(self):

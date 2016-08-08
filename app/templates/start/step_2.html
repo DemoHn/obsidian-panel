@@ -121,7 +121,7 @@
 
         var _idf;
         var socket = io.connect('/');
-
+        var current_hash = "";
         $(document).ready(function () {
             var vm = new Vue({
                 el:"#java-form",
@@ -159,7 +159,7 @@
                                 d = JSON.parse(data);
                                 if(d.status == "success"){
                                     hash = d.info;
-
+                                    current_hash = hash;
                                     _idf = setInterval(function () {
                                         socket.emit("ask_download_progess",hash)
                                     },1000)
@@ -180,6 +180,21 @@
                     total_size:"0",
                     percent:"0%",
                     "modal_finish": false
+                },
+                methods: {
+                    "terminate_downloading" : function (e) {
+                        var self = this;
+                        if(current_hash != ""){
+                            $.get("/start/terminate_download_java/"+current_hash,function (data) {
+                                console.log(data);
+                                // reinit data
+                                self.download_size = "0";
+                                self.total_size = "0";
+                                self.percent="0%";
+                                self.modal_finish=false;
+                            })
+                        }
+                    }
                 }
             });
 
@@ -210,6 +225,10 @@
                     clearInterval(_idf);
                     modal_vm.modal_finish = true;
                 }
+            });
+
+            socket.on("download_event",function (data) {
+                console.log(data);
             })
         });
     </script>
@@ -254,9 +273,7 @@
                         </label>
                     </div>
                 </div>
-
             </div>
-
         </div>
 
         <div class="row">
@@ -299,8 +316,9 @@
         </div>
       </div>
       <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal" v-show="!modal_finish" v-cloak>取消</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal" v-show="modal_finish" v-cloak>完成</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal" v-show="!modal_finish" v-on:click="terminate_downloading"
+                  data-toggle="tooltip" data-placement="bottom" title="点击「取消」后，下载任务及已下载的文件将会删除！请小心操作！" v-cloak>取消</button>
+          <button type="button" class="btn btn-default" data-dismiss="moedal" v-show="modal_finish" v-cloak>完成</button>
       </div>
     </div>
   </div>
@@ -308,6 +326,9 @@
 
 </body>
 <script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
     $.material.init();
 </script>
 </html>
