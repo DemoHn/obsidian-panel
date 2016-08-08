@@ -15,7 +15,7 @@ socketio = SocketIO(app)
 # import blueprints
 # to event circular importing, this `import` statement should be put
 # after database declared.
-from app.blueprints.start import start_page
+from app.blueprints.startup import start_page
 
 app.register_blueprint(start_page)
 # import main views

@@ -86,7 +86,7 @@
                             "mysql_username" : this.mysql_username,
                             "mysql_password" : this.mysql_password
                         };
-                        $.post("/start/test_mysql_connection",payloads, function (data) {
+                        $.post("/startup/test_mysql_connection",payloads, function (data) {
                             try{
                                 var d = JSON.parse(data);
                                 if(d.info){
@@ -120,7 +120,7 @@
       <div class="form-group has-feedback" style="display: {{ g_error_hidden }};">
           <div class="error-msg alert alert-danger fade in">数据库密码错误！</div>
       </div>
-    <form action="/start/finish" method="post" id="database_env">
+    <form action="/startup/finish" method="post" id="database_env">
         <div class="form-group">
             <p>请选择数据库环境：</p>
             <div class="radio"><label>

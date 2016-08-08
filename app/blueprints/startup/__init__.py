@@ -22,7 +22,7 @@ from app.tools.mc_downloader import  DownloaderPool
 
 start_page = Blueprint("start_page", __name__,
                        template_folder='templates',
-                       url_prefix="/start")
+                       url_prefix="/startup")
 
 # filter requests after start-up settings has been done.
 def only_on_startup(fn):

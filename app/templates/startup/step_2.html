@@ -133,7 +133,7 @@
                 },
                 ready:function () {
                     var self = this;
-                    $.get("/start/detect_java_environment",function (data) {
+                    $.get("/startup/detect_java_environment",function (data) {
                         try{
                             d = JSON.parse(data);
                             if(d.status == "success"){
@@ -154,7 +154,7 @@
                 },
                 methods:{
                     "down_java" : function (e) {
-                        $.get("/start/download_java", function (data) {
+                        $.get("/startup/download_java", function (data) {
                             try{
                                 d = JSON.parse(data);
                                 if(d.status == "success"){
@@ -185,7 +185,7 @@
                     "terminate_downloading" : function (e) {
                         var self = this;
                         if(current_hash != ""){
-                            $.get("/start/terminate_download_java/"+current_hash,function (data) {
+                            $.get("/startup/terminate_download_java/"+current_hash,function (data) {
                                 console.log(data);
                                 // reinit data
                                 self.download_size = "0";
@@ -247,7 +247,7 @@
     </p>
       <hr>
 
-    <form action="/start/?step=3" method="post" id="java-form">
+    <form action="/startup/?step=3" method="post" id="java-form">
         <div class="msg-box" style="min-height: 150px;">
             <div class="overlay" v-show="loading" v-cloak>
                 <div class="overlay-msg">
@@ -279,7 +279,7 @@
 
         <div class="row">
             <div class="col-xs-12">
-                <div style="text-align: right;"><a href="/start/?step=3">跳过此步骤</a></div>
+                <div style="text-align: right;"><a href="/startup/?step=3">跳过此步骤</a></div>
             </div>
             <div class="col-xs-4">
             </div>

@@ -7,7 +7,7 @@ import threading
 def index():
     gc = GlobalConfig.getInstance()
     if gc.get("init_super_admin") == False:
-        return redirect("/start")
+        return redirect("/startup")
     else:
         return render_template("superadmin/index.html")
 

@@ -3,13 +3,16 @@ from app.controller.global_config import GlobalConfig
 from app.controller.config_env import DatabaseEnv
 from sqlalchemy_utils import create_database, database_exists
 from app import app, db
-
+import logging
 from app.model.ob_user import Users
 
 def init_database(logger=None):
 
     gc = GlobalConfig.getInstance()
     db_env = DatabaseEnv()
+
+    if logger == None:
+        logger = logging.getLogger("ob_panel")
 
     db_type = db_env.getDatabaseType()
 
