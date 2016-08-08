@@ -47,7 +47,7 @@ class DownloaderPool(object):
     def remove(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
         if _inst != None:
-            _inst.dl.__del__()
+            #_inst.dl.__del__()
             del self.pool[downloader_hash]
 
     def start(self, downloader_hash):
@@ -64,12 +64,22 @@ class DownloaderPool(object):
 
     def terminate(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
+        _download_dir = _inst.dl.download_dir
+        _filename = _inst.dl.filename
         if _inst != None:
-            _inst.stop()
-            #time.sleep(0.5)
-            
-            _inst.dl.clear()
-            #self.remove(downloader_hash)
+            try:
+                _inst.stop()
+                # time.sleep(0.5)
+                del self.pool[downloader_hash]
+            finally:
+                # finally , remove files
+                _tmp_file = os.path.join(_download_dir, _filename + ".tmp")
+                _report_file = os.path.join(_download_dir, _filename + ".report")
+                if os.path.exists(_tmp_file):
+                    os.remove(_tmp_file)
+
+                if os.path.exists(_report_file):
+                    os.remove(_report_file)
 
     # TODO fix it!!
     def resume(self, downloader_hash):

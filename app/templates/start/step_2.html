@@ -223,7 +223,8 @@
                     modal_vm.percent = (data.current / data.total * 100).toFixed(1) + "%";
                 }else{
                     clearInterval(_idf);
-                    modal_vm.modal_finish = true;
+                    //if(data.finished == true)
+                      //  modal_vm.modal_finish = true;
                 }
             });
 
@@ -250,7 +251,7 @@
         <div class="msg-box" style="min-height: 150px;">
             <div class="overlay" v-show="loading" v-cloak>
                 <div class="overlay-msg">
-                    正在检测JAVA环境中...请稍候片刻
+                    正在检测JAVA环境中...请稍等片刻
                 </div>
                 <div class="overlay-msg" style="font-size:30px;"><i class="fa fa-spin fa-refresh"></i></div>
                 <div class="overlay-msg" id="refresh_error" v-show="fetch_java_data_error" v-cloak>读取数据出错:-( 请刷新以重试</div>

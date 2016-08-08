@@ -15,6 +15,7 @@ import tarfile
 import json
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
+from app.controller.init_main_db import init_database
 from app.controller.global_config import GlobalConfig
 from app.tools.mc_downloader import  DownloaderPool
 
@@ -36,7 +37,7 @@ def show_starter_page():
         elif _step == 2:
             return render_template("start/step_2.html")
         elif _step == 3:
-            return render_template("start/step_3.html")
+            return render_template("start/step_3.html",g_error_hidden="none")
         else:
             abort(404)
     except TemplateNotFound:
@@ -68,18 +69,44 @@ def handle_init_config():
                 return abort(500)
             return render_template("start/step_2.html")
         elif _step == 3:
-            return render_template("start/step_3.html")
+            return render_template("start/step_3.html",g_error_hidden="none")
         else:
             abort(404)
     except TemplateNotFound:
         abort(404)
 
 @start_page.route("/finish", methods=["POST"])
-def init_finish():
+def starter_finish():
     try:
+        logger = logging.getLogger("ob_panel")
         F = request.form
-        # TODO 1
-        return render_template("start/finish.html")
+        gc = GlobalConfig.getInstance()
+        db = DatabaseEnv()
+
+        db_env = F.get("db_env")
+
+        if gc.get("init_super_admin") == True:
+            return abort(403)
+
+        if db_env == "sqlite":
+            db.setDatabaseType("sqlite")
+            init_database(logger=logger)
+
+            # set init flag = True
+            gc.set("init_super_admin", "True")
+            return render_template("start/finish.html")
+        elif db_env == "mysql":
+            db.setDatabaseType("mysql")
+
+            _u = F.get("mysql_username")
+            _p = F.get("mysql_password")
+            if db.testMySQLdb(_u,_p) == True:
+                init_database(logger=logger)
+                gc.set("init_super_admin","True")
+                return render_template("start/finish.html")
+            else:
+                return render_template("start/step_3.html",g_error_hidden="block")
+
     except TemplateNotFound:
         abort(404)
 
@@ -212,7 +239,8 @@ def terminate_downloading_java(hash):
         return rtn.success(True)
     except:
         return rtn.error(500)
-# download progress socket
+
+#  download progress socket
 @socketio.on("ask_download_progess")
 def get_java_download_progess(msg):
     logger = logging.getLogger("ob_panel")
