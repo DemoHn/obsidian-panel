@@ -16,7 +16,10 @@ socketio = SocketIO(app)
 # to event circular importing, this `import` statement should be put
 # after database declared.
 from app.blueprints.startup import start_page
+from app.blueprints.superadmin import super_admin_page
 
 app.register_blueprint(start_page)
+app.register_blueprint(super_admin_page)
+
 # import main views
 from app import views

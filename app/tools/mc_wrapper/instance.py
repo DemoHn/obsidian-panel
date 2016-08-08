@@ -4,9 +4,9 @@ import asyncio
 import threading
 import traceback
 
-from mc_wrapper import MCWrapperConfig, MCProcessPool
-from mc_wrapper import logger
-from mc_wrapper.server_log import LogMonitorProtocol
+from app.tools.mc_wrapper import MCWrapperConfig, MCProcessPool
+from app.tools.mc_wrapper import logger
+from app.tools.mc_wrapper.server_log import LogMonitorProtocol
 
 import os
 from app.tools.mc_wrapper.server_properties_parser import ServerPropertiesParser
@@ -146,7 +146,6 @@ class MCServerInstanceThread(threading.Thread):
 
         # init MC config
         config = MCWrapperConfig(**conf_kwargs)
-
 
         # init ServerInstance
         inst = MCServerInstance(port, loop = loop)

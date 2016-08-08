@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OBpanel - 登录</title>
+    <!-- Material Design fonts -->
+    <!--<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">-->
+    <!-- Admin LTE-->
+    <link rel="stylesheet" href="/static/css/AdminLTE.min.css">
+    <!--jquery-->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/static/css/ionicons.min.css">
+    <!-- Bootstrap Material Design -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap-material-design.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/ripples.min.css">
+    <link rel="stylesheet" href="/static/css/skins/skin-blue.min.css">
+
+    <script src="/static/js/material.min.js"></script>
+    <script src="/static/js/ripples.min.js"></script>
+    <script src="/static/js/vue.min.js"></script>
+
+    <script>
+        var AdminLTEOptions = {
+            //Enable sidebar expand on hover effect for sidebar mini
+            //This option is forced to true if both the fixed layout and sidebar mini
+            //are used together
+            sidebarExpandOnHover: true,
+            //BoxRefresh Plugin
+            enableBoxRefresh: true,
+            //Bootstrap.js tooltip
+            enableBSToppltip: true
+        };
+
+        $.material.init();
+
+        var error_msg = {
+            "hasi_username" : false,
+            "empty_username" : false,
+            "email_error": false,
+            "email_empty": false,
+            "password_error": false,
+            "repeat_error": false,
+            "agree" : true
+        };
+
+        $(document).ready(function () {
+            var vm = new Vue({
+
+            })
+        });
+    </script>
+
+    <style>
+        #reg-box-msg{
+            padding-bottom:0;
+        }
+
+        div.form-group{
+            margin-top: 1em !important;
+        }
+
+        div.error-msg{
+            padding: 8px 15px;
+            margin-bottom:0;
+        }
+
+        div.login-box{
+            width: 400px;
+        }
+
+        [v-clock]{
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="hold-transition login-page">
+<div class="login-box">
+  <div class="login-logo">
+    <b>Obsidian</b> Panel
+  </div>
+  <!-- /.login-logo -->
+  <div class="login-box-body">
+    <p class="login-box-msg" id="reg-box-msg">
+        管理员登录
+    </p>
+      <hr>
+      {% if login_error == 'login_error' %}
+          <div class="error-msg alert alert-danger fade in">登录失败，请检查用户名和密码！</div>
+      {% endif %}
+    <form action="/startup/?step=2" method="post" id="register-form">
+        <div class="form-group has-feedback">
+            <input type="text" class="form-control" placeholder="用户名" v-model="username" name="username">
+            <span class="fa fa-user form-control-feedback"></span>
+            <!--<span class="help-block">Hello World</span>-->
+        </div>
+
+      <div class="form-group has-feedback">
+          <input id="pa" type="password" class="form-control" placeholder="密码" v-model="password" name="password">
+          <span class="fa fa-lock form-control-feedback"></span>
+
+      </div>
+
+        <div class="row">
+            <div class="col-xs-4">
+            </div>
+            <!-- /.col -->
+            <div class="col-xs-8" style="text-align:right;">
+                <!-- fake button-->
+                <button type="submit" class="btn btn-raised btn-info" :disabled="!agree" disabled>登录</button>
+            </div>
+            <!-- /.col -->
+        </div>
+    </form>
+
+  </div>
+  <!-- /.login-box-body -->
+</div>
+<!-- /.login-box -->
+</body>
+
+</html>

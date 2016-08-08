@@ -158,8 +158,8 @@ def detect_java_environment():
             }
 
             java_envs.append(_model)
-        #return rtn.success(java_envs)
-        return rtn.success([])
+        return rtn.success(java_envs)
+        #return rtn.success([])
     except:
         return rtn.error(500)
     pass

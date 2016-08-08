@@ -7,16 +7,16 @@ class UserToken(db.Model):
     token_id = db.Column(db.Integer, primary_key=True,autoincrement=True)
 
     """
-    Username
+    Uid
     """
-    username = db.Column(db.String(80))
+    uid = db.Column(db.Integer)
 
     token = db.Column(db.String(50))
 
     """
     last login Time
     """
-    last_login = db.Column(db.DateTime,default=datetime.datetime.now())
+    last_login = db.Column(db.DateTime)
 
     def __init__(self, username, token):
         self.username = username
