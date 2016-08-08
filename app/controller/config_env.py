@@ -75,8 +75,17 @@ class JavaEnv(GlobalConfig):
         self.__keys = (
             "sys_java_dir",
             "sys_java_version",
-            "default_java_dir"
+            "default_java_dir",
+            "default_java_version"
         )
+
+        if self.get("init_super_admin") == False:
+            self.gdb.init_data({
+                "sys_java_dir": "/usr/bin/java",
+                "sys_java_version": "1.8",
+                "default_java_dir" : "",
+                "default_java_version" : ""
+            })
 
     def findSystemJavaInfo(self):
         """
@@ -134,3 +143,6 @@ class JavaEnv(GlobalConfig):
                 user_java_infos.append(_model)
 
         return user_java_infos
+
+    def setJavaDir(self):
+        pass

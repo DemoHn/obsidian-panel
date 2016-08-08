@@ -267,7 +267,7 @@
                 <div v-for="item in java_info">
                     <div class="radio">
                         <label>
-                            <input type="radio" name="java_env" value="sys_java" checked="">
+                            <input type="radio" name="java_env" v-model="item.dir" checked="">
                             <span class="circle"></span><span class="check"></span>
                             <span class="_sys_name _float">${item.name}</span> <br>
                             <span class="_sys_dir _float">${item.dir}</span>
