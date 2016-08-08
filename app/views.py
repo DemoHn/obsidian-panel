@@ -9,7 +9,7 @@ def index():
     if gc.get("init_super_admin") == False:
         return redirect("/startup")
     else:
-        return render_template("superadmin/index.html")
+        return redirect("/super_admin/login")
 
 @app.route("/draft")
 def __draft():
