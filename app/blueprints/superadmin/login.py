@@ -53,6 +53,13 @@ def login():
     except TemplateNotFound:
         abort(404)
 
+@super_admin_page.route("/logout", methods=["GET"])
+def logout():
+    resp = make_response(redirect("/super_admin/login"))
+    # just set an empty cookie string
+    resp.set_cookie("session_token","",max_age=0)
+    return resp
+
 @super_admin_page.route("/main")
 @check_login
 def main_page(uid):
