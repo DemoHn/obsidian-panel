@@ -139,7 +139,12 @@ class GlobalConfig(object):
             "files_dir" : os.path.join(base_dir,"files"),
             "servers_dir" : os.path.join(base_dir,"servers"),
             "lib_bin_dir" : os.path.join(base_dir,"env"),
-            "sqlite_dir" : self.gdb.SQLITE_DIR
+            "sqlite_dir" : self.gdb.SQLITE_DIR,
+
+            # temporal super admin database
+            "temp_superadmin_username":"",
+            "temp_superadmin_email":"",
+            "temp_superadmin_hash":""
         }
 
         # set 'ob_init_flag=False' and so on

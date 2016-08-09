@@ -114,10 +114,13 @@ def starter_finish():
 
             _u = F.get("mysql_username")
             _p = F.get("mysql_password")
+
             if db.testMySQLdb(_u,_p) == True:
-                init_database()
                 gc.set("init_super_admin","True")
+
                 db.setMySQLinfo(_u, _p)
+                init_database()
+
                 migrate_superadmin()
 
                 return render_template("startup/finish.html")

@@ -51,7 +51,15 @@
 
         $(document).ready(function () {
             var vm = new Vue({
-
+                el:"#login-form",
+                data:{
+                    agree : false
+                },
+                computed: {
+                    "agree": function (e) {
+                        return !!(this.username.length > 0 && this.password.length > 0);
+                    }
+                }
             })
         });
     </script>
@@ -77,6 +85,11 @@
         [v-clock]{
             display: none;
         }
+
+        p.h-title{
+            font-size: 16px;
+            padding-bottom:0;
+        }
     </style>
 </head>
 
@@ -87,14 +100,16 @@
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">
-    <p class="login-box-msg" id="reg-box-msg">
+    <p class="login-box-msg h-title">
         管理员登录
     </p>
       <hr>
       {% if login_error == 'login_error' %}
-          <div class="error-msg alert alert-danger fade in">登录失败，请检查用户名和密码！</div>
+          <div class="error-msg alert alert-danger fade in">登录失败，请检查登录密码！</div>
+      {%  elif login_error == 'username_not_found' %}
+          <div class="error-msg alert alert-danger fade in">用户名不存在！</div>
       {% endif %}
-    <form action="/startup/?step=2" method="post" id="register-form">
+    <form action="/login" method="post" id="login-form">
         <div class="form-group has-feedback">
             <input type="text" class="form-control" placeholder="用户名" v-model="username" name="username">
             <span class="fa fa-user form-control-feedback"></span>

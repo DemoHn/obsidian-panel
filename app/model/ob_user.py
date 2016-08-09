@@ -3,6 +3,7 @@ import datetime
 import hashlib
 import re
 from app.utils import salt
+
 # password salt
 SALT = salt
 
@@ -27,7 +28,7 @@ class Users(db.Model):
     """
     User join time
     """
-    join_time = db.Column(db.DateTime,default=datetime.datetime.now())
+    join_time = db.Column(db.DateTime)
 
     """
     :privilege: defines the user's authorization group.
@@ -39,7 +40,7 @@ class Users(db.Model):
     """
     privilege = db.Column(db.Integer , default=0)
 
-    def __init__(self, username,privilege, email=None, hash = None, password = None):
+    def __init__(self, username, privilege, email=None, hash = None, password = None):
         self.username   = username
         self._password  = password
         self.privilege  = privilege
@@ -49,7 +50,7 @@ class Users(db.Model):
     def __repr__(self):
         return "<User %s, priv=%s>" % (self.username, self.privilege)
 
-    def create(self):
+    def insert(self):
         if len(self.username) > 32:
             raise ValueError("username `%s` is too long!" % self.username)
 
@@ -58,8 +59,24 @@ class Users(db.Model):
             raise ValueError("password format doesn't matches!")
 
         self.hash = hashlib.md5(self._password.encode('utf-8')+SALT).hexdigest()
-
+        self.join_time = datetime.datetime.now()
         db.session.add(self)
         db.session.commit()
 
         return True
+
+    def insert_byhash(self):
+        self.join_time = datetime.datetime.now()
+        db.session.add(self)
+        db.session.commit()
+
+    @staticmethod
+    def compare_password(username, password):
+        _hash = hashlib.md5((password.encode('utf-8')+SALT).hexdigest())
+        record = Users.query.filter_by(username=username, hash = _hash).first()
+
+        if record == None:
+            return False
+        else:
+            return True
+

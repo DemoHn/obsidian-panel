@@ -3,7 +3,10 @@ from app.controller.global_config import GlobalConfig
 from app.controller.config_env import DatabaseEnv
 from sqlalchemy_utils import create_database, database_exists
 from app import app, db
+
 import logging
+import traceback
+
 from app.model.ob_user import Users
 
 def init_database(logger=None):
@@ -63,13 +66,14 @@ def migrate_superadmin():
     _email    = gc.get("temp_superadmin_email")
     _hash     = gc.get("temp_superadmin_hash")
 
-
     #for superadmin, privilege = 1
     try:
         super_admin_user = Users(_username,1, email=_email, hash= _hash)
-        db.session.add(super_admin_user)
-        db.session.commit()
 
+        try:
+            super_admin_user.insert_byhash()
+        except:
+            traceback.print_exc()
         # if everything works correctly <including the inserting operation above>,
         # it is time to delete account data
         gc.delete("temp_superadmin_username")
