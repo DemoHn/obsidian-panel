@@ -6,7 +6,9 @@ import threading
 @app.route("/")
 def index():
     gc = GlobalConfig.getInstance()
-    if gc.get("init_super_admin") == False:
+    _is_startup = gc.get("init_super_admin")
+
+    if _is_startup == None or _is_startup == False:
         return redirect("/startup")
     else:
         return redirect("/super_admin/login")

@@ -83,6 +83,12 @@ def handle_init_config():
 
             return render_template("startup/step_2.html")
         elif _step == 3:
+            try:
+                gc = GlobalConfig.getInstance()
+                #gc.set("")
+            except:
+                logger.error(traceback.format_exc())
+                return abort(500)
             return render_template("startup/step_3.html",g_error_hidden="none")
         else:
             abort(404)
@@ -102,10 +108,10 @@ def starter_finish():
 
         if db_env == "sqlite":
             db.setDatabaseType("sqlite")
-            init_database()
-
             # set init flag = True
             gc.set("init_super_admin", "True")
+            # then init database
+            init_database()
             migrate_superadmin()
 
             return render_template("startup/finish.html")

@@ -122,16 +122,26 @@
 
       </div>
 
-        <div class="row">
-            <div class="col-xs-4">
+        <div class="form-group">
+
+            <div class="row">
+                <div class="col-xs-8">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox"><span class="checkbox-material"><span class="check"></span></span> 记住我
+                        </label>
+                    </div>
+                </div>
+                <!-- /.col -->
+                <div class="col-xs-4" style="text-align:right;">
+                    <!-- fake button-->
+                    <button type="submit" class="btn btn-raised btn-info" :disabled="!agree" disabled>登录</button>
+                </div>
+                <!-- /.col -->
             </div>
-            <!-- /.col -->
-            <div class="col-xs-8" style="text-align:right;">
-                <!-- fake button-->
-                <button type="submit" class="btn btn-raised btn-info" :disabled="!agree" disabled>登录</button>
-            </div>
-            <!-- /.col -->
         </div>
+
+
     </form>
 
   </div>
