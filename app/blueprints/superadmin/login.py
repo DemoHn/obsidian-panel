@@ -40,15 +40,12 @@ def login():
 
         if result:
             _token_str = make_token(32)
-            tk = UserToken(username, _token_str)
-
-            # insert tk data to database
-            db.session.add(tk)
-            db.session.commit()
+            tk = UserToken(token=_token_str)
+            tk.insert(username)
 
             # make response with cookie
             resp = make_response(redirect("/super_admin/main"))
-            resp.set_cookie('session_token',_token_str,max_age=1000*3600)
+            resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
             return resp
             #return render_template("superadmin/index.html")
         else:
@@ -58,7 +55,7 @@ def login():
 
 @super_admin_page.route("/main")
 @check_login
-def main_page():
+def main_page(uid):
     try:
         return render_template("superadmin/index.html")
     except TemplateNotFound:

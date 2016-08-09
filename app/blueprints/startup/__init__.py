@@ -77,10 +77,10 @@ def handle_init_config():
                 gc.set("temp_superadmin_username", username)
                 gc.set("temp_superadmin_email", email)
                 gc.set("temp_superadmin_hash", hashlib.md5(password.encode('utf-8')+salt).hexdigest())
-
             except:
                 logger.error(traceback.format_exc())
                 return abort(500)
+
             return render_template("startup/step_2.html")
         elif _step == 3:
             return render_template("startup/step_3.html",g_error_hidden="none")

@@ -68,7 +68,7 @@ def migrate_superadmin():
 
     #for superadmin, privilege = 1
     try:
-        super_admin_user = Users(_username,1, email=_email, hash= _hash)
+        super_admin_user = Users(username=_username, privilege = 1, email=_email, hash= _hash)
 
         try:
             super_admin_user.insert_byhash()

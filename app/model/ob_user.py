@@ -9,9 +9,9 @@ SALT = salt
 
 class Users(db.Model):
     __tablename__ = "ob_user"
-    id = db.Column(db.Integer, db.ForeignKey('ob_token.uid'), primary_key= True, unique=True, autoincrement=True)
-    """
-    username
+    id = db.Column(db.Integer, primary_key= True, unique=True, autoincrement=True)
+    """ob_token
+usernam e
     """
     username = db.Column(db.String(80), unique=True)
 
@@ -32,20 +32,10 @@ class Users(db.Model):
 
     """
     :privilege: defines the user's authorization group.
-    <del> OBSOLETE:
-    There are 2 kinds of users:
-    1) Super User (only 1), Owns all privileges and can control all instances. [privilege=0]
-    2) Ordinary Admin User. Owns all privileges in self-created instance. [privilege=1]
-    </del>
     """
     privilege = db.Column(db.Integer , default=0)
 
-    def __init__(self, username, privilege, email=None, hash = None, password = None):
-        self.username   = username
-        self._password  = password
-        self.privilege  = privilege
-        self.email = email
-        self.hash = hash
+    token_relation = db.relationship("UserToken",lazy='dynamic', backref="ob_user")
 
     def __repr__(self):
         return "<User %s, priv=%s>" % (self.username, self.privilege)
@@ -55,7 +45,7 @@ class Users(db.Model):
             raise ValueError("username `%s` is too long!" % self.username)
 
         password_re = "^\w{6,30}$"
-        if re.match(password_re,self._password) == None:
+        if re.match(password_re,self.password) == None:
             raise ValueError("password format doesn't matches!")
 
         self.hash = hashlib.md5(self._password.encode('utf-8') + SALT).hexdigest()

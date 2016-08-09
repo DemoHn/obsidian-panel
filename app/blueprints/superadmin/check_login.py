@@ -6,7 +6,6 @@ from functools import wraps
 
 # check if user is login
 def check_login(fn):
-    @wraps(fn)
     def decorated_function(*args, **kwargs):
         # read token
         session_token = request.cookies.get("session_token")
@@ -17,6 +16,7 @@ def check_login(fn):
             if user is None:
                 return redirect("/super_admin/login")
             else:
-                return fn(*args, **kwargs, _uid = user.uid)
+                uid = user.uid
+                return fn(uid, *args, **kwargs)
 
     return decorated_function
