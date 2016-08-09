@@ -1,7 +1,7 @@
 __author__ = "Nigshoxiz"
 
 from app import db
-import datetime
+
 class UserToken(db.Model):
     __tablename__ = "ob_token"
     token_id = db.Column(db.Integer, primary_key=True,autoincrement=True)
@@ -9,7 +9,7 @@ class UserToken(db.Model):
     """
     Uid
     """
-    uid = db.Column(db.Integer)
+    uid = db.relationship("Users",backref='username',lazy="dynamic")
 
     token = db.Column(db.String(50))
 
@@ -20,6 +20,7 @@ class UserToken(db.Model):
 
     def __init__(self, username, token):
         self.username = username
+
         self.token = token
 
     def __repr__(self):

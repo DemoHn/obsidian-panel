@@ -9,11 +9,11 @@ SALT = salt
 
 class Users(db.Model):
     __tablename__ = "ob_user"
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, db.ForeignKey('ob_token.uid'), primary_key= True, unique=True, autoincrement=True)
     """
     username
     """
-    username = db.Column(db.String(80),unique=True)
+    username = db.Column(db.String(80), unique=True)
 
     """
     User password (hashed of course.)

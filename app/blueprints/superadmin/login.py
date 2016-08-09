@@ -1,10 +1,16 @@
 __author__ = "Nigshoxiz"
 
-from flask import render_template, abort, request
+from flask import render_template, abort, request, make_response, redirect
 from jinja2 import TemplateNotFound
 from . import super_admin_page
+from .check_login import check_login
 
+from app import db
 from app.model.ob_user import Users
+from app.model.ob_token import UserToken
+
+#import libs
+import string, random
 import logging
 
 logger = logging.getLogger("ob_panel")
@@ -18,6 +24,10 @@ def get_login_page():
 
 @super_admin_page.route("/login", methods=["POST"])
 def login():
+
+    def make_token(digits):
+        return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(digits))
+
     try:
         F = request.form
         username = F.get("username")
@@ -29,9 +39,27 @@ def login():
         result = Users.compare_password(username, password)
 
         if result:
-            return render_template("superadmin/index.html")
+            _token_str = make_token(32)
+            tk = UserToken(username, _token_str)
+
+            # insert tk data to database
+            db.session.add(tk)
+            db.session.commit()
+
+            # make response with cookie
+            resp = make_response(redirect("/super_admin/main"))
+            resp.set_cookie('session_token',_token_str,max_age=1000*3600)
+            return resp
+            #return render_template("superadmin/index.html")
         else:
             return render_template("superadmin/login.html", login_error="login_error")
     except TemplateNotFound:
         abort(404)
 
+@super_admin_page.route("/main")
+@check_login
+def main_page():
+    try:
+        return render_template("superadmin/index.html")
+    except TemplateNotFound:
+        abort(404)
