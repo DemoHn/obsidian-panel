@@ -58,7 +58,7 @@ class Users(db.Model):
         if re.match(password_re,self._password) == None:
             raise ValueError("password format doesn't matches!")
 
-        self.hash = hashlib.md5(self._password.encode('utf-8')+SALT).hexdigest()
+        self.hash = hashlib.md5(self._password.encode('utf-8') + SALT).hexdigest()
         self.join_time = datetime.datetime.now()
         db.session.add(self)
         db.session.commit()
@@ -72,10 +72,20 @@ class Users(db.Model):
 
     @staticmethod
     def compare_password(username, password):
-        _hash = hashlib.md5((password.encode('utf-8')+SALT).hexdigest())
-        record = Users.query.filter_by(username=username, hash = _hash).first()
+        hash = hashlib.md5(password.encode('utf-8') + SALT).hexdigest()
+
+        record = Users.query.filter_by(username=username, hash = hash).first()
 
         if record == None:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def search_username(username):
+        rec = Users.query.filter_by(username=username).first()
+
+        if rec == None:
             return False
         else:
             return True

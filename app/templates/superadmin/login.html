@@ -109,7 +109,7 @@
       {%  elif login_error == 'username_not_found' %}
           <div class="error-msg alert alert-danger fade in">用户名不存在！</div>
       {% endif %}
-    <form action="/login" method="post" id="login-form">
+    <form action="/super_admin/login" method="post" id="login-form">
         <div class="form-group has-feedback">
             <input type="text" class="form-control" placeholder="用户名" v-model="username" name="username">
             <span class="fa fa-user form-control-feedback"></span>
