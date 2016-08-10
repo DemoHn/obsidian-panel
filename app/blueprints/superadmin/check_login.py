@@ -19,6 +19,7 @@ def check_login(fn):
         if session_token == None:
             return redirect("/super_admin/login")
         else:
+            # query login user via token
             user = db.session.query(UserToken).join(Users).filter(UserToken.token==session_token).first()
             if user is None:
                 return redirect("/super_admin/login")

@@ -9,4 +9,3 @@ super_admin_page = Blueprint("super_admin_page", __name__,
 
 # import routes
 from . import login
-
