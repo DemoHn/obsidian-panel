@@ -7,13 +7,12 @@ from functools import wraps
 # check if user is login
 def check_login(fn):
     def decorated_function(*args, **kwargs):
-        # read session
+        # read session (remember me == false)
         session_token = session.get("session_token")
 
-        if session_token == None:
+        if session_token == None or session_token == '':
             # read token
             session_token = request.cookies.get("session_token")
-
 
         if session_token == None:
             return redirect("/super_admin/login")

@@ -45,7 +45,9 @@ def login():
             tk.insert(username)
 
             # make response with cookie
-            resp = make_response(redirect("/super_admin/main"))
+            resp = make_response(redirect("/super_admin/"))
+
+            # `remember me` checkbox ticked
             if remember_me == "on":
                 resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
             else:
@@ -62,9 +64,12 @@ def logout():
     resp = make_response(redirect("/super_admin/login"))
     # just set an empty cookie string
     resp.set_cookie("session_token","",max_age=0)
+    # clear session
+    session["session_token"] = ''
     return resp
 
-@super_admin_page.route("/main")
+# main page
+@super_admin_page.route("/")
 @check_login
 def main_page(uid):
     try:
