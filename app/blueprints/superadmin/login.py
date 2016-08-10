@@ -1,6 +1,6 @@
 __author__ = "Nigshoxiz"
 
-from flask import render_template, abort, request, make_response, redirect
+from flask import render_template, abort, request, make_response, redirect, session
 from jinja2 import TemplateNotFound
 from . import super_admin_page
 from .check_login import check_login
@@ -33,6 +33,7 @@ def login():
         username = F.get("username")
         password = F.get("password")
 
+        remember_me = F.get("remember_me")
         if not Users.search_username(username):
             return render_template("superadmin/login.html",login_error="username_not_found")
 
@@ -45,7 +46,10 @@ def login():
 
             # make response with cookie
             resp = make_response(redirect("/super_admin/main"))
-            resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
+            if remember_me == "on":
+                resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
+            else:
+                session['session_token'] = _token_str
             return resp
             #return render_template("superadmin/index.html")
         else:
