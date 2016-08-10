@@ -4,6 +4,7 @@ from app import db
 from datetime import datetime
 
 from .ob_user import Users
+
 class UserToken(db.Model):
     __tablename__ = "ob_token"
     token_id = db.Column(db.Integer, primary_key=True,autoincrement=True)

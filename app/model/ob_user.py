@@ -62,14 +62,20 @@ usernam e
 
     @staticmethod
     def compare_password(username, password):
+        '''
+
+        :param username: input username
+        :param password: input password
+        :return: (<password fits>, <query result>)
+        '''
         hash = hashlib.md5(password.encode('utf-8') + SALT).hexdigest()
 
         record = Users.query.filter_by(username=username, hash = hash).first()
 
         if record == None:
-            return False
+            return (False, None)
         else:
-            return True
+            return (True, record)
 
     @staticmethod
     def search_username(username):

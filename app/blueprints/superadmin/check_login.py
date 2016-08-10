@@ -2,6 +2,8 @@ __author__ = "Nigshoxiz"
 
 from flask import Blueprint, render_template, abort, request, redirect, session
 from app.model.ob_token import UserToken
+from app.model.ob_user import Users
+from app import db
 from functools import wraps
 
 # check if user is login
@@ -17,11 +19,12 @@ def check_login(fn):
         if session_token == None:
             return redirect("/super_admin/login")
         else:
-            user = UserToken.query.filter_by(token=session_token).first()
+            user = db.session.query(UserToken).join(Users).filter(UserToken.token==session_token).first()
             if user is None:
                 return redirect("/super_admin/login")
             else:
+                priv = user.ob_user.privilege
                 uid = user.uid
-                return fn(uid, *args, **kwargs)
+                return fn(uid, priv, *args, **kwargs)
 
     return decorated_function

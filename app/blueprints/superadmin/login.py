@@ -5,14 +5,14 @@ from jinja2 import TemplateNotFound
 from . import super_admin_page
 from .check_login import check_login
 
-from app import db
 from app.model.ob_user import Users
 from app.model.ob_token import UserToken
+
 
 #import libs
 import string, random
 import logging
-
+import app.utils as utils
 logger = logging.getLogger("ob_panel")
 
 @super_admin_page.route("/login", methods=["GET"])
@@ -37,16 +37,21 @@ def login():
         if not Users.search_username(username):
             return render_template("superadmin/login.html",login_error="username_not_found")
 
-        result = Users.compare_password(username, password)
+        result, _user = Users.compare_password(username, password)
 
         if result:
             _token_str = make_token(32)
             tk = UserToken(token=_token_str)
             tk.insert(username)
 
-            # make response with cookie
-            resp = make_response(redirect("/super_admin/"))
-
+            # redirect different page as account types differ
+            if _user.privilege == utils.PRIV_ROOT:
+                # make response with cookie
+                resp = make_response(redirect("/super_admin/"))
+            elif _user.privilege == utils.PRIV_INST_OWNER:
+                resp = make_response(redirect("/server_inst/"))
+            else:
+                resp = make_response()
             # `remember me` checkbox ticked
             if remember_me == "on":
                 resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
@@ -63,7 +68,7 @@ def login():
 def logout():
     resp = make_response(redirect("/super_admin/login"))
     # just set an empty cookie string
-    resp.set_cookie("session_token","",max_age=0)
+    resp.set_cookie("session_token", "", max_age=0)
     # clear session
     session["session_token"] = ''
     return resp
@@ -71,8 +76,11 @@ def logout():
 # main page
 @super_admin_page.route("/")
 @check_login
-def main_page(uid):
+def main_page(uid, priv):
     try:
-        return render_template("superadmin/index.html")
+        if priv == utils.PRIV_ROOT:
+            return render_template("superadmin/index.html")
+        else:
+            abort(403)
     except TemplateNotFound:
         abort(404)

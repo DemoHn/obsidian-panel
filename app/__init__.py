@@ -17,9 +17,12 @@ socketio = SocketIO(app)
 # after database declared.
 from app.blueprints.startup import start_page
 from app.blueprints.superadmin import super_admin_page
+from app.blueprints.server_inst import server_inst_page
 
+# register blueprints
 app.register_blueprint(start_page)
 app.register_blueprint(super_admin_page)
+app.register_blueprint(server_inst_page)
 
 # import main views
 from app import views

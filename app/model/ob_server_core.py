@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 from app import db
 from datetime import datetime
 
-class ServerMod(db.Model):
+class ServerCORE(db.Model):
     """
     A server mod is a singular .jar file that runs Minecraft Server instances.
     Because of the low performance and high RAM consumption of MC Vanilla Server (official),
@@ -12,7 +12,7 @@ class ServerMod(db.Model):
     Notice: Each mod has its own version number and correspond Minecraft version.
     
     """
-    __tablename__ = "ob_server_mod"
+    __tablename__ = "ob_server_core"
     file_id = db.Column(db.Integer, primary_key=True)
     file_size = db.Column(db.Integer)
     file_name = db.Column(db.String(100))

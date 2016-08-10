@@ -8,7 +8,7 @@ import logging
 import traceback
 
 from app.model.ob_user import Users
-
+import app.utils as utils
 def init_database(logger=None):
 
     gc = GlobalConfig.getInstance()
@@ -68,8 +68,7 @@ def migrate_superadmin():
 
     #for superadmin, privilege = 1
     try:
-        super_admin_user = Users(username=_username, privilege = 1, email=_email, hash= _hash)
-
+        super_admin_user = Users(username=_username, privilege = utils.PRIV_ROOT, email=_email, hash= _hash)
         try:
             super_admin_user.insert_byhash()
         except:

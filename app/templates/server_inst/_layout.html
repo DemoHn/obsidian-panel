@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OBpanel</title>
+    <!-- Material Design fonts -->
+    <!--jquery-->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/static/css/ionicons.min.css">
+    <!--adminLTE skin-->
+    <link rel="stylesheet" href="/static/css/skins/skin-blue.min.css">
+
+    <link rel="stylesheet" href="/static/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="/static/css/super_admin.style.css">
+
+    <script src="/static/js/adminLTE.min.js"></script>
+    <script src="/static/js/slimscroll.min.js"></script>
+    <script style="/static/user/super_admin.js"></script>
+<script>
+  var AdminLTEOptions = {
+    //Enable sidebar expand on hover effect for sidebar mini
+    //This option is forced to true if both the fixed layout and sidebar mini
+    //are used together
+    sidebarExpandOnHover: true,
+    //BoxRefresh Plugin
+    enableBoxRefresh: true,
+    //Bootstrap.js tooltip
+    enableBSToppltip: true
+  };
+</script>
+
+</head>
+
+<body class="skin-blue fixed">
+    <header class="main-header">
+        {% include "server_inst/_header.html" %}
+    </header>
+
+    <div class="main-sidebar">
+        {% include "server_inst/_sidebar.html" %}
+    </div><!-- /.main-sidebar -->
+
+    <div class="content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
