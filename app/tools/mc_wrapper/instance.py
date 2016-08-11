@@ -10,7 +10,7 @@ from app.tools.mc_wrapper.server_log import LogMonitorProtocol
 
 import os
 from app.tools.mc_wrapper.server_properties_parser import ServerPropertiesParser
-
+import inspect
 
 class MCServerInstance():
     STATE_HALT = 0
@@ -31,7 +31,27 @@ class MCServerInstance():
         self.transport = None
         self.process   = None
 
+        # running hooks
+        self._inst_starting_hook = []
+        self._inst_running_hook = []
+        self._data_received_hook = []
+        self._connection_lost_hook = []
+        self._inst_stop_hook = []
+
+    def _run_hook(self, hook_name, *args):
+        _names = ("inst_starting", "inst_running", "data_received", "connection_lost", "inst_stop")
+
+        if hook_name in _names:
+            _method = getattr(self, "_%s_hook" % hook_name)
+
+            for _hook_item in _method:
+                if inspect.isfunction(_hook_item):
+                    _hook_item(*args)
+
     def init_env(self,proc_cwd):
+
+        if not os.path.isdir(proc_cwd):
+            os.makedirs(proc_cwd)
         # init eula.txt
         EULA_txt_file = os.path.join(proc_cwd, "eula.txt")
         if not os.path.isfile(EULA_txt_file):
@@ -41,7 +61,7 @@ class MCServerInstance():
             f.close()
 
         # init server.properties
-        s_p_file = os.path.join(proc_cwd,"server.properties")
+        s_p_file = os.path.join(proc_cwd, "server.properties")
 
         if not os.path.isfile(s_p_file):
             open(s_p_file,"a").close()
@@ -74,6 +94,8 @@ class MCServerInstance():
         logger.debug("PID = %s" % self._pid)
         if self._pid != 0:
             self._status = MCServerInstance.STATE_STARTING
+            # args : <pid>, <pipe>, <process>
+            self._run_hook("inst_starting", self._pid, transport, process)
 
         self.transport = transport
         self.process   = process
@@ -119,12 +141,15 @@ class MCServerInstance():
         logger.info("Process %s exit. Port is %s." % (self._pid, self.port))
         self._status = MCServerInstance.STATE_HALT
         self.loop.stop()
+        self._run_hook("inst_stop")
 
 class MCServerInstanceThread(threading.Thread):
     def __init__(self, port, config=None):
         super(MCServerInstanceThread,self).__init__(kwargs = config)
         self._loop = asyncio.new_event_loop()
         self.port  = port
+        self.config = None
+        self.inst = None
 
     def run(self):
         """
@@ -146,9 +171,11 @@ class MCServerInstanceThread(threading.Thread):
 
         # init MC config
         config = MCWrapperConfig(**conf_kwargs)
+        self.config = config
 
         # init ServerInstance
         inst = MCServerInstance(port, loop = loop)
+        self.inst = inst
 
         # add instance to instance_pool
         mc_pool.add(port,inst)

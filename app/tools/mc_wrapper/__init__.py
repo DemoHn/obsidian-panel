@@ -49,7 +49,7 @@ class MCProcessPool():
 
     def get(self , port):
         port = str(port)
-        return self.processPool[port]
+        return self.processPool[port].inst
 
     def add_lock(self, port):
         """
@@ -190,4 +190,3 @@ else:
 '''
 _logger = init_logging_system()
 logger = _logger
-mc_pool = MCProcessPool.getInstance()

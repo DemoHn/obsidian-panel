@@ -26,11 +26,15 @@ class LogMonitorProtocol(SubprocessProtocol):
     def pipe_data_received(self, fd, data):
         _STATE_RUNNING = 2
         if fd == 1 or fd == 2:
-            logger.debug(self._port+ " - " + data.decode("utf-8"))
+            #logger.debug(self._port+ " - " + data.decode("utf-8"))
             # add callbacks after some particular log exists.
+
+            # run additional function
+            self._instance._run_hook("data_received", data)
 
             if data.decode('utf-8').find("Done") >= 0:
                 self._instance._status = _STATE_RUNNING
+                self._instance._run_hook("inst_running")
 
 
     def pipe_connection_lost(self, fd, exc):
@@ -39,4 +43,5 @@ class LogMonitorProtocol(SubprocessProtocol):
         # it is the time to terminate the thread.
         if self.__pipe_counter == 3:
             self.__pipe_counter = 0
+            self._instance._run_hook("connection_lost")
             self._instance.terminate_callback()
