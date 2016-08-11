@@ -13,11 +13,10 @@ class ServerCORE(db.Model):
     
     """
     __tablename__ = "ob_server_core"
-    file_id = db.Column(db.Integer, primary_key=True)
+    core_id = db.Column(db.Integer, primary_key=True)
     file_size = db.Column(db.Integer)
     file_name = db.Column(db.String(100))
-    download_time = db.Column(db.DateTime, default=datetime.now())
-
+    create_time = db.Column(db.DateTime)
     """
     file's md5 hash
     """
@@ -29,12 +28,6 @@ class ServerCORE(db.Model):
     mod_name = db.Column(db.String(100))
     mod_version = db.Column(db.String(10))
     minecraft_version = db.Column(db.String(10))
-
-    def __init__(self, _file, mod_name, mod_version, minecraft_version):
-        self._file = _file
-        self.mod_name = mod_name
-        self.mod_version = mod_version
-        self.minecraft_version = minecraft_version
 
     def __repr__(self):
         pass

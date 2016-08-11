@@ -36,7 +36,6 @@ class LogMonitorProtocol(SubprocessProtocol):
                 self._instance._status = _STATE_RUNNING
                 self._instance._run_hook("inst_running")
 
-
     def pipe_connection_lost(self, fd, exc):
         self.__pipe_counter += 1
         # when stdin, stdout, stderr are all disconnected,

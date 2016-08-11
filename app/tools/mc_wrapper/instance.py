@@ -46,7 +46,7 @@ class MCServerInstance():
 
             for _hook_item in _method:
                 if inspect.isfunction(_hook_item):
-                    _hook_item(*args)
+                    _hook_item(self, *args)
 
     def init_env(self,proc_cwd):
 
@@ -63,6 +63,7 @@ class MCServerInstance():
         # init server.properties
         s_p_file = os.path.join(proc_cwd, "server.properties")
 
+        # touch server.properties file
         if not os.path.isfile(s_p_file):
             open(s_p_file,"a").close()
 
@@ -70,6 +71,15 @@ class MCServerInstance():
         parser.set_server_port(self.port)
         # write config to the file
         parser.dumps()
+
+    def add_hook(self, hook_name, fn):
+        _names = ("inst_starting", "inst_running", "data_received", "connection_lost", "inst_stop")
+
+        if hook_name in _names:
+            _method = getattr(self, "_%s_hook" % hook_name)
+
+            if inspect.isfunction(fn):
+                _method.append(fn)
 
     # @params
     # mc_w_config : just an instance of class MCWrapperConfig()
@@ -95,7 +105,7 @@ class MCServerInstance():
         if self._pid != 0:
             self._status = MCServerInstance.STATE_STARTING
             # args : <pid>, <pipe>, <process>
-            self._run_hook("inst_starting", self._pid, transport, process)
+            self._run_hook("inst_starting")
 
         self.transport = transport
         self.process   = process
@@ -109,9 +119,8 @@ class MCServerInstance():
             try:
                 #_pid, _status = os.waitpid(self._pid,0)
                 #yield from self.process.wait()
-                print("end")
+                logger.debug("stop")
                 # terminate the thread
-
             except OSError:
                 traceback.print_exc()
             #threading.current_thread().stop()
@@ -148,10 +157,13 @@ class MCServerInstanceThread(threading.Thread):
         super(MCServerInstanceThread,self).__init__(kwargs = config)
         self._loop = asyncio.new_event_loop()
         self.port  = port
+
         self.config = None
         self.inst = None
 
-    def run(self):
+        self.init()
+
+    def init(self):
         """
         create MC server process
         :return:
@@ -180,13 +192,20 @@ class MCServerInstanceThread(threading.Thread):
         # add instance to instance_pool
         mc_pool.add(port,inst)
 
-        # start process
-        inst.start_process(config)
+    def run(self):
+        mc_pool = MCProcessPool.getInstance()
 
-        loop.run_forever()
-        loop.close()
+        # start process
+        self.inst.start_process(self.config)
+
+        self._loop.run_forever()
+        self._loop.close()
 
         # after the process quit, delete the server instance from instance pool.
-        MCProcessPool.getInstance().remove(port)
-        mc_pool.del_lock(port)
+        MCProcessPool.getInstance().remove(self.port)
+        mc_pool.del_lock(self.port)
         logger.debug("terminate thread %s" % threading.current_thread())
+
+    def add_hook(self, hook_name, fn):
+        if self.inst != None:
+            self.inst.add_hook(hook_name, fn)
