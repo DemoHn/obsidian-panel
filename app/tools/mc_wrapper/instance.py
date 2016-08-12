@@ -161,6 +161,7 @@ class MCServerInstanceThread(threading.Thread):
         self.config = None
         self.inst = None
 
+        self.setDaemon(True)
         self.init()
 
     def init(self):

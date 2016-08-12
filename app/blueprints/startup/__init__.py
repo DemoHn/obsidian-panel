@@ -261,9 +261,9 @@ def terminate_downloading_java(hash):
         return rtn.error(500)
 
 #  download progress socket
-@socketio.on("ask_download_progess")
+@socketio.on("ask_download_progress")
 @only_on_startup
-def get_java_download_progess(msg):
+def get_java_download_progress(msg):
     logger = logging.getLogger("ob_panel")
     _model = {
         "current": None,

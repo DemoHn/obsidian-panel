@@ -26,3 +26,4 @@ app.register_blueprint(server_inst_page)
 
 # import main views
 from app import views
+from app.ws import *
