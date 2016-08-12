@@ -193,10 +193,14 @@
 
     })
 
-    var socket = io.connect('http://localhost:5000');
+    var socket = io.connect('/');
     socket.on('connect', function() {
-        socket.emit('my event', {data: 'I\'m connected!'});
+        socket.emit('test_ws', {data: 'I\'m connected!'});
     });
+
+    socket.on("test_ws",function () {
+        console.log("Hello")
+    })
 </script>
 
 </body>

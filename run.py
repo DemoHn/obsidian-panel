@@ -1,4 +1,3 @@
-#!flask/bin/python
 import os
 import logging
 
@@ -43,5 +42,6 @@ logger = init_logger(debug=True)
 init_directory()
 init_database(logger=logger)
 
-socketio.run(app,debug=True)
-#app.run(debug=True)
+if __name__ == "__main__":
+    socketio.run(app,debug=True)
+    #app.run(debug=True)
