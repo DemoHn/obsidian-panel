@@ -4,7 +4,7 @@ from flask import render_template, abort, request, make_response, redirect, sess
 from flask_socketio import emit, send
 from jinja2 import TemplateNotFound
 from . import super_admin_page, logger
-from .check_login import check_login
+from .check_login import super_admin_only
 
 from app.model.ob_user import Users
 from app.model.ob_token import UserToken
@@ -74,7 +74,7 @@ def logout():
 
 # main page
 @super_admin_page.route("/")
-@check_login
+@super_admin_only
 def main_page(uid, priv):
     try:
         if priv == utils.PRIV_ROOT:
