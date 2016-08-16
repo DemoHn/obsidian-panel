@@ -1,13 +1,13 @@
 __author__ = "Nigshoxiz"
 
 from flask import render_template, abort, request, make_response, redirect, session
+from flask_socketio import emit, send
 from jinja2 import TemplateNotFound
 from . import super_admin_page
 from .check_login import check_login
-
+from app import socketio
 from app.model.ob_user import Users
 from app.model.ob_token import UserToken
-
 
 #import libs
 import string, random

@@ -3,6 +3,7 @@ from app.controller.global_config import GlobalConfig
 from flask import render_template, redirect
 from flask_socketio import send, emit
 
+from circus import get_arbiter
 import threading
 @app.route("/")
 def index():
@@ -18,7 +19,8 @@ def index():
 def __draft():
     return render_template("_draft.html")
 
+# TODO socketio
 @socketio.on('test_ws')
 def test_ws(msg):
     print(msg)
-    send(msg)
+    emit('hello',msg)
