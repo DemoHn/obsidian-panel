@@ -37,6 +37,16 @@
                                         <th>说明 <sup><i class="fa fa-info-circle notice-icon"></i></sup></th>
                                     </tr>
                                 </thead>
+                                <tbody>
+                                <tr>
+                                    <td>spigot-v10-SNAPSHOT-1.7.10.jar</td>
+                                    <td>Spigot</td>
+                                    <td>v10-SNAPSHOT</td>
+                                    <td>1.7.10</td>
+                                    <td>24.22MB</td>
+                                    <td>不帶forge</td>
+                                </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -77,7 +87,7 @@
                             </button>
                         </div>
                     </div>
-                    <form action="#" class="form-horizontal">
+                    <form action="" class="form-horizontal" id="upload_core">
                     <div class="box-body">
                         <span class="instruction">上传自定义核心</span>
                         <p></p>
@@ -87,45 +97,51 @@
                                 选择文件
                             </label>
 
-                            <label class="btn btn-default btn-file">
-                                Browse <input type="file" style="display: none;">
-                            </label>
-
+                            <div class="input-group">
+                                <div class="col-sm-12">
+                                    <input type="text" class="form-control" style="width:65%;" v-model="file_name">
+                                    <span class="input-group-btn">
+                                        <label class="btn btn-default btn-file">
+                                            浏览 <input type="file" style="display: none;" @change="on_file_change" id="_upload_core_file">
+                                        </label>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                         <!-- core file type-->
                             <div class="form-group">
                                 <label for="file_select" class="col-sm-3 control-label">核心类型</label>
                                 <div class="col-sm-6">
-                                    <select name="" id="file_select" class="form-control">
-                                        <option value="spigot">Bukkit</option>
+                                    <select name="" id="file_select" class="form-control" v-model="core_type">
+                                        <option value="bukkit">Bukkit</option>
                                         <option value="spigot">Spigot</option>
-                                        <option value="spigot" selected>Vanilla</option>
-                                        <option value="spigot">Forge</option>
-                                        <option value="spigot">MCPC+</option>
-                                        <option value="spigot">KCauldron</option>
-                                        <option value="spigot">Thermos</option>
-                                        <option value="spigot">其他</option>
+                                        <option value="vanilla" selected>Vanilla</option>
+                                        <option value="forge">Forge</option>
+                                        <option value="mcpc+">MCPC+</option>
+                                        <option value="kcauldron">KCauldron</option>
+                                        <option value="thermos">Thermos</option>
+                                        <option value="other">其他</option>
                                     </select>
                                 </div>
                             </div>
                         <!-- file version -->
                         <div class="form-group">
-                            <label for="file_version" class="control-label col-sm-3">
+                            <label for="file_version" class="control-label col-sm-3" >
                                 版本
                             </label>
 
                             <div class="col-md-6 col-lg-6 col-sm-offset-0">
-                                <input type="text" class="form-control" id="file_version"/>
+                                <input type="text" class="form-control" id="file_version" v-model="file_version"/>
                             </div>
                         </div>
                         <!-- Minecraft version -->
                         <div class="form-group">
                             <label for="mc_version" class="control-label col-sm-3">
-                                MC 版本
+                                <i class="red-multiple"></i> MC 版本
                             </label>
 
                             <div class="col-md-6 col-lg-6 col-sm-offset-0">
-                                <input type="text" class="form-control" id="mc_version"/>
+                                <input type="text" class="form-control" id="mc_version" v-model="mc_version"/>
                             </div>
                         </div>
 
@@ -136,13 +152,13 @@
                             </label>
 
                             <div class="col-md-6 col-lg-6 col-sm-offset-0">
-                                <textarea rows="3" class="form-control" id="mc_version"> </textarea>
+                                <textarea rows="3" class="form-control" id="description" v-model="description"> </textarea>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <div class="col-sm-12">
-                                <button class="btn btn-primary pull-right">上传</button>
+                                <button class="btn btn-primary pull-right" :disabled="!allow_upload" v-on:click="upload_file" type="button">上传</button>
                             </div>
 
                         </div>
@@ -152,4 +168,10 @@
             </div>
         </div>
     </section>
+{% endblock %}
+<!--import jquery upload file js lib -->
+{% block footer %}
+    <script src="/static/js/jq_f_up/jquery.ui.widget.js"></script>
+    <script src="/static/js/jq_f_up/jquery.iframe-transport.js"></script>
+    <script src="/static/js/jq_f_up/jquery.fileupload.js"></script>
 {% endblock %}

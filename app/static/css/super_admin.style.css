@@ -12,3 +12,11 @@ span.instruction{
 i.notice-icon{
     color: cornflowerblue;
 }
+
+i.red-multiple{
+    color: red;
+}
+
+i.red-multiple:before{
+    content: "*"
+}
