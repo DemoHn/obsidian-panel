@@ -1,0 +1,14 @@
+/*vue*/
+[v-cloak]{
+    display: none;
+}
+
+span.instruction{
+    color: gray;
+    display: inline-block;
+    margin-top:0.5em;
+}
+
+i.notice-icon{
+    color: cornflowerblue;
+}

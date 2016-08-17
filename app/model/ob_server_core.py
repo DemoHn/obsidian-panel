@@ -23,11 +23,12 @@ class ServerCORE(db.Model):
     file_hash = db.Column(db.String(80))
 
     """
-    mod's name. Like Kcaultron, Bukkit, etc.
+    Type of core file. Like Kcaultron, Bukkit, etc.
     """
-    mod_name = db.Column(db.String(100))
-    mod_version = db.Column(db.String(10))
-    minecraft_version = db.Column(db.String(10))
+    core_type = db.Column(db.String(100))
+    core_version = db.Column(db.String(10))
+    minecraft_version = db.Column(db.String(10), nullable=False)
+    note = db.Column(db.Text)
 
     def __repr__(self):
         pass

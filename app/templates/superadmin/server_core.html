@@ -1,12 +1,155 @@
 {% extends "superadmin/_layout.html" %}
 {% block content %}
     <section class="content-header">
-
+        <br>
+        <h1>服务器核心</h1>
+        <div>
+            <span class="instruction">
+                运行Minecraft服务器的核心文件，通常为jar格式。<br>
+                只有安装核心，才能创建一个Minecraft服务器实例。
+            </span>
+        </div>
     </section>
 
     <section class="content">
         <div class="row">
+            <div class="col-xs-8">
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">文件管理</h3>
 
+                        <div class="box-tools pull-right">
+                            <button class="btn btn-box-tool" type="button" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="table-responsive">
+                            <table class="table no-margin">
+                                <thead>
+                                    <tr>
+                                        <th>文件名</th>
+                                        <th>类型</th>
+                                        <th>文件版本</th>
+                                        <th>Minecraft版本</th>
+                                        <th>文件大小</th>
+                                        <th>说明 <sup><i class="fa fa-info-circle notice-icon"></i></sup></th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- install-->
+            <div class="col-xs-4">
+                <!-- install core -->
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">安装核心</h3>
+
+                        <div class="box-tools pull-right">
+
+                            <button class="btn btn-box-tool" type="button">
+                                <i class="fa fa-refresh"></i>
+                            </button>
+
+                            <button class="btn btn-box-tool" type="button" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <span class="instruction">Still working...</span>
+                    </div>
+                </div>
+
+                <div class="box box-warning">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">上传核心</h3>
+
+                        <div class="box-tools pull-right">
+
+                            <button class="btn btn-box-tool" type="button" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <form action="#" class="form-horizontal">
+                    <div class="box-body">
+                        <span class="instruction">上传自定义核心</span>
+                        <p></p>
+
+                        <div class="form-group">
+                            <label for="choose_file" class="col-sm-3 control-label">
+                                选择文件
+                            </label>
+
+                            <label class="btn btn-default btn-file">
+                                Browse <input type="file" style="display: none;">
+                            </label>
+
+                        </div>
+                        <!-- core file type-->
+                            <div class="form-group">
+                                <label for="file_select" class="col-sm-3 control-label">核心类型</label>
+                                <div class="col-sm-6">
+                                    <select name="" id="file_select" class="form-control">
+                                        <option value="spigot">Bukkit</option>
+                                        <option value="spigot">Spigot</option>
+                                        <option value="spigot" selected>Vanilla</option>
+                                        <option value="spigot">Forge</option>
+                                        <option value="spigot">MCPC+</option>
+                                        <option value="spigot">KCauldron</option>
+                                        <option value="spigot">Thermos</option>
+                                        <option value="spigot">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                        <!-- file version -->
+                        <div class="form-group">
+                            <label for="file_version" class="control-label col-sm-3">
+                                版本
+                            </label>
+
+                            <div class="col-md-6 col-lg-6 col-sm-offset-0">
+                                <input type="text" class="form-control" id="file_version"/>
+                            </div>
+                        </div>
+                        <!-- Minecraft version -->
+                        <div class="form-group">
+                            <label for="mc_version" class="control-label col-sm-3">
+                                MC 版本
+                            </label>
+
+                            <div class="col-md-6 col-lg-6 col-sm-offset-0">
+                                <input type="text" class="form-control" id="mc_version"/>
+                            </div>
+                        </div>
+
+                        <!-- description-->
+                        <div class="form-group">
+                            <label for="description" class="control-label col-sm-3">
+                                说明
+                            </label>
+
+                            <div class="col-md-6 col-lg-6 col-sm-offset-0">
+                                <textarea rows="3" class="form-control" id="mc_version"> </textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button class="btn btn-primary pull-right">上传</button>
+                            </div>
+
+                        </div>
+                    </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </section>
 {% endblock %}

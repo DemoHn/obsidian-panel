@@ -13,9 +13,6 @@ import app.utils as utils
 @super_admin_only
 def render_server_core_page(uid, priv):
     try:
-        return render_template('superadmin/server_core.html')
+        return render_template('superadmin/server_core.html',title="hello")
     except TemplateNotFound:
         abort(404)
-
-# download instance
-#@super_admin_page.route()

@@ -1,4 +1,6 @@
 // javascript file for super_admin
+Vue.config.delimiters = ['${','}'];
+
 $(document).ready(function(){
     // tooltip initialization
     //$("#_logout").tooltip();
