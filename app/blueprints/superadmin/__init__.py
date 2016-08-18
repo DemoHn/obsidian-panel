@@ -12,3 +12,4 @@ logger = logging.getLogger("ob_panel")
 # import routes
 from . import login
 from . import server_core
+from . import java_binary

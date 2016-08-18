@@ -24,7 +24,7 @@ def logout():
 @check_login
 def view(uid, priv):
     try:
-        if priv == utils.PRIV_INST_OWNER:
+        if priv <= utils.PRIV_INST_OWNER:
             return render_template("server_inst/index.html")
         else:
             abort(403)

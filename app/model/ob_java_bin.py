@@ -13,6 +13,8 @@ class JavaBinary(db.Model):
     minor_version = db.Column(db.String(20))
     # java dir
     bin_directory = db.Column(db.Text)
+    # install time
+    install_time  = db.Column(db.DateTime)
 
     def __repr__(self):
         return "<id=%s, version=%s_%s, dir=%s>" % (self.id,
