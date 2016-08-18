@@ -84,13 +84,25 @@ def upload_core_file(uid, priv):
         if file.filename == '':
             return rtn.error(404)
 
+        __counter = 0
+
         if file and _allowed_file(file.filename):
-            file.save(os.path.join(upload_dir, file.filename))
+            _files = os.listdir(upload_dir)
+            _filename = file.filename
+            _ori_filename = _filename
+            while True:
+                if _filename in _files:
+                    __counter += 1
+                    _filename = "x%s-%s" % (__counter, _ori_filename)
+                else:
+                    break
+
+            file.save(os.path.join(upload_dir, _filename))
             # add inst to database
-            _file = os.path.join(upload_dir, file.filename)
+            _file = os.path.join(upload_dir, _filename)
 
             inst = ServerCORE(
-                file_name   = file.filename,
+                file_name   = _filename,
                 file_size   = os.path.getsize(_file),
                 file_dir    = upload_dir,
                 create_time = datetime.now(),
