@@ -14,6 +14,9 @@ errcode['401'] = "input data is not complete"
 errcode['403'] = "Operation Forbidden"
 
 errcode['405'] = "invalid keyword"
+# file upload
+errcode['411'] = "file extension not allowed"
+
 # new_service dispatch error
 errcode['420'] = "dispatch unknown error"
 errcode['421'] = "dispatch out of quota"

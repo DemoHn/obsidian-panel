@@ -87,7 +87,7 @@
                             </button>
                         </div>
                     </div>
-                    <form action="" class="form-horizontal" id="upload_core">
+                    <form action="" class="form-horizontal" id="upload_core" enctype="multipart/form-data">
                     <div class="box-body">
                         <span class="instruction">上传自定义核心</span>
                         <p></p>
@@ -99,10 +99,10 @@
 
                             <div class="input-group">
                                 <div class="col-sm-12">
-                                    <input type="text" class="form-control" style="width:65%;" v-model="file_name">
+                                    <input type="text" class="form-control" style="width:65%;" v-model="file_name" readonly>
                                     <span class="input-group-btn">
                                         <label class="btn btn-default btn-file">
-                                            浏览 <input type="file" style="display: none;" @change="on_file_change" id="_upload_core_file">
+                                            浏览 <input id="file_select" type="file" name="files" multiple>
                                         </label>
                                     </span>
                                 </div>
@@ -158,7 +158,7 @@
 
                         <div class="form-group">
                             <div class="col-sm-12">
-                                <button class="btn btn-primary pull-right" :disabled="!allow_upload" v-on:click="upload_file" type="button">上传</button>
+                                <button class="btn btn-primary pull-right" :disabled="!allow_upload" @click="upload_file" type="button">上传</button>
                             </div>
 
                         </div>

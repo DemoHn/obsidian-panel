@@ -6,6 +6,7 @@ import datetime
 import re, os
 import json
 import calendar
+import hashlib
 from app.error_code import errcode
 
 # password hash salt
@@ -20,6 +21,11 @@ def get_file_directory():
     full_path = os.path.realpath(__file__)
     path,file = os.path.split(full_path)
     return path
+
+def get_file_hash(filename):
+    file = open(filename , 'rb')
+    data = file.read(1024)
+    return hashlib.md5(data).hexdigest()
 
 class timeUtil:
     def __init__(self):

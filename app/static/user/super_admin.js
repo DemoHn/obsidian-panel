@@ -18,7 +18,9 @@ $(document).ready(function(){
 * Server Core Page Management
 * */
 var ServerCorePage = function () {
+    var self = this;
     this.upload_url = "/super_admin/upload_server_core";
+    this._file_data = null;
     this.upload_vm = new Vue({
         el:"#upload_core",
         data:{
@@ -35,17 +37,31 @@ var ServerCorePage = function () {
         },
         methods:{
             "upload_file" : function () {
-                console.log(this.core_type)
-            },
-            "on_file_change" : function (e) {
-                var files = e.target.files || e.dataTransfer.files;
-
-                this.file_name = files[0]["name"];
+                self._file_data.submit().done(function (data) {
+                    //TODO
+                    console.log(data);
+                });
             }
         }
     });
+
+    $("#file_select").fileupload({
+        url : "/super_admin/upload_core_file",
+        autoUpload: false,
+        dataType : 'json'
+    }).on('fileuploadadd', function (e,data) {
+        self._file_data = data;
+
+        self._file_data.formData = {
+            "mc_version" : self.upload_vm.mc_version,
+            "file_version" : self.upload_vm.file_version,
+            "description" : self.upload_vm.description
+        };
+        self.upload_vm.file_name = data.files[0]['name'];
+    });
+    
 };
 
 ServerCorePage.prototype._uploadFile = function (callback) {
-    //$("#_upload_core_file").fileupload()
+
 };

@@ -1,7 +1,7 @@
 __author__ = "Nigshoxiz"
 
 from app import db
-from datetime import datetime
+import hashlib
 
 class ServerCORE(db.Model):
     """
@@ -16,6 +16,8 @@ class ServerCORE(db.Model):
     core_id = db.Column(db.Integer, primary_key=True)
     file_size = db.Column(db.Integer)
     file_name = db.Column(db.String(100))
+    file_dir  = db.Column(db.Text)
+
     create_time = db.Column(db.DateTime)
     """
     file's md5 hash
@@ -31,8 +33,4 @@ class ServerCORE(db.Model):
     note = db.Column(db.Text)
 
     def __repr__(self):
-        pass
-
-    def create(self):
-        # TODO
         pass
