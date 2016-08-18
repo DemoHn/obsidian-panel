@@ -11,7 +11,7 @@ $(document).ready(function(){
     };
 
     // init
-    _map[path_item]();
+    new _map[path_item]();
 });
 
 /*
@@ -28,7 +28,8 @@ var ServerCorePage = function () {
             file_name : "",
             mc_version : "",
             file_version : "",
-            description : ""
+            description : "",
+            core_type : ""
         },
         computed:{
             allow_upload : function () {
@@ -37,6 +38,13 @@ var ServerCorePage = function () {
         },
         methods:{
             "upload_file" : function () {
+                self._file_data.formData = {
+                    "mc_version" : self.upload_vm.mc_version,
+                    "file_version" : self.upload_vm.file_version,
+                    "description" : self.upload_vm.description,
+                    "core_type" : self.upload_vm.core_type
+                };
+
                 self._file_data.submit().done(function (data) {
                     //TODO
                     console.log(data);
@@ -44,7 +52,12 @@ var ServerCorePage = function () {
             }
         }
     });
+    
+    this.__init__()
+};
 
+ServerCorePage.prototype.__init__ = function () {
+    var self = this;
     $("#file_select").fileupload({
         url : "/super_admin/upload_core_file",
         autoUpload: false,
@@ -52,16 +65,6 @@ var ServerCorePage = function () {
     }).on('fileuploadadd', function (e,data) {
         self._file_data = data;
 
-        self._file_data.formData = {
-            "mc_version" : self.upload_vm.mc_version,
-            "file_version" : self.upload_vm.file_version,
-            "description" : self.upload_vm.description
-        };
         self.upload_vm.file_name = data.files[0]['name'];
     });
-    
-};
-
-ServerCorePage.prototype._uploadFile = function (callback) {
-
 };

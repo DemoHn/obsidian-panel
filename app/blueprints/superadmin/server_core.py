@@ -12,7 +12,7 @@ from . import super_admin_page, logger
 from .check_login import super_admin_only, ajax_super_admin_only
 
 import traceback
-import os
+import os, json
 from datetime import datetime
 
 rtn = returnModel("string")
@@ -22,10 +22,44 @@ rtn = returnModel("string")
 @super_admin_only
 def render_server_core_page(uid, priv):
     try:
-        return render_template('superadmin/server_core.html',title="hello")
+        info = get_core_file_info()
+        _info = json.loads(info)
+
+        if _info["status"] == "success":
+            _file_info = _info["info"]
+        else:
+            _file_info = []
+
+        return render_template('superadmin/server_core.html',title="hello",mc_files=_file_info)
     except TemplateNotFound:
         abort(404)
 
+@super_admin_page.route("/get_core_file_info")
+@ajax_super_admin_only
+def get_core_file_info(uid, priv):
+    try:
+        info = db.session.query(ServerCORE).all()
+        _model_arr = []
+
+        for item in info:
+            _model = {
+                "file_name" : item.file_name,
+                "core_type" : item.core_type,
+                "core_version" : item.core_version,
+                "minecraft_version" : item.minecraft_version,
+                "file_size" : item.file_size,
+                "note" : item.note
+            }
+            _model_arr.append(_model)
+
+        return rtn.success(_model_arr)
+    except:
+        logger.error(traceback.format_exc())
+        return rtn.error(500)
+
+# upload user-customized server core file
+#
+#########################################
 @super_admin_page.route("/upload_core_file", methods=["POST"])
 @ajax_super_admin_only
 def upload_core_file(uid, priv):
@@ -54,7 +88,7 @@ def upload_core_file(uid, priv):
             file.save(os.path.join(upload_dir, file.filename))
             # add inst to database
             _file = os.path.join(upload_dir, file.filename)
-            
+
             inst = ServerCORE(
                 file_name   = file.filename,
                 file_size   = os.path.getsize(_file),
@@ -75,5 +109,5 @@ def upload_core_file(uid, priv):
             return rtn.error(411)
 
     except:
-        logger.debug(traceback.format_exc())
+        logger.error(traceback.format_exc())
         return rtn.error(500)

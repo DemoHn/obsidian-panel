@@ -38,14 +38,16 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                {% for file in mc_files %}
                                 <tr>
-                                    <td>spigot-v10-SNAPSHOT-1.7.10.jar</td>
-                                    <td>Spigot</td>
-                                    <td>v10-SNAPSHOT</td>
-                                    <td>1.7.10</td>
-                                    <td>24.22MB</td>
-                                    <td>不帶forge</td>
+                                    <td>{{ file.file_name }}</td>
+                                    <td>{{ file.core_type }}</td>
+                                    <td>{{ file.core_version }}</td>
+                                    <td>{{ file.minecraft_version }}</td>
+                                    <td>{{ file.file_size }}</td>
+                                    <td>{{ file.note }}</td>
                                 </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
