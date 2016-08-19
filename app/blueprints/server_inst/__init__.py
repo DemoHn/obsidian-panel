@@ -12,3 +12,5 @@ logger = logging.getLogger("ob_panel")
 # import routes
 from . import views
 from . import dashboard
+from . import console
+from . import ftp
