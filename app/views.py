@@ -3,8 +3,6 @@ from app.controller.global_config import GlobalConfig
 from flask import render_template, redirect
 from flask_socketio import send, emit
 
-from circus import get_arbiter
-import threading
 @app.route("/")
 def index():
     gc = GlobalConfig.getInstance()
@@ -13,7 +11,7 @@ def index():
     if _is_startup == None or _is_startup == False:
         return redirect("/startup")
     else:
-        return redirect("/super_admin/login")
+        return redirect("/server_inst/")
 
 @app.route("/draft")
 def __draft():
