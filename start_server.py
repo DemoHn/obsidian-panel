@@ -5,6 +5,7 @@ from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
 from app import socketio
 from app import app as _app
+
 def init_directory():
     gc = GlobalConfig.getInstance()
     dirs = [

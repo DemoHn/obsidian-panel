@@ -95,7 +95,7 @@ class MCWrapperConfig():
         if RAM == None:
             self._min_RAM = 1
         else:
-            self._min_RAM = float(RAM)
+            self._min_RAM = int(RAM)
 
     @property
     def max_RAM(self):
@@ -106,7 +106,7 @@ class MCWrapperConfig():
         if RAM == None:
             self._max_RAM = 1
         else:
-            self._max_RAM = float(RAM)
+            self._max_RAM = int(RAM)
 
     @property
     def jar_file(self):
@@ -139,8 +139,8 @@ class MCWrapperConfig():
     def __init__(self,**kwargs):
         """Config entries:
                 java_bin : java executable location. (On Linux with java installed, it's /usr/bin/java)
-                min_RAM   : minimum RAM allocated for this process. (unit : GB)
-                max_RAM   : maximum RAM allocated for this process.
+                min_RAM   : minimum RAM allocated for this process. (unit : MB)
+                max_RAM   : maximum RAM allocated for this process. (unit: MB)
                 jar_file : MC server jar file's location. (generally, the name is `minecraft_server_**.jar`)
                 proc_cwd : literally, it means MC server's working directory. But here, it determines where to save
                   the world's data.

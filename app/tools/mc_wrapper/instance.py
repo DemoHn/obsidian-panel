@@ -86,8 +86,8 @@ class MCServerInstance():
     def start_process(self, mc_w_config):
 
         cmd = mc_w_config.java_bin
-        cmd_args = ["-Xms%sM" % int(float(mc_w_config.min_RAM) * 1024),
-                    "-Xmx%sM" % int(float(mc_w_config.max_RAM) * 1024),
+        cmd_args = ["-Xms%sM" % int(mc_w_config.min_RAM),
+                    "-Xmx%sM" % int(mc_w_config.max_RAM),
                     "-jar",
                     mc_w_config.jar_file,
                     "nogui"]

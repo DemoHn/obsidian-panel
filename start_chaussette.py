@@ -27,7 +27,7 @@ port = 5000
 # That is, we can't run `chaussette run.app --backed eventlet` to start server directly.
 # In fact, chaussette supports eventlet backend in python3 internally, it just denies `eventlet` as an option
 # of `--backend` in command line. Considering the stability of eventlet library in python3, which has been
-# improved a lot since the release date of chaussette v0.13.0 (2015), we use a 'little' trick to bypass the
+# improved a lot since the release date of chaussette v0.13.0 (2015), we monkey-patch it to bypass the
 # restriction of command line .
 #
 # And How to run in circus?

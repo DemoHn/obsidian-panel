@@ -10,7 +10,7 @@ class ServerInstance(db.Model):
     # the user who ownes this server instance
     owner_id = db.Column(db.Integer, db.ForeignKey("ob_user.id"))
     # inst_name
-    inst_name = db.Column(db.Text)
+    inst_name = db.Column(db.String(100))
     # last time to launch the server
     last_start_time = db.Column(db.DateTime)
     # server core file
