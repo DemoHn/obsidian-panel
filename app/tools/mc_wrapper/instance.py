@@ -173,7 +173,7 @@ class MCServerInstanceThread(threading.Thread):
         mc_pool = MCProcessPool.getInstance()
         # init lock
         if mc_pool.lock_exists(port):
-            logger.warning("A process is alreay running on port %s!" % port)
+            logger.warning("A process is already running on port %s!" % port)
         else:
             mc_pool.add_lock(port)
 

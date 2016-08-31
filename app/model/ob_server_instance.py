@@ -9,6 +9,8 @@ class ServerInstance(db.Model):
     inst_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     # the user who ownes this server instance
     owner_id = db.Column(db.Integer, db.ForeignKey("ob_user.id"))
+    # inst_name
+    inst_name = db.Column(db.Text)
     # last time to launch the server
     last_start_time = db.Column(db.DateTime)
     # server core file
@@ -22,6 +24,8 @@ class ServerInstance(db.Model):
     max_RAM = db.Column(db.Integer)
     # max user online simultaneously
     max_user = db.Column(db.Integer)
+    # instance working directory, which is the root of an instance to start.
+    inst_dir = db.Column(db.Text)
 
     def __repr__(self):
         return "<id=%s, port=%s, max_RAM=%s>" % (self.inst_id,

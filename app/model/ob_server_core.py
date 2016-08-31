@@ -17,6 +17,10 @@ class ServerCORE(db.Model):
     file_size = db.Column(db.Integer)
     file_name = db.Column(db.String(100))
     file_dir  = db.Column(db.Text)
+    '''
+    which user upload this core file.
+    '''
+    file_uploader = db.Column(db.Integer, db.ForeignKey("ob_user.id"))
 
     create_time = db.Column(db.DateTime)
     """

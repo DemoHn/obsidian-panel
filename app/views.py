@@ -11,7 +11,7 @@ def index():
     if _is_startup == None or _is_startup == False:
         return redirect("/startup")
     else:
-        return redirect("/server_inst/")
+        return redirect("/server_inst/dashboard")
 
 @app.route("/draft")
 def __draft():

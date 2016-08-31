@@ -11,7 +11,7 @@ class Users(db.Model):
     __tablename__ = "ob_user"
     id = db.Column(db.Integer, primary_key= True, unique=True, autoincrement=True)
     """ob_token
-usernam e
+    username
     """
     username = db.Column(db.String(80), unique=True)
 
