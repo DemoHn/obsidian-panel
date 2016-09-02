@@ -1,6 +1,7 @@
 __author__ = "Nigshoxiz"
 import os
 import re
+from . import logger
 
 class KVParser(object):
     """
@@ -87,12 +88,11 @@ class ServerPropertiesParser(KVParser):
 
     def write_config(self, config):
         for k in config:
-            if k == "motd":
-                self.set_motd(config[k])
-            elif k == "server-port":
-                self.set_server_port(config[k])
-            elif k == "level-name":
-                self.set_server_port(config[k])
+            _k = str(k).replace("-","_")
+            _attr_name = "set_%s" % _k
+            if hasattr(self, _attr_name):
+                func = getattr(self, _attr_name)
+                func(config[k])
 
         self.dumps()
 
@@ -146,7 +146,55 @@ class ServerPropertiesParser(KVParser):
         # server_port range : [1,65535]
         server_port = int(server_port)
         if server_port >= 1 and server_port <= 65535:
-            self.add("server-port",str(server_port))
+            self.replace("server-port",str(server_port))
+        else:
+            raise Exception("the value '%s' is out of range!" % server_port)
 
     def set_level_name(self, level_name):
+        self.replace("level-name",str(level_name))
         pass
+
+    def set_max_players(self, max_players):
+        # max_players must > 0
+        _max_players = int(max_players)
+
+        if _max_players > 0:
+            self.replace("max-players",str(max_players))
+        else:
+            raise Exception("the value '%s' is out of range!" % max_players)
+
+    def set_online_mode(self, online_mode):
+        '''
+        :param online_mode: If set to True, players must login the server with MOJANG account,
+        (i.e. only legal players could enter the server)
+        value : True or False.
+        :return: nothing
+        '''
+        if online_mode == True:
+            self.replace("online-mode","true")
+        else:
+            self.replace("online-mode","false")
+
+    def set_difficulty(self, difficulty):
+        '''
+        According to Minecraft Wiki, the difficulty property should be an integer
+        in the set {0,1,2,3}. Each number represents for different level:
+        0 - Peaceful
+        1 - Easy
+        2 - Normal
+        3 - Hard
+
+        If user still provide an integer that exceed the set above, we only print
+        a warning message, since it may be acceptable on other unofficial version
+        of MC server core.
+
+        :param difficulty: a number
+        :return: nothing
+        '''
+        difficulty = int(difficulty)
+        num_set = (0,1,2,3)
+
+        if difficulty not in num_set:
+            logger.warning("The difficulty level '%s' may not work." % difficulty)
+
+        self.replace("difficulty", str(difficulty))

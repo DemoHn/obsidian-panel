@@ -1,6 +1,8 @@
 import os
 import traceback
 import random
+import shutil
+import math
 
 from app.tools.mc_wrapper import MCProcessPool
 from app.tools.mc_wrapper.instance import MCServerInstanceThread
@@ -204,20 +206,62 @@ class UserInstance(MCProcessPool):
         return inst_id
 
     def remove_inst(self, inst_id):
+        # read work dir
+        res = ServerInstance.query.filter(inst_id == inst_id).first()
+
+        if res == None:
+            return None
+        else:
+            work_dir = res.inst_dir
+            # remove all files of the working dir
+            shutil.rmtree(work_dir)
+            # remove item from database
+            ServerInstance.query.filter(inst_id == inst_id).delete()
+
+class InstanceController(object):
+    '''
+    main controller of all MC server instances.
+    REMINDER: all methods are static methods, thus you have to
+    offer the instance id first.
+    '''
+    @staticmethod
+    def start(inst_id):
+        mc_w_config = {
+            "jar_file": "",
+            "max_RAM": "",
+            "min_RAM": "",
+            "proc_cwd": ""
+        }
+        # retrieve instance info from database
+        _q = db.session.query(ServerInstance).join(JavaBinary)
+        inst = _q.filter(ServerInstance.inst_id == inst_id).first()
+
+        if inst == None:
+            raise Exception('instance info is NULL!')
+        else:
+            # generate MC server runtime config
+            mc_w_config = {
+                "jar_file": inst.bin_directory,
+                "max_RAM": int(inst.max_RAM),
+                "min_RAM": math.floor(int(inst.max_RAM) / 2),
+                "proc_cwd": inst.inst_dir
+            }
+
+            logger.debug(mc_w_config)
+
+            _port = int(inst.listening_port)
+            t = MCServerInstanceThread(port= _port, config = mc_w_config)
+            t.start()
+
+    @staticmethod
+    def stop(inst_id):
+        mc_pool = MCProcessPool.getInstance()
+        mc_pool.get(port).inst.stop_process()
         pass
 
-def start_mc_server(serv_dir, port):
-    mc_w_config = {
-        "jar_file":"",
-        "max_RAM":"",
-        "proc_cwd":""
-    }
-    pass
+    @staticmethod
+    def restart(inst_id):
 
-def stop_mc_server(port):
-    mc_pool = MCProcessPool.getInstance()
-    mc_pool.get(port).inst.stop_process()
-    pass
+        pass
 
-def restart_mc_server(port):
-    pass
+
