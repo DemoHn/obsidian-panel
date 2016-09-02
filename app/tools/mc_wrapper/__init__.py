@@ -49,7 +49,7 @@ class MCProcessPool():
 
     def get(self , port):
         port = str(port)
-        return self.processPool[port]
+        return self.processPool.get(port)
 
     def add_lock(self, port):
         """
