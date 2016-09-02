@@ -249,7 +249,7 @@ class InstanceController(object):
     '''
     @staticmethod
     def start(inst_id):
-        gc = GlobalConfig.getInstance()
+        mc_pool = MCProcessPool.getInstance()
         # retrieve instance info from database
         _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE)
         inst = _q.filter(ServerInstance.inst_id == inst_id).first()
@@ -257,7 +257,6 @@ class InstanceController(object):
         if inst == None:
             raise Exception('instance info is NULL!')
         else:
-            print(inst.file_dir)
             # generate MC server runtime config
             mc_w_config = {
                 "jar_file" : os.path.join(inst.ob_server_core.file_dir, inst.ob_server_core.file_name),
@@ -271,6 +270,8 @@ class InstanceController(object):
 
             _port = int(inst.listening_port)
             t = MCServerInstanceThread(port= _port, config = mc_w_config)
+
+            mc_pool.add(_port, t)
             t.start()
 
     @staticmethod
@@ -284,6 +285,9 @@ class InstanceController(object):
             raise Exception('instance info is NULL!')
         else:
             _port = str(_inst.listening_port)
+
+            s = mc_pool.get(_port).inst._status
+            print("current status: %s" % s)
             mc_pool.get(_port).inst.stop_process()
 
     @staticmethod

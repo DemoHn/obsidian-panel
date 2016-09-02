@@ -19,7 +19,7 @@ class LogMonitorProtocol(SubprocessProtocol):
         pass
 
     def getMCInstance(self):
-        self._instance = MCProcessPool.getInstance().get(self._port)
+        self._instance = MCProcessPool.getInstance().get(self._port).inst
         pass
 
     # on data received

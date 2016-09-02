@@ -92,7 +92,7 @@ class MCServerInstance():
                     mc_w_config.jar_file,
                     "nogui"]
 
-        logger.info("start process %s", cmd + " " +" ".join(cmd_args))
+        logger.info("command: `%s`", cmd + " " +" ".join(cmd_args))
 
         self.init_env(mc_w_config.proc_cwd)
         transport , process = self.loop.run_until_complete(
