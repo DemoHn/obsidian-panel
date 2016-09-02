@@ -1,8 +1,7 @@
 __author__ = "Nigshoxiz"
 
 from flask import Blueprint, render_template, abort, request, redirect, session
-from app.model.ob_token import UserToken
-from app.model.ob_user import Users
+from app.model import UserToken, Users
 from app import db
 from functools import wraps
 from app.utils import returnModel

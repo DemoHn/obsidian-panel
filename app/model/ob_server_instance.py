@@ -1,10 +1,6 @@
 __author__ = "Nigshoxiz"
 
 from app import db
-from datetime import datetime
-
-from .ob_java_bin import JavaBinary
-from .ob_server_core import ServerCORE
 
 class ServerInstance(db.Model):
     __tablename__ = "ob_server_instance"

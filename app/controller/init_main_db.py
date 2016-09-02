@@ -7,7 +7,7 @@ from app import app, db
 import logging
 import traceback
 
-from app.model.ob_user import Users
+from app.model import Users
 import app.utils as utils
 def init_database(logger=None):
 

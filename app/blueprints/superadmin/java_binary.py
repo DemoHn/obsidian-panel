@@ -6,7 +6,7 @@ from jinja2 import TemplateNotFound
 from app import db, socketio
 from app.controller.global_config import GlobalConfig
 from app.utils import returnModel, get_file_hash
-from app.model.ob_server_core import ServerCORE
+from app.model import ServerCORE
 
 from . import super_admin_page, logger
 from .check_login import super_admin_only, ajax_super_admin_only

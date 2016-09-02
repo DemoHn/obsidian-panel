@@ -6,8 +6,8 @@ from jinja2 import TemplateNotFound
 from . import super_admin_page, logger
 from .check_login import super_admin_only
 
-from app.model.ob_user import Users
-from app.model.ob_token import UserToken
+from app.model import Users, UserToken
+
 
 #import libs
 import string, random

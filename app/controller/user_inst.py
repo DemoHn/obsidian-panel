@@ -10,10 +10,7 @@ from app.tools.mc_wrapper.instance import MCServerInstanceThread
 from app.tools.mc_wrapper.server_properties_parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
 # models
-from app.model.ob_server_instance import ServerInstance
-from app.model.ob_java_bin import JavaBinary
-from app.model.ob_server_core import ServerCORE
-from app.model.ob_user import Users
+from app.model import ServerInstance, JavaBinary, ServerCORE, Users
 
 from app.blueprints.server_inst import logger
 from app import db

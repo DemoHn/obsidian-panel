@@ -3,6 +3,7 @@ __author__ = "Nigshoxiz"
 from app import db
 import hashlib
 
+from .ob_server_instance import ServerInstance
 class ServerCORE(db.Model):
     """
     A server mod is a singular .jar file that runs Minecraft Server instances.
