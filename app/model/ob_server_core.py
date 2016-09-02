@@ -36,6 +36,8 @@ class ServerCORE(db.Model):
     minecraft_version = db.Column(db.String(10), nullable=False)
     note = db.Column(db.Text)
 
+    core_relation = db.relationship("ServerInstance", lazy='dynamic', backref="ob_server_core")
+
     def __repr__(self):
         return "<core_id = %s, file_name = %s, mc_version = %s>" % \
         (self.core_id, self.file_name, self.minecraft_version)

@@ -3,6 +3,7 @@ import traceback
 import random
 import shutil
 import math
+import time
 
 from app.tools.mc_wrapper import MCProcessPool
 from app.tools.mc_wrapper.instance import MCServerInstanceThread
@@ -17,7 +18,7 @@ from app.model.ob_user import Users
 from app.blueprints.server_inst import logger
 from app import db
 
-class UserInstance(MCProcessPool):
+class UserInstance():
     def __init__(self, uid):
         self._port_range = [20000, 30000]
         self._cwd_dir = ""
@@ -31,10 +32,6 @@ class UserInstance(MCProcessPool):
         self.inst_RAM = None
         self.java_bin_id = None
         self.server_core_id = None
-
-        MCProcessPool.__init__(self)
-        self.pool = MCProcessPool.getInstance()
-        pass
 
     def __del__(self):
         pass
@@ -51,7 +48,7 @@ class UserInstance(MCProcessPool):
         _all = db.session.query(ServerInstance).all()
 
         for _item in _all:
-            ports.append(_item["listening_port"])
+            ports.append(_item.listening_port)
 
         _index = 0
         while True:
@@ -75,9 +72,14 @@ class UserInstance(MCProcessPool):
         gc = GlobalConfig.getInstance()
         servers_dir = gc.get("servers_dir")
 
-        owner = db.session.query(ServerInstance).join(Users).filter(Users.id == self.owner_id).first()
+        owner = db.session.query(Users).filter(Users.id == self.owner_id).first()
+
         owner_name = owner.username
         curr_id = db.session.query(db.func.max(ServerInstance.inst_id)).scalar()
+
+        if curr_id == None:
+            curr_id = 0
+
         dir_name =  "%s_%s" % (owner_name, (curr_id+1))
 
         logger.debug("[user_inst] dir_name = %s" % dir_name)
@@ -94,6 +96,9 @@ class UserInstance(MCProcessPool):
             try:
                 # get current id of instance
                 curr_id = db.session.query(db.func.max(ServerInstance.inst_id)).scalar()
+                if curr_id == None:
+                    curr_id = 0
+
                 logger.debug("curr_id  = %s" % curr_id)
 
                 new_name = "Inst - %s" % (curr_id + 1)
@@ -106,7 +111,7 @@ class UserInstance(MCProcessPool):
             self.inst_name = name
             return name
 
-    def set_listening_port(self, port):
+    def set_listening_port(self, port=None):
         if port == None:
             _port = self._auto_assign_port()
             self.inst_port = _port
@@ -125,6 +130,7 @@ class UserInstance(MCProcessPool):
     def set_max_user(self, user_num):
         _user_num = int(user_num)
         self.max_user = _user_num
+        self.inst_properties["max-players"] = _user_num
         return _user_num
 
     def set_allocate_RAM(self, RAM):
@@ -144,7 +150,7 @@ class UserInstance(MCProcessPool):
         res = db.session.query(JavaBinary).filter(JavaBinary.id == java_bin_id).first()
 
         if res == None:
-            return None
+            raise Exception("java_bin_id '%s' not found in database!" % java_bin_id)
         else:
             self.java_bin_id = java_bin_id
             return java_bin_id
@@ -154,7 +160,7 @@ class UserInstance(MCProcessPool):
         res = db.session.query(ServerCORE).filter(ServerCORE.core_id == core_file_id).first()
 
         if res == None:
-            return None
+            raise Exception("server_core '%s' not found in database!" % core_file_id)
         else:
             self.server_core_id = core_file_id
             return core_file_id
@@ -167,20 +173,35 @@ class UserInstance(MCProcessPool):
         '''
         # check if server_core_file and java runtime binary has been set
         # correctly.
-        if self.server_core_id == None or \
-            self.java_bin_id == None \
-                or self.inst_RAM == None \
-                or self.inst_name == None \
-                or self.max_user == 0 \
-                or self.inst_port == 0:
-            return None
+
+        _null_value_asserts_ = (
+            ("server_core_id", None),
+            ("java_bin_id", None),
+            ("inst_RAM", None),
+            ("inst_name", None),
+            ("max_user", 0),
+            ("inst_port", 0)
+        )
+        # value asserts
+        for _asserts in _null_value_asserts_:
+            if hasattr(self, _asserts[0]):
+                val = getattr(self, _asserts[0])
+
+                if val == _asserts[1]:
+                    raise Exception("property '%s' is '%s', value asserts failed!" % (_asserts))
 
         # then create directory
         _work_dir = self._set_inst_directory()
-        os.makedirs(_work_dir)
+        # mkdir -p
+        if not os.path.exists(_work_dir):
+            os.makedirs(_work_dir)
 
-        # then generate server.properties file
         s_p_file = os.path.join(_work_dir, "server.properties")
+        # touch server.properties file if not exists
+        _f = open(s_p_file,"a")
+        _f.close()
+        # then generate server.properties file
+
         parser = ServerPropertiesParser(s_p_file)
         parser.write_config(self.inst_properties)
 
@@ -200,6 +221,7 @@ class UserInstance(MCProcessPool):
             db.session.add(inst_data)
             db.session.commit()
         except:
+            logger.error(traceback.format_exc())
             return None
 
         inst_id = db.session.query(db.func.max(ServerInstance.inst_id)).scalar()
@@ -207,16 +229,20 @@ class UserInstance(MCProcessPool):
 
     def remove_inst(self, inst_id):
         # read work dir
-        res = ServerInstance.query.filter(inst_id == inst_id).first()
+        _inst_id = inst_id
+        res = ServerInstance.query.filter(inst_id == _inst_id).first()
 
         if res == None:
             return None
         else:
             work_dir = res.inst_dir
             # remove all files of the working dir
-            shutil.rmtree(work_dir)
+            if os.path.exists(work_dir):
+                shutil.rmtree(work_dir)
             # remove item from database
-            ServerInstance.query.filter(inst_id == inst_id).delete()
+
+            db.session.query(ServerInstance).filter(ServerInstance.inst_id == _inst_id).delete()
+            db.session.commit()
 
 class InstanceController(object):
     '''
@@ -226,22 +252,19 @@ class InstanceController(object):
     '''
     @staticmethod
     def start(inst_id):
-        mc_w_config = {
-            "jar_file": "",
-            "max_RAM": "",
-            "min_RAM": "",
-            "proc_cwd": ""
-        }
+        gc = GlobalConfig.getInstance()
         # retrieve instance info from database
-        _q = db.session.query(ServerInstance).join(JavaBinary)
+        _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE)
         inst = _q.filter(ServerInstance.inst_id == inst_id).first()
 
         if inst == None:
             raise Exception('instance info is NULL!')
         else:
+            print(inst.file_dir)
             # generate MC server runtime config
             mc_w_config = {
-                "jar_file": inst.bin_directory,
+                "jar_file" : os.path.join(inst.ob_server_core.file_dir, inst.ob_server_core.file_name),
+                "java_bin": inst.ob_java_bin.bin_directory,
                 "max_RAM": int(inst.max_RAM),
                 "min_RAM": math.floor(int(inst.max_RAM) / 2),
                 "proc_cwd": inst.inst_dir
@@ -256,12 +279,18 @@ class InstanceController(object):
     @staticmethod
     def stop(inst_id):
         mc_pool = MCProcessPool.getInstance()
-        mc_pool.get(port).inst.stop_process()
-        pass
+
+        _q = db.session.query(ServerInstance).join(JavaBinary)
+        _inst = _q.filter(ServerInstance.inst_id == inst_id).first()
+
+        if _inst == None:
+            raise Exception('instance info is NULL!')
+        else:
+            _port = str(_inst.listening_port)
+            mc_pool.get(_port).inst.stop_process()
 
     @staticmethod
     def restart(inst_id):
-
-        pass
-
-
+        InstanceController.stop(inst_id)
+        time.sleep(2)
+        InstanceController.start(inst_id)

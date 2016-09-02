@@ -35,7 +35,7 @@ class Users(db.Model):
     """
     privilege = db.Column(db.Integer , default=0)
 
-    token_relation = db.relationship("UserToken",lazy='dynamic', backref="ob_user")
+    token_relation = db.relationship("UserToken", lazy='dynamic', backref="ob_user")
 
     def __repr__(self):
         return "<User %s, privilege=%s>" % (self.username, self.privilege)

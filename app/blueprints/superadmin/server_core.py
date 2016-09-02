@@ -110,6 +110,7 @@ def upload_core_file(uid, priv):
                 core_type   = core_type,
                 core_version= file_version,
                 minecraft_version = mc_version,
+                file_uploader = uid,
                 note = description
             )
 

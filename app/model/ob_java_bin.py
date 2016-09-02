@@ -1,7 +1,6 @@
 __author__ = "Nigshoxiz"
 
 from app import db
-from datetime import datetime
 
 class JavaBinary(db.Model):
     __tablename__ = "ob_java_bin"
@@ -15,6 +14,8 @@ class JavaBinary(db.Model):
     bin_directory = db.Column(db.Text)
     # install time
     install_time  = db.Column(db.DateTime)
+
+    bin_relation = db.relationship("ServerInstance", lazy='dynamic', backref="ob_java_bin")
 
     def __repr__(self):
         return "<id=%s, version=%s_%s, dir=%s>" % (self.id,

@@ -25,7 +25,7 @@ class KVParser(object):
         read the whole config file and make config index
         :return:
         """
-        fd = open(os.path.normpath(self.file),"r")
+        fd = open(os.path.normpath(self.file),"r+")
 
         if fd == None:
             raise FileNotFoundError
@@ -111,7 +111,7 @@ class ServerPropertiesParser(KVParser):
                 motd_arr.append(motd_char)
             else:
                 # 大于128，则转成 \uXXXX 格式
-                s = '\\u' + str(hex(motd_char))[2:]
+                s = '\\u' + str(hex(char_num))[2:]
                 motd_arr.append(s)
 
         self.replace("motd","".join(motd_arr))

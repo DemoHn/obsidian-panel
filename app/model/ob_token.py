@@ -2,7 +2,6 @@ __author__ = "Nigshoxiz"
 
 from app import db
 from datetime import datetime
-
 from .ob_user import Users
 
 class UserToken(db.Model):
