@@ -52,7 +52,8 @@ class KVParser(object):
         fd.close()
 
     def add(self,key,value):
-        self.conf_items[key] = value
+        if self.conf_items.get(key) == None:
+            self.conf_items[key] = value
 
     def remove(self,key):
         del self.conf_items[key]
@@ -83,6 +84,17 @@ class ServerPropertiesParser(KVParser):
         self.add("motd", self.motd)
         self.add("server-port", self.server_port)
         self.add("level-name", self.level_name)
+
+    def write_config(self, config):
+        for k in config:
+            if k == "motd":
+                self.set_motd(config[k])
+            elif k == "server-port":
+                self.set_server_port(config[k])
+            elif k == "level-name":
+                self.set_server_port(config[k])
+
+        self.dumps()
 
     def set_motd(self,motd):
         """

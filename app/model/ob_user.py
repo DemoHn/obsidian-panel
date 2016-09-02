@@ -38,7 +38,7 @@ class Users(db.Model):
     token_relation = db.relationship("UserToken",lazy='dynamic', backref="ob_user")
 
     def __repr__(self):
-        return "<User %s, priv=%s>" % (self.username, self.privilege)
+        return "<User %s, privilege=%s>" % (self.username, self.privilege)
 
     def insert(self):
         if len(self.username) > 32:
