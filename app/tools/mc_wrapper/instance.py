@@ -38,6 +38,9 @@ class MCServerInstance():
         self._connection_lost_hook = []
         self._inst_stop_hook = []
 
+        # server start log, stacked in lines
+        self.server_log = []
+
     def _run_hook(self, hook_name, *args):
         _names = ("inst_starting", "inst_running", "data_received", "connection_lost", "inst_stop")
 

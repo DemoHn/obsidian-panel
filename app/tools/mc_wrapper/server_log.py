@@ -26,6 +26,10 @@ class LogMonitorProtocol(SubprocessProtocol):
     def pipe_data_received(self, fd, data):
         _STATE_RUNNING = 2
         if fd == 1 or fd == 2:
+            _data = data.split()
+
+            for line in _data:
+                self._instance.server_log.append(line)
             #logger.debug(self._port+ " - " + data.decode("utf-8"))
             # add callbacks after some particular log exists.
 

@@ -292,20 +292,3 @@ class InstanceController(object):
         InstanceController.stop(inst_id)
         time.sleep(2)
         InstanceController.start(inst_id)
-
-    @staticmethod
-    def add_hook(inst_id, hook_name, func):
-        mc_pool = MCProcessPool.getInstance()
-
-        _q = db.session.query(ServerInstance)
-        _inst = _q.filter(ServerInstance.inst_id == inst_id).first()
-
-        if _inst == None:
-            raise Exception('instance info is NULL!')
-        else:
-            _port = _inst.listening_port
-            th = mc_pool.get(_port)
-
-            if th != None:
-                inst = th.inst
-                inst.add_hook(hook_name, func)

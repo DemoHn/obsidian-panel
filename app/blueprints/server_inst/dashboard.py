@@ -5,11 +5,12 @@ from jinja2 import TemplateNotFound
 
 from app import db, socketio
 from app.controller.global_config import GlobalConfig
+from app.controller.user_inst import InstanceController
 from app.utils import returnModel, get_file_hash
 from app.model import ServerCORE
 
 from . import server_inst_page, logger
-from app.blueprints.superadmin.check_login import check_login
+from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 import traceback
 import os, json
@@ -24,3 +25,13 @@ def render_dashboard_page(uid, priv):
         return render_template("server_inst/dashboard.html",title="Dashboard")
     except TemplateNotFound:
         abort(404)
+
+@server_inst_page.route("/boom", methods=["GET"])
+@ajax_check_login
+def boom(uid, priv):
+    try:
+        InstanceController.start(1)
+        return rtn.success(200)
+    except Exception:
+        return rtn.error(500)
+
