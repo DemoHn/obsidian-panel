@@ -49,7 +49,7 @@ class MCServerInstance():
 
             for _hook_item in _method:
                 if inspect.isfunction(_hook_item):
-                    _hook_item(self, *args)
+                    _hook_item(*args)
 
     def init_env(self,proc_cwd):
 

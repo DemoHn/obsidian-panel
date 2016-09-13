@@ -7,7 +7,8 @@ $(document).ready(function(){
     var path_item = path_arr[path_arr.length - 1];
 
     var _map = {
-        'server_core' : ServerCorePage
+        'dashboard' : Dashboard,
+        'console' : Console
     };
 
     // init
@@ -17,46 +18,41 @@ $(document).ready(function(){
 /*
 * Server Core Page Management
 * */
-var ServerCorePage = function () {
+var Dashboard = function () {
     var self = this;
-    this.upload_url = "/super_admin/upload_server_core";
+    
     this._file_data = null;
-    this.upload_vm = new Vue({
-        el:"#upload_core",
+    this.vm = new Vue({
+        el:"#ttt",
         data:{
-            allow_upload : true,
-            file_name : "",
-            mc_version : "",
-            file_version : "",
-            description : "",
-            core_type : ""
+            "hello":"Hello"
         },
         computed:{
-            allow_upload : function () {
-                return !!(this.mc_version.length > 0 && this.file_name != "");
-            }
+
         },
         methods:{
-            "upload_file" : function () {
-                self._file_data.formData = {
-                    "mc_version" : self.upload_vm.mc_version,
-                    "file_version" : self.upload_vm.file_version,
-                    "description" : self.upload_vm.description,
-                    "core_type" : self.upload_vm.core_type
-                };
-
-                self._file_data.submit().done(function (data) {
-                    //TODO
-                    console.log(data);
-                });
+            "cl":function () {
+                $.get("/server_inst/boom",function (e) {
+                    console.log(e)
+                })
             }
         }
     });
-    
-    this.__init__()
+
+    var socket = io.connect('/');
+    socket.on("connect",function () {
+        console.log("connect");
+       // socket.emit("hello");
+
+    });
+
+     socket.on("recv",function (data) {
+            console.log(data);
+        });
+  //  this.__init__()
 };
 
-ServerCorePage.prototype.__init__ = function () {
+Dashboard.prototype.__init__ = function () {
     var self = this;
     $("#file_select").fileupload({
         url : "/super_admin/upload_core_file",
@@ -67,4 +63,9 @@ ServerCorePage.prototype.__init__ = function () {
 
         self.upload_vm.file_name = data.files[0]['name'];
     });
+};
+
+var Console = function () {
+    var self = this;
+    //connect socket
 };

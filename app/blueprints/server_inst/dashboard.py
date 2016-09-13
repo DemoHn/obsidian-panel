@@ -29,9 +29,17 @@ def render_dashboard_page(uid, priv):
 @server_inst_page.route("/boom", methods=["GET"])
 @ajax_check_login
 def boom(uid, priv):
+    def send_str(data):
+        print(data)
+        j = {
+            "data" : data.decode("utf-8")
+        }
+
+        socketio.emit("recv",j)
     try:
         InstanceController.start(1)
+        InstanceController.get_instance(1).add_hook("data_received", send_str)
         return rtn.success(200)
     except Exception:
+        traceback.print_exc()
         return rtn.error(500)
-

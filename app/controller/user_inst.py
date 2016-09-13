@@ -292,3 +292,16 @@ class InstanceController(object):
         InstanceController.stop(inst_id)
         time.sleep(2)
         InstanceController.start(inst_id)
+
+    @staticmethod
+    def get_instance(inst_id):
+        mc_pool = MCProcessPool.getInstance()
+
+        _q = db.session.query(ServerInstance)
+        _inst = _q.filter(ServerInstance.inst_id == inst_id).first()
+
+        if _inst == None:
+            raise Exception('instance info is NULL!')
+        else:
+            _port = str(_inst.listening_port)
+            return mc_pool.get(_port).inst

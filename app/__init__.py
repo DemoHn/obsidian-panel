@@ -11,7 +11,7 @@ app.config["SQLALCHEMY_ECHO"] = False
 app.config['SECRET_KEY'] = 'secret!'
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)
-socketio = SocketIO(app)
+socketio = SocketIO(app, message_queue='redis://')
 # import blueprints
 # to event circular importing, this `import` statement should be put
 # after database declared.
