@@ -11,9 +11,12 @@ from app.tools.mc_wrapper.server_properties_parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
 # models
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users
-
+from app import socketio
 from app.blueprints.server_inst import logger
-from app import db
+from app import db, signals
+
+_send_log_sig = signals.signal("send_log")
+_inst_starting_sig = signals.signal("inst_starting")
 
 class UserInstance():
     def __init__(self, uid):
@@ -247,8 +250,23 @@ class InstanceController(object):
     REMINDER: all methods are static methods, thus you have to
     offer the instance id first.
     '''
+
     @staticmethod
     def start(inst_id):
+
+        # _inst_running_sig = signals.signal("inst")
+
+        # hook functions
+        def _send_log_func(log_data):
+            log_data = log_data.decode('utf-8')
+            logger.debug("inst[%s] log %s" % (inst_id, log_data))
+            #_send_log_sig.send((inst_id, log_data))
+
+            socketio.emit("recv",log_data)
+        def _inst_starting_func():
+            logger.debug("inst[%s] START" % inst_id)
+            _inst_starting_sig.send(inst_id)
+
         mc_pool = MCProcessPool.getInstance()
         # retrieve instance info from database
         _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE)
@@ -270,6 +288,11 @@ class InstanceController(object):
 
             mc_pool.add(_port, t)
             t.start()
+
+            # add hooks
+            _running_inst = mc_pool.get(_port).inst
+            _running_inst.add_hook("data_received", _send_log_func)
+            _running_inst.add_hook("inst_starting", _inst_starting_func)
 
     @staticmethod
     def stop(inst_id):

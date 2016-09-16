@@ -38,17 +38,7 @@ var Dashboard = function () {
             }
         }
     });
-
-    var socket = io.connect('/');
-    socket.on("connect",function () {
-        console.log("connect");
-       // socket.emit("hello");
-
-    });
-
-     socket.on("recv",function (data) {
-            console.log(data);
-        });
+    
   //  this.__init__()
 };
 
@@ -67,5 +57,25 @@ Dashboard.prototype.__init__ = function () {
 
 var Console = function () {
     var self = this;
-    //connect socket
+    // init
+    var console_ta = document.getElementById("console");
+    var editor = CodeMirror.fromTextArea(console_ta, {
+        lineNumbers: true,
+        readOnly : true
+    });
+    
+    var socket = io.connect('/');
+    socket.on("connect",function () {
+        console.log("connect");
+       // socket.emit("hello");
+    });
+
+    socket.on("recv",function (data) {
+        editor.replaceRange(data, CodeMirror.Pos(editor.lastLine()));
+     });
+
+    $("#input").click(function () {
+        socket.emit("input", {"data":$("#in").val()})
+        console.log($("#in").val())
+    })
 };
