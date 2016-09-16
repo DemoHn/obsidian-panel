@@ -4,6 +4,7 @@ from . import event_loop, logger, SERVER_STATE
 from .instance import MCServerInstance
 from .mc_config import MCWrapperConfig
 
+import re
 import inspect
 import threading
 
@@ -24,7 +25,8 @@ class Watchdog(object):
             "config" : MC config obj,
             "port" : MC listening port,
             "inst" : MC inst obj,
-            "log" : MC running log [array]
+            "log" : MC running log,
+            "current_user" : 0
         }
         '''
         self.proc_pool = {}
@@ -65,17 +67,23 @@ class Watchdog(object):
         # (None)
         self._inst_terminate_hook = []
 
-        # :inst_user_login_hook:
+        # :inst_player_login_hook:
         # execute when new player login the instance
         # additional params:
-        # (<user info>)
-        self._inst_user_login_hook = []
+        # (<current online players num>,<player info>)
+        self._inst_player_login_hook = []
 
-        # :inst_user_logout_hook:
+        # :inst_player_logout_hook:
         # execute when new player logout the instance
         # additional params:
-        # (<user info>)
-        self._inst_user_logout_hook = []
+        # (<current online players num>,<player info>)
+        self._inst_player_logout_hook = []
+
+        # :inst_player_change_hook:
+        # execute when online players' number changed
+        # additional params:
+        # (<current online players>)
+        self._inst_player_change_hook = []
 
     @staticmethod
     def getWDInstance():
@@ -83,7 +91,48 @@ class Watchdog(object):
             Watchdog.instance = Watchdog()
         return Watchdog.instance
 
-    def _handle_log(self, events):
+    def _run_hook(self, hook_name, inst_id, args_tuple):
+        _names = ("inst_starting", "inst_running",
+                  "log_update",
+                  "connection_lost", "inst_terminate",
+                  "inst_player_login", "inst_player_logout", "inst_player_change")
+
+        if hook_name in _names:
+            _method = getattr(self, "_%s_hook" % hook_name)
+
+            for _hook_item in _method:
+                if inspect.isfunction(_hook_item):
+                    _hook_item(inst_id, args_tuple)
+
+    def _event_handler(self, events):
+
+        def _run_hooks_by_log(inst_id, log_str, inst):
+            '''
+            run hooks when log updated.
+            :param inst_id: instance id
+            :param log_str: new log (utf-8 string)
+            :param inst: MC instance <mpw.MCServerInstance>
+            :return:
+            '''
+            self._run_hook("log_update", inst_id, (log_str))
+            # find keyword Done in the new log
+            re_done_str = "^Done \(([0-9.]+)s\)!"
+
+
+            if re.match(re_done_str, log_str) != None \
+                and inst._status == SERVER_STATE.STARTING: # prevent misjudgement by player inputting 'Done'
+
+                m = re.match(re_done_str, log_str)
+                init_span = 0.0
+                try:
+                    init_span = float(m.group(1))
+                except:
+                    init_span = -1.0
+                finally:
+                    inst._status = SERVER_STATE.RUNNING
+                    self._run_hook("inst_running", inst_id, (init_span))
+
+
         for sock, fd, event in events:
             if event == POLL_IN:
                 if sock.closed == False:
@@ -93,10 +142,12 @@ class Watchdog(object):
                         _inst = inst_obj["inst"]
 
                         if fd == _inst._proc.stdout.fileno():
-                            log_str = _inst._proc.stdout.read(512)
-                            log_arr = log_str.decode('utf-8').split("\n")
+                            log_byte = _inst._proc.stdout.read(512)
+                            log_str = log_byte.decode('utf-8')
                             # append log
-                            inst_obj["log"] += log_arr
+                            inst_obj["log"] += log_str
+                            inst_id = int(inst_key[5:])
+                            _run_hooks_by_log(inst_id, log_str, _inst)
                             break
                 else:
                     logger.warning("pipe socket is closed!")
@@ -104,16 +155,30 @@ class Watchdog(object):
                 # TODO
                 pass
 
-    def _run_hook(self, hook_name, *args):
-        _names = ("inst_starting", "inst_running", "log_update",
-                  "connection_lost", "inst_terminate", "inst_user_login", "inst_user_logout")
+    def add_hook(self, hook_name, fn):
+        '''
+        add
+        :param hook_name:
+        :param fn: function to execute.
+        each hook function should define 2 input parameters
+        (one for inst_id, another one for additional arguments defined as an tuple)
+        e.g. :
+        def hook_func(inst_id, arg_tuple):
+            ****
+            pass
+
+        :return:
+        '''
+        _names = ("inst_starting", "inst_running",
+                  "log_update",
+                  "connection_lost", "inst_terminate",
+                  "inst_player_login", "inst_player_logout", "inst_player_change")
 
         if hook_name in _names:
             _method = getattr(self, "_%s_hook" % hook_name)
 
-            for _hook_item in _method:
-                if inspect.isfunction(_hook_item):
-                    _hook_item(*args)
+            if inspect.isfunction(fn):
+                _method.append(fn)
 
     def register_instance(self, inst_id, port, config):
         '''
@@ -128,12 +193,12 @@ class Watchdog(object):
         _inst_val = {
             "config" : MCWrapperConfig(**config), # READ_ONLY
             "port" : _port, # READ_ONLY
-            "inst" : None, #MCServerInstance(_port),
-            "log" : []
+            "log" : "",
+            "current_user" : 0,
+            "inst": None,  # MCServerInstance(_port),
         }
 
         _k = self.proc_pool.get(_inst_key)
-        print(_k)
         if _k != None:
             if _k.get("inst") == None:
                 _k["inst"] = MCServerInstance(_port)
@@ -191,12 +256,25 @@ class Watchdog(object):
         else:
             return self.proc_pool.get(_inst_key).get("inst")
 
+    def send_command(self, inst_id, command):
+        '''
+        send MC command to MC instance
+        :param inst_id:
+        :return:
+        '''
+        _inst_key = "inst_" + str(inst_id)
+        if self.proc_pool.get(_inst_key) == None:
+            return None
+        else:
+            _inst = self.proc_pool.get(_inst_key).get("inst")
+            _inst.send_command(command)
+
     def launch(self):
         def _launch_loop():
             event_loop.run()
 
         # before start
-        event_loop.add_handler(self._handle_log)
+        event_loop.add_handler(self._event_handler)
         event_loop.stopping = False
         t = threading.Thread(target=_launch_loop)
         t.daemon = True
