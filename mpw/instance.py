@@ -1,5 +1,4 @@
 from . import SERVER_STATE, logger, event_loop
-from .event_loop import EventLoop
 from .parser import ServerPropertiesParser
 
 import traceback
@@ -92,7 +91,7 @@ class MCServerInstance():
                     mc_w_config.jar_file,
                     "nogui"]
 
-        logger.info("command: `%s`", " ".join(cmd_args))
+        logger.info("EXEC CMD: `%s`", " ".join(cmd_args))
 
         self.init_env(mc_w_config.proc_cwd)
         #transport , process = self.loop.run_until_complete(
@@ -101,11 +100,13 @@ class MCServerInstance():
         #    self.loop.subprocess_exec(lambda: LogMonitorProtocol(str(self.port)), cmd, *cmd_args, cwd = mc_w_config.proc_cwd)
         #)
 
-        #cmd = cmd + " " + " ".join(cmd_args)
-        self._proc = subprocess.Popen(cmd_args, bufsize=1024, cwd=mc_w_config.proc_cwd,
-                                stderr=subprocess.STDOUT)
-
-        self.loop.add(self._proc.stdout, POLL_IN | POLL_ERR | POLL_HUP)
+        cmd = " ".join(cmd_args)
+        self._proc = subprocess.Popen(cmd,shell=True, bufsize=1024, cwd=mc_w_config.proc_cwd,
+                                      stdin=subprocess.PIPE,
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT)
+        print(self._proc.stdout)
+        self.loop.add(self._proc.stdout, POLL_IN)
         self._pid = self._proc.pid
 
         logger.debug("PID = %s" % self._pid)
@@ -154,7 +155,8 @@ class MCServerInstance():
         pass
 
     def terminate_callback(self):
-        logger.info("Process %s exit. Port is %s." % (self._pid, self.port))
-        self._status = SERVER_STATE.HALT
-        self.loop.stop()
-        self._run_hook("inst_stop")
+        #logger.info("Process %s exit. Port is %s." % (self._pid, self.port))
+        #self._status = SERVER_STATE.HALT
+        #self.loop.stop()
+        #self._run_hook("inst_stop")
+        pass

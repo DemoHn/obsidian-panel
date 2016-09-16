@@ -8,9 +8,9 @@ from app.utils import returnModel
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login
 
-from app.controller.user_inst import _send_log_sig, _inst_starting_sig
+#from app.controller.user_inst import _send_log_sig, _inst_starting_sig
 from app.controller.user_inst import InstanceController
-from app import app
+from app import app, watcher
 
 rtn = returnModel("string")
 
@@ -22,7 +22,7 @@ def render_console_page(uid, priv):
     except TemplateNotFound:
         abort(404)
 
-@_send_log_sig.connect_via(app)
+#@_send_log_sig.connect_via(app)
 def ws_send(pkg):
     inst_id , data = pkg
     print("wtf")
@@ -32,6 +32,6 @@ def ws_send(pkg):
 def input_data(data):
     # TODO
     INST_ID = 1
-    inst = InstanceController.get_instance(INST_ID)
+    inst = watcher.get_instance(INST_ID)
     inst.send_command(data["data"])
 

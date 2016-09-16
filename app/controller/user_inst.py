@@ -5,18 +5,17 @@ import shutil
 import math
 import time
 
-from app.tools.mc_wrapper import MCProcessPool
-from app.tools.mc_wrapper.instance import MCServerInstanceThread
-from app.tools.mc_wrapper.server_properties_parser import ServerPropertiesParser
+#from app.tools.mc_wrapper import MCProcessPool
+#from app.tools.mc_wrapper.instance import MCServerInstanceThread
+from mpw.parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
 # models
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users
 from app import socketio
 from app.blueprints.server_inst import logger
-from app import db, signals
-
-_send_log_sig = signals.signal("send_log")
-_inst_starting_sig = signals.signal("inst_starting")
+from app import db
+# app watcher
+from app import watcher
 
 class UserInstance():
     def __init__(self, uid):
@@ -224,6 +223,7 @@ class UserInstance():
             logger.error(traceback.format_exc())
             return None
 
+        # query database
         inst_id = db.session.query(db.func.max(ServerInstance.inst_id)).scalar()
         return inst_id
 
@@ -265,38 +265,44 @@ class InstanceController(object):
             socketio.emit("recv",log_data)
         def _inst_starting_func():
             logger.debug("inst[%s] START" % inst_id)
-            _inst_starting_sig.send(inst_id)
+            #_inst_starting_sig.send(inst_id)
 
-        mc_pool = MCProcessPool.getInstance()
-        # retrieve instance info from database
         _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE)
-        inst = _q.filter(ServerInstance.inst_id == inst_id).first()
+        item = _q.filter(ServerInstance.inst_id == inst_id).first()
 
-        if inst == None:
-            raise Exception('instance info is NULL!')
+        if item == None:
+            raise Exception("Item is None!")
         else:
-            # generate MC server runtime config
+            # generate config dict
             mc_w_config = {
-                "jar_file" : os.path.join(inst.ob_server_core.file_dir, inst.ob_server_core.file_name),
-                "java_bin": inst.ob_java_bin.bin_directory,
-                "max_RAM": int(inst.max_RAM),
-                "min_RAM": math.floor(int(inst.max_RAM) / 2),
-                "proc_cwd": inst.inst_dir
+                "jar_file": os.path.join(item.ob_server_core.file_dir, item.ob_server_core.file_name),
+                "java_bin": item.ob_java_bin.bin_directory,
+                "max_RAM": int(item.max_RAM),
+                "min_RAM": math.floor(int(item.max_RAM) / 2),
+                "proc_cwd": item.inst_dir
             }
-            _port = int(inst.listening_port)
-            t = MCServerInstanceThread(port= _port, config = mc_w_config)
 
-            mc_pool.add(_port, t)
-            t.start()
+            _port = int(item.listening_port)
+            watcher.add_instance(inst_id, _port, mc_w_config)
 
-            # add hooks
-            _running_inst = mc_pool.get(_port).inst
+            watcher.start_instance(inst_id)
+            _running_inst = watcher.get_instance(inst_id)
             _running_inst.add_hook("data_received", _send_log_func)
             _running_inst.add_hook("inst_starting", _inst_starting_func)
+        #mc_pool = MCProcessPool.getInstance()
+        # retrieve instance info from database
+
+        #t = MCServerInstanceThread(port= _port, config = mc_w_config)
+
+        #mc_pool.add(_port, t)
+        #t.start()
+
+        # add hooks
+
 
     @staticmethod
     def stop(inst_id):
-        mc_pool = MCProcessPool.getInstance()
+        #mc_pool = MCProcessPool.getInstance()
 
         _q = db.session.query(ServerInstance)
         _inst = _q.filter(ServerInstance.inst_id == inst_id).first()
@@ -306,25 +312,16 @@ class InstanceController(object):
         else:
             _port = str(_inst.listening_port)
 
-            s = mc_pool.get(_port).inst._status
-            print("current status: %s" % s)
-            mc_pool.get(_port).inst.stop_process()
+            #s = mc_pool.get(_port).inst._status
+            s = watcher.get_instance(inst_id)
+            if s != None:
+                _status = s._status
+                print("current status: %s" % _status)
+            #mc_pool.get(_port).inst.stop_process()
+            watcher.stop_instance(inst_id)
 
     @staticmethod
     def restart(inst_id):
         InstanceController.stop(inst_id)
         time.sleep(2)
         InstanceController.start(inst_id)
-
-    @staticmethod
-    def get_instance(inst_id):
-        mc_pool = MCProcessPool.getInstance()
-
-        _q = db.session.query(ServerInstance)
-        _inst = _q.filter(ServerInstance.inst_id == inst_id).first()
-
-        if _inst == None:
-            raise Exception('instance info is NULL!')
-        else:
-            _port = str(_inst.listening_port)
-            return mc_pool.get(_port).inst

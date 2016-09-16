@@ -20,6 +20,12 @@ socketio = SocketIO(app, message_queue='redis://')
 
 # init signals
 signals = Namespace()
+
+# run process watcher
+# in addtion, MPW is 'Minecraft Process Watcher'
+from mpw import watcher
+watcher.launch()
+
 # import blueprints
 # to event circular importing, this `import` statement should be put
 # after database declared.
