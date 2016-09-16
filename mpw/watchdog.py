@@ -3,6 +3,8 @@ __author__ = "Nigshoxiz"
 from . import event_loop, logger, SERVER_STATE
 from .instance import MCServerInstance
 from .mc_config import MCWrapperConfig
+
+import inspect
 import threading
 
 POLL_NULL = 0x00
@@ -26,7 +28,54 @@ class Watchdog(object):
         }
         '''
         self.proc_pool = {}
-        pass
+
+        # hook functions
+        # parameters: (<inst_id>, (<param1>, ...))
+
+        # :inst_starting_hook:
+        # execute when an instance (that is, a minecraft server) begins initializing
+        # Notice, in this situation, players are still waiting for login.
+        # additional params:
+        # (None)
+        self._inst_starting_hook = []
+
+        # :inst_running_hook:
+        # execute when an instance finishes initializing.
+        # In this situation, players can login to this MC server.
+        # additional params:
+        # (<init time (sec)>)
+        self._inst_running_hook = []
+
+        # :log_update_hook:
+        # execute when the server prints new log
+        # additional params:
+        # (<new log data(string)>)
+        self._log_update_hook = []
+
+        # :connection_hook:
+        # TODO reserved
+        # additional params:
+        # (TODO)
+        self._connection_lost_hook = []
+
+        # :inst_terminate_hook:
+        # execute when server stops running.
+        # Can be triggered either by user or by the instance itself (i.e. server crash)
+        # additional params:
+        # (None)
+        self._inst_terminate_hook = []
+
+        # :inst_user_login_hook:
+        # execute when new player login the instance
+        # additional params:
+        # (<user info>)
+        self._inst_user_login_hook = []
+
+        # :inst_user_logout_hook:
+        # execute when new player logout the instance
+        # additional params:
+        # (<user info>)
+        self._inst_user_logout_hook = []
 
     @staticmethod
     def getWDInstance():
@@ -48,11 +97,23 @@ class Watchdog(object):
                             log_arr = log_str.decode('utf-8').split("\n")
                             # append log
                             inst_obj["log"] += log_arr
+                            break
                 else:
                     logger.warning("pipe socket is closed!")
             else:
                 # TODO
                 pass
+
+    def _run_hook(self, hook_name, *args):
+        _names = ("inst_starting", "inst_running", "log_update",
+                  "connection_lost", "inst_terminate", "inst_user_login", "inst_user_logout")
+
+        if hook_name in _names:
+            _method = getattr(self, "_%s_hook" % hook_name)
+
+            for _hook_item in _method:
+                if inspect.isfunction(_hook_item):
+                    _hook_item(*args)
 
     def register_instance(self, inst_id, port, config):
         '''

@@ -28,6 +28,8 @@ class MCServerInstance():
         self._proc = None
 
         # running hooks
+        # OK, not use it temporary
+        # instead, we use Watchdog's global hook - 2016.9.17 - Nigshoxiz
         self._inst_starting_hook = []
         self._inst_running_hook = []
         self._data_received_hook = []
@@ -105,8 +107,7 @@ class MCServerInstance():
                                       stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT)
-        print(self._proc.stdout)
-        self.loop.add(self._proc.stdout, POLL_IN)
+        self.loop.add(self._proc.stdout, POLL_IN | POLL_HUP)
         self._pid = self._proc.pid
 
         logger.debug("PID = %s" % self._pid)
@@ -148,7 +149,7 @@ class MCServerInstance():
 
     # callbacks
     # TODO implement them
-    def user_login_callback(self):
+    def _on_user_login(self):
         pass
 
     def user_exit_callback(self):
