@@ -90,7 +90,7 @@ class MCServerInstance():
                     mc_w_config.jar_file,
                     "nogui"]
 
-        logger.info("EXEC CMD: `%s`", " ".join(cmd_args))
+        #logger.info("EXEC CMD: `%s`", " ".join(cmd_args))
 
         self.init_env(mc_w_config.proc_cwd)
         #transport , process = self.loop.run_until_complete(
@@ -100,7 +100,7 @@ class MCServerInstance():
         #)
 
         cmd = " ".join(cmd_args)
-        self._proc = subprocess.Popen(cmd,shell=True, bufsize=1024, cwd=mc_w_config.proc_cwd,
+        self._proc = subprocess.Popen(cmd,shell=True, bufsize=0, cwd=mc_w_config.proc_cwd,
                                       stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT)
@@ -110,6 +110,9 @@ class MCServerInstance():
         logger.debug("PID = %s" % self._pid)
         if self._pid != 0:
             self._status = SERVER_STATE.STARTING
+            return self._pid
+        else:
+            return None
             # self._run_hook("inst_starting")
 
     def stop_process(self):
@@ -117,43 +120,24 @@ class MCServerInstance():
             logger.info("kill process PID %s" % self._pid)
 
             self.send_command("stop")
-            # wait for completion of child process. To avoid zombie process.
-            try:
-                #_pid, _status = os.waitpid(self._pid,0)
-                #yield from self.process.wait()
-                logger.debug("stop")
-                # terminate the thread
-            except OSError:
-                logger.error(traceback.format_exc())
-            #threading.current_thread().stop()
         else:
             logger.error("Kill Process Falied! PID value is None!")
 
     # send command
     def send_command(self,command):
         w_pipe = self._proc.stdin
-
+        print("WTF")
         if w_pipe == None:
             logger.debug("pipe is undefined! Maybe the process is still not created?")
         else:
             _command = (command + "\n").encode("utf-8")
             logger.debug("Write command : "+command)
             if w_pipe.closed == False:
-                w_pipe._stdin_write(_command)
+                # Notice: According to the documentation, this method is not recommend,
+                # Since it will suck when bufsize > 0.
+                # Thus, to use this method, it is vital to set bufsize = 0 on <subprocess.Popen> method
+                # Nigshoxiz
+                # 2016.9.17
+                w_pipe.write(_command)
             else:
                 logger.error("pipe No.%s is closed!" % w_pipe.fileno())
-
-    # callbacks
-    # TODO implement them
-    def _on_user_login(self):
-        pass
-
-    def user_exit_callback(self):
-        pass
-
-    def terminate_callback(self):
-        #logger.info("Process %s exit. Port is %s." % (self._pid, self.port))
-        #self._status = SERVER_STATE.HALT
-        #self.loop.stop()
-        #self._run_hook("inst_stop")
-        pass

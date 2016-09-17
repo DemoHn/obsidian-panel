@@ -1,12 +1,13 @@
 __author__ = "Nigshoxiz"
 
-from . import event_loop, logger, SERVER_STATE
+from . import event_loop, SERVER_STATE
 from .instance import MCServerInstance
 from .mc_config import MCWrapperConfig
 
 import re
 import inspect
 import threading
+import logging
 
 POLL_NULL = 0x00
 POLL_IN = 0x01
@@ -18,7 +19,7 @@ POLL_NVAL = 0x20
 class Watchdog(object):
     instance = None
 
-    def __init__(self, hook_class=None):
+    def __init__(self):
         '''process pool stores the instance object
         KEY -> "inst_" + <inst id>
         VALUE -> {
@@ -85,11 +86,6 @@ class Watchdog(object):
         # (<current online players>)
         self._inst_player_change_hook = []
 
-        if hook_class != None:
-            if inspect.isclass(hook_class):
-                # init it
-                hook_class(self.add_hook)
-
     @staticmethod
     def getWDInstance():
         if Watchdog.instance == None:
@@ -106,7 +102,7 @@ class Watchdog(object):
             _method = getattr(self, "_%s_hook" % hook_name)
 
             for _hook_item in _method:
-                if inspect.isfunction(_hook_item):
+                if inspect.isfunction(_hook_item) or inspect.ismethod(_hook_item):
                     _hook_item(inst_id, args_tuple)
 
     def _event_handler(self, events):
@@ -125,13 +121,12 @@ class Watchdog(object):
             '''
             self._run_hook("log_update", inst_id, (log_str))
             # find keyword Done in the new log
-            re_done_str = "^Done \(([0-9.]+)s\)!"
+            re_done_str = "Done \(([0-9.]+)s\)!"
 
-
-            if re.match(re_done_str, log_str) != None \
+            if re.search(re_done_str, log_str) != None \
                 and inst._status == SERVER_STATE.STARTING: # prevent misjudgement by player inputting 'Done'
 
-                m = re.match(re_done_str, log_str)
+                m = re.search(re_done_str, log_str)
                 init_span = 0.0
                 try:
                     init_span = float(m.group(1))
@@ -140,30 +135,46 @@ class Watchdog(object):
                 finally:
                     inst._status = SERVER_STATE.RUNNING
                     self._run_hook("inst_running", inst_id, (init_span))
-
+                    # TEST stop
+                    #inst.stop_process()
 
         for sock, fd, event in events:
             if event == POLL_IN:
-                if sock.closed == False:
+                #if sock.closed == False:
+                if True:
                     # get sender by comparing output fd
                     for inst_key in self.proc_pool:
                         inst_obj = self.proc_pool.get(inst_key)
                         _inst = inst_obj["inst"]
 
                         if fd == _inst._proc.stdout.fileno():
-                            log_byte = _inst._proc.stdout.read(512)
-                            log_str = log_byte.decode('utf-8')
+                            line = _inst._proc.stdout.readline()
+                            log_str = line.decode('utf-8')
                             # append log
                             inst_obj["log"] += log_str
                             inst_id = int(inst_key[5:])
                             _run_hooks_by_log(inst_id, log_str, _inst)
                             break
                 else:
-                    logger.warning("pipe socket is closed!")
-            else:
-                print(event)
-                # TODO
-                pass
+                    logging.warning("pipe socket is closed!")
+            # when connection terminate, this branch will start
+            elif event == POLL_HUP:
+                for inst_key in self.proc_pool:
+                    inst_obj = self.proc_pool.get(inst_key)
+                    _inst = inst_obj["inst"]
+
+                    if fd == _inst._proc.stdout.fileno():
+                        inst_id = int(inst_key[5:])
+                        # run hook
+                        self._run_hook("inst_terminate", inst_id, (None))
+
+                        # remove this fd from event loop
+                        # or there will be endless trigger for POLL_HUP
+                        _proc_stdout = _inst._proc.stdout
+                        event_loop.remove(_proc_stdout)
+
+                        # remove instance
+                        inst_obj["inst"] = None
 
     def add_hook(self, hook_name, fn):
         '''
@@ -187,7 +198,7 @@ class Watchdog(object):
         if hook_name in _names:
             _method = getattr(self, "_%s_hook" % hook_name)
 
-            if inspect.isfunction(fn):
+            if inspect.isfunction(fn) or inspect.ismethod(fn):
                 _method.append(fn)
 
     def register_instance(self, inst_id, port, config):
@@ -243,8 +254,11 @@ class Watchdog(object):
         if _inst == None:
             raise Exception("Instance is None!")
         else:
+
             if _inst._status == SERVER_STATE.HALT:
-                _inst.start_process(_config)
+                pid = _inst.start_process(_config)
+                if pid != None:
+                    self._run_hook("inst_starting", inst_id, (None))
 
     def stop_instance(self, inst_id):
         _inst_key = "inst_" + str(inst_id)
@@ -279,9 +293,15 @@ class Watchdog(object):
             _inst = self.proc_pool.get(_inst_key).get("inst")
             _inst.send_command(command)
 
-    def launch(self):
+    def launch(self, hook_class = None):
         def _launch_loop():
             event_loop.run()
+
+        # add hook
+        if hook_class != None:
+            if inspect.isclass(hook_class):
+                # init it
+                hook_class(self.add_hook)
 
         # before start
         event_loop.add_handler(self._event_handler)
@@ -289,9 +309,9 @@ class Watchdog(object):
         t = threading.Thread(target=_launch_loop)
         t.daemon = True
         t.start()
-        logger.info("start Watchdog thread.")
+        logging.info("start Watchdog thread.")
 
     def terminate(self):
         # set stopping to True -> terminate while loop
         event_loop.stopping = True
-        logger.info("stop Watchdog thread.")
+        logging.info("stop Watchdog thread.")

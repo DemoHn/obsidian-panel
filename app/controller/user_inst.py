@@ -318,35 +318,3 @@ class InstanceController(object):
         InstanceController.stop(inst_id)
         time.sleep(2)
         InstanceController.start(inst_id)
-
-class InstanceEventEmitter(object):
-    '''
-    emit websocket on some events
-    '''
-    def __init__(self, add_hook_func):
-        self.add_hook_func = add_hook_func
-        pass
-
-    def on_inst_starting(self):
-        pass
-
-    def on_inst_running(self):
-        pass
-
-    def on_log_update(self):
-        pass
-
-    def on_connection_lost(self):
-        pass
-
-    def on_inst_terminate(self):
-        pass
-
-    def on_inst_player_login(self):
-        pass
-
-    def on_inst_player_logout(self, inst_id, p):
-        pass
-
-    def on_inst_player_change(self, inst_id, p):
-        pass
