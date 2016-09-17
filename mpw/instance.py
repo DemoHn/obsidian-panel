@@ -110,8 +110,7 @@ class MCServerInstance():
         logger.debug("PID = %s" % self._pid)
         if self._pid != 0:
             self._status = SERVER_STATE.STARTING
-            # args : <pid>, <pipe>, <process>
-            self._run_hook("inst_starting")
+            # self._run_hook("inst_starting")
 
     def stop_process(self):
         if self._pid > 0:

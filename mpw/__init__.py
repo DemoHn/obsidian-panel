@@ -11,5 +11,4 @@ class SERVER_STATE(object):
 
 event_loop = EventLoop.getInstance()
 
-from .watchdog import Watchdog
-watcher = Watchdog.getWDInstance()
+from .watchdog import Watchdog as Watchdog

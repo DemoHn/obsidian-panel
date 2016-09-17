@@ -13,9 +13,7 @@ from app.controller.global_config import GlobalConfig
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users
 from app import socketio
 from app.blueprints.server_inst import logger
-from app import db
-# app watcher
-from app import watcher
+from app import db, watcher
 
 class UserInstance():
     def __init__(self, uid):
@@ -253,12 +251,9 @@ class InstanceController(object):
 
     @staticmethod
     def start(inst_id):
-
         # _inst_running_sig = signals.signal("inst")
-
         # hook functions
         def _send_log_func(log_data):
-            log_data = log_data.decode('utf-8')
             logger.debug("inst[%s] log %s" % (inst_id, log_data))
             #_send_log_sig.send((inst_id, log_data))
 
@@ -286,9 +281,9 @@ class InstanceController(object):
             watcher.add_instance(inst_id, _port, mc_w_config)
 
             watcher.start_instance(inst_id)
-            _running_inst = watcher.get_instance(inst_id)
-            _running_inst.add_hook("data_received", _send_log_func)
-            _running_inst.add_hook("inst_starting", _inst_starting_func)
+            #_running_inst = watcher.get_instance(inst_id)
+            #_running_inst.add_hook("data_received", _send_log_func)
+            #_running_inst.add_hook("inst_starting", _inst_starting_func)
         #mc_pool = MCProcessPool.getInstance()
         # retrieve instance info from database
 
@@ -298,7 +293,6 @@ class InstanceController(object):
         #t.start()
 
         # add hooks
-
 
     @staticmethod
     def stop(inst_id):
@@ -310,8 +304,6 @@ class InstanceController(object):
         if _inst == None:
             raise Exception('instance info is NULL!')
         else:
-            _port = str(_inst.listening_port)
-
             #s = mc_pool.get(_port).inst._status
             s = watcher.get_instance(inst_id)
             if s != None:
@@ -319,9 +311,42 @@ class InstanceController(object):
                 print("current status: %s" % _status)
             #mc_pool.get(_port).inst.stop_process()
             watcher.stop_instance(inst_id)
+            # TODO don't forget clear instance dict in <mpw.watcher.proc_pool>
 
     @staticmethod
     def restart(inst_id):
         InstanceController.stop(inst_id)
         time.sleep(2)
         InstanceController.start(inst_id)
+
+class InstanceEventEmitter(object):
+    '''
+    emit websocket on some events
+    '''
+    def __init__(self, add_hook_func):
+        self.add_hook_func = add_hook_func
+        pass
+
+    def on_inst_starting(self):
+        pass
+
+    def on_inst_running(self):
+        pass
+
+    def on_log_update(self):
+        pass
+
+    def on_connection_lost(self):
+        pass
+
+    def on_inst_terminate(self):
+        pass
+
+    def on_inst_player_login(self):
+        pass
+
+    def on_inst_player_logout(self, inst_id, p):
+        pass
+
+    def on_inst_player_change(self, inst_id, p):
+        pass

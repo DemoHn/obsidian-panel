@@ -8,7 +8,7 @@ class KVParser(object):
     A general Key-Value Parser
     Parsed File Format :
 
-    # this is comment
+    # here is comment
     server-ip=12.23.43.3
     motd=This is a Minecraft Server # inline comment
 

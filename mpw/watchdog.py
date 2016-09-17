@@ -18,7 +18,7 @@ POLL_NVAL = 0x20
 class Watchdog(object):
     instance = None
 
-    def __init__(self):
+    def __init__(self, hook_class=None):
         '''process pool stores the instance object
         KEY -> "inst_" + <inst id>
         VALUE -> {
@@ -85,6 +85,11 @@ class Watchdog(object):
         # (<current online players>)
         self._inst_player_change_hook = []
 
+        if hook_class != None:
+            if inspect.isclass(hook_class):
+                # init it
+                hook_class(self.add_hook)
+
     @staticmethod
     def getWDInstance():
         if Watchdog.instance == None:
@@ -105,7 +110,11 @@ class Watchdog(object):
                     _hook_item(inst_id, args_tuple)
 
     def _event_handler(self, events):
-
+        '''
+        handling events triggered in event loop
+        :param events:
+        :return:
+        '''
         def _run_hooks_by_log(inst_id, log_str, inst):
             '''
             run hooks when log updated.
@@ -152,6 +161,7 @@ class Watchdog(object):
                 else:
                     logger.warning("pipe socket is closed!")
             else:
+                print(event)
                 # TODO
                 pass
 
