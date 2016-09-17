@@ -39,9 +39,14 @@ class InstanceEventEmitter(object):
         pass
 
     def on_inst_player_login(self, inst_id ,p):
+
+        print("<inst %s> login" % inst_id)
+        print(p)
         pass
 
     def on_inst_player_logout(self, inst_id, p):
+        print("<inst %s> logout" % inst_id)
+        print(p)
         pass
 
     def on_inst_player_change(self, inst_id, p):

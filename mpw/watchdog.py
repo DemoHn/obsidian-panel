@@ -27,7 +27,7 @@ class Watchdog(object):
             "port" : MC listening port,
             "inst" : MC inst obj,
             "log" : MC running log,
-            "current_user" : 0
+            "current_player" : 0
         }
         '''
         self.proc_pool = {}
@@ -86,6 +86,9 @@ class Watchdog(object):
         # (<current online players>)
         self._inst_player_change_hook = []
 
+        # stores UUID
+        self.__UUID_dict = {}
+
     @staticmethod
     def getWDInstance():
         if Watchdog.instance == None:
@@ -122,6 +125,9 @@ class Watchdog(object):
             self._run_hook("log_update", inst_id, (log_str))
             # find keyword Done in the new log
             re_done_str = "Done \(([0-9.]+)s\)!"
+            re_login_str = "^\[\d\d:\d\d:\d\d INFO\]: (.*)\[(.*)\] logged in"
+            re_logout_str = "^\[\d\d:\d\d:\d\d INFO\]: (.*) left the game"
+            re_UUID_str = "UUID of player (.*) is (.*)"
 
             if re.search(re_done_str, log_str) != None \
                 and inst._status == SERVER_STATE.STARTING: # prevent misjudgement by player inputting 'Done'
@@ -137,6 +143,46 @@ class Watchdog(object):
                     self._run_hook("inst_running", inst_id, (init_span))
                     # TEST stop
                     #inst.stop_process()
+            # user login
+            elif re.search(re_login_str, log_str) != None \
+                    and inst._status == SERVER_STATE.RUNNING:
+
+                m = re.search(re_login_str, log_str)
+                player_name = m.group(1)
+                player_ip = m.group(2)
+
+                player_UUID = self.__UUID_dict.get(player_name)
+
+                # inc current user num
+                _inst_key = "inst_" + str(inst_id)
+                u = self.proc_pool.get(_inst_key)
+                u["current_player"] += 1
+
+                self._run_hook("inst_player_login", inst_id, (player_name, player_UUID, player_ip, u["current_player"]))
+            # user logout
+            elif re.search(re_logout_str, log_str) != None \
+                and inst._status == SERVER_STATE.RUNNING:
+
+                m = re.search(re_logout_str, log_str)
+                player_name = m.group(1)
+                player_UUID = self.__UUID_dict.get(player_name)
+
+                # dec current user num
+                _inst_key = "inst_" + str(inst_id)
+                u = self.proc_pool.get(_inst_key)
+                u["current_player"] -= 1
+
+                self._run_hook("inst_player_logout", inst_id, (player_name, player_UUID, u["current_player"]))
+            # bind UUID
+            elif re.search(re_UUID_str, log_str) != None \
+                and inst._status == SERVER_STATE.RUNNING:
+
+                m = re.search(re_UUID_str, log_str)
+                player_name = m.group(1)
+                player_UUID = m.group(2)
+
+                # register UUID of a player
+                self.__UUID_dict[player_name] = player_UUID
 
         for sock, fd, event in events:
             if event == POLL_IN:
@@ -173,8 +219,9 @@ class Watchdog(object):
                         _proc_stdout = _inst._proc.stdout
                         event_loop.remove(_proc_stdout)
 
-                        # remove instance
+                        # reset instance object dict
                         inst_obj["inst"] = None
+                        inst_obj["current_player"] = 0
 
     def add_hook(self, hook_name, fn):
         '''
@@ -215,7 +262,7 @@ class Watchdog(object):
             "config" : MCWrapperConfig(**config), # READ_ONLY
             "port" : _port, # READ_ONLY
             "log" : "",
-            "current_user" : 0,
+            "current_player" : 0,
             "inst": None,  # MCServerInstance(_port),
         }
 
@@ -233,6 +280,10 @@ class Watchdog(object):
         just an alias of method `register_instance`
         '''
         return self.register_instance(inst_id, port, config)
+
+    def reset_instance(self, inst_id, port, config):
+        self.del_instance(inst_id)
+        self.register_instance(inst_id, port, config)
 
     def del_instance(self, inst_id):
         '''
@@ -292,6 +343,14 @@ class Watchdog(object):
         else:
             _inst = self.proc_pool.get(_inst_key).get("inst")
             _inst.send_command(command)
+
+    def read_log(self, inst_id):
+        _inst_key = "inst_" + str(inst_id)
+        if self.proc_pool.get(_inst_key) == None:
+            return None
+        else:
+            _log = self.proc_pool.get(_inst_key).get("log")
+            return _log
 
     def launch(self, hook_class = None):
         def _launch_loop():
