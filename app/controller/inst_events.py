@@ -1,5 +1,5 @@
 import logging
-import inspect
+from app import socketio
 
 logger = logging.getLogger("ob_panel")
 
@@ -13,7 +13,8 @@ class InstanceEventEmitter(object):
         _names = ("inst_starting", "inst_running",
                   "log_update",
                   "connection_lost", "inst_terminate",
-                  "inst_player_login", "inst_player_logout", "inst_player_change")
+                  "inst_player_login", "inst_player_logout",
+                  "inst_player_change","inst_memory_change")
         # add hook function
         for item in _names:
             _method = getattr(self, "on_%s" % item)
@@ -50,4 +51,11 @@ class InstanceEventEmitter(object):
         pass
 
     def on_inst_player_change(self, inst_id, p):
+        online, total = p
+        print("<inst %s> online player: %s" % (inst_id, online))
+        pass
+
+    def on_inst_memory_change(self, inst_id, p):
+        mem = p
+        print("<inst %s> memory : %s" % (inst_id, mem))
         pass

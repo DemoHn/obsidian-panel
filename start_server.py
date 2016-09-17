@@ -44,5 +44,5 @@ init_directory()
 init_database(logger=logger)
 
 if __name__ == "__main__":
-    socketio.run(_app,debug=True)
+    socketio.run(_app,debug=True, use_reloader=False)
     #app.run(debug=True)

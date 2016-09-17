@@ -4,10 +4,14 @@ from . import event_loop, SERVER_STATE
 from .instance import MCServerInstance
 from .mc_config import MCWrapperConfig
 
-import re
+# scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+
+import re, os
 import inspect
 import threading
 import logging
+import psutil
 
 POLL_NULL = 0x00
 POLL_IN = 0x01
@@ -31,7 +35,6 @@ class Watchdog(object):
         }
         '''
         self.proc_pool = {}
-
         # hook functions
         # parameters: (<inst_id>, (<param1>, ...))
 
@@ -86,8 +89,25 @@ class Watchdog(object):
         # (<current online players>)
         self._inst_player_change_hook = []
 
+        # :inst_memory_change_hook:
+        # execute when allocated memory changes
+        # additional params:
+        # (<current allocated memory on this inst>)
+        self._inst_memory_change_hook = []
+
+        self._hook_names = ("inst_starting", "inst_running",
+                  "log_update",
+                  "connection_lost", "inst_terminate",
+                  "inst_player_login", "inst_player_logout",
+                  "inst_player_change","inst_memory_change")
+
         # stores UUID
         self.__UUID_dict = {}
+
+        # scheduler
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.add_job(self._schedule_read_memory,'interval', seconds = 5)
+        self.scheduler.add_job(self._schedule_check_online_user,'interval', seconds=10)
 
     @staticmethod
     def getWDInstance():
@@ -95,11 +115,38 @@ class Watchdog(object):
             Watchdog.instance = Watchdog()
         return Watchdog.instance
 
+    def _schedule_read_memory(self):
+        for inst_key in self.proc_pool:
+            inst_dict = self.proc_pool.get(inst_key)
+            inst_id = int(inst_key[5:])
+            inst = inst_dict.get("inst")
+
+            mem = None
+            try:
+                pid = inst.get_pid()
+                process = psutil.Process(pid)
+                mem = process.memory_info()[0] / float(2 ** 20) # unit : MiB
+            except:
+                mem = None
+            finally:
+                if mem != None and inst != None:
+                    if inst.get_status() == SERVER_STATE.RUNNING:
+                        self._run_hook("inst_memory_change", inst_id, (mem))
+
+    def _schedule_check_online_user(self):
+        for inst_key in self.proc_pool:
+            inst_dict = self.proc_pool.get(inst_key)
+            inst_id = int(inst_key[5:])
+            inst = inst_dict.get("inst")
+
+            if inst != None:
+                if inst.get_status() == SERVER_STATE.RUNNING:
+                    # just send command, hook will be triggered after results shows
+                    inst.send_command("list")
+                    # self._run_hook("inst_player_change", inst_id, (None))
+
     def _run_hook(self, hook_name, inst_id, args_tuple):
-        _names = ("inst_starting", "inst_running",
-                  "log_update",
-                  "connection_lost", "inst_terminate",
-                  "inst_player_login", "inst_player_logout", "inst_player_change")
+        _names = self._hook_names
 
         if hook_name in _names:
             _method = getattr(self, "_%s_hook" % hook_name)
@@ -128,6 +175,7 @@ class Watchdog(object):
             re_login_str = "^\[\d\d:\d\d:\d\d INFO\]: (.*)\[(.*)\] logged in"
             re_logout_str = "^\[\d\d:\d\d:\d\d INFO\]: (.*) left the game"
             re_UUID_str = "UUID of player (.*) is (.*)"
+            re_online_user_str = "There are ([0-9]+)/([0-9]+) players"
 
             if re.search(re_done_str, log_str) != None \
                 and inst._status == SERVER_STATE.STARTING: # prevent misjudgement by player inputting 'Done'
@@ -145,7 +193,7 @@ class Watchdog(object):
                     #inst.stop_process()
             # user login
             elif re.search(re_login_str, log_str) != None \
-                    and inst._status == SERVER_STATE.RUNNING:
+                    and inst.get_status() == SERVER_STATE.RUNNING:
 
                 m = re.search(re_login_str, log_str)
                 player_name = m.group(1)
@@ -161,7 +209,7 @@ class Watchdog(object):
                 self._run_hook("inst_player_login", inst_id, (player_name, player_UUID, player_ip, u["current_player"]))
             # user logout
             elif re.search(re_logout_str, log_str) != None \
-                and inst._status == SERVER_STATE.RUNNING:
+                and inst.get_status() == SERVER_STATE.RUNNING:
 
                 m = re.search(re_logout_str, log_str)
                 player_name = m.group(1)
@@ -175,7 +223,7 @@ class Watchdog(object):
                 self._run_hook("inst_player_logout", inst_id, (player_name, player_UUID, u["current_player"]))
             # bind UUID
             elif re.search(re_UUID_str, log_str) != None \
-                and inst._status == SERVER_STATE.RUNNING:
+                and inst.get_status() == SERVER_STATE.RUNNING:
 
                 m = re.search(re_UUID_str, log_str)
                 player_name = m.group(1)
@@ -183,6 +231,15 @@ class Watchdog(object):
 
                 # register UUID of a player
                 self.__UUID_dict[player_name] = player_UUID
+
+            elif re.search(re_online_user_str, log_str) != None \
+                and inst.get_status() == SERVER_STATE.RUNNING:
+
+                m = re.search(re_online_user_str, log_str)
+                online_player = m.group(1)
+                total_player  = m.group(2)
+
+                self._run_hook("inst_player_change", inst_id, (online_player, total_player))
 
         for sock, fd, event in events:
             if event == POLL_IN:
@@ -237,10 +294,7 @@ class Watchdog(object):
 
         :return:
         '''
-        _names = ("inst_starting", "inst_running",
-                  "log_update",
-                  "connection_lost", "inst_terminate",
-                  "inst_player_login", "inst_player_logout", "inst_player_change")
+        _names = self._hook_names
 
         if hook_name in _names:
             _method = getattr(self, "_%s_hook" % hook_name)
@@ -368,9 +422,13 @@ class Watchdog(object):
         t = threading.Thread(target=_launch_loop)
         t.daemon = True
         t.start()
+
+        # start scheduler
+        self.scheduler.start()
         logging.info("start Watchdog thread.")
 
     def terminate(self):
         # set stopping to True -> terminate while loop
         event_loop.stopping = True
+        self.scheduler.shutdown()
         logging.info("stop Watchdog thread.")

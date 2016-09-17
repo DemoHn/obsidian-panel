@@ -311,7 +311,6 @@ class InstanceController(object):
                 print("current status: %s" % _status)
             #mc_pool.get(_port).inst.stop_process()
             watcher.stop_instance(inst_id)
-            # TODO don't forget clear instance dict in <mpw.watcher.proc_pool>
 
     @staticmethod
     def restart(inst_id):

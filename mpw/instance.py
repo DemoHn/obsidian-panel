@@ -126,7 +126,6 @@ class MCServerInstance():
     # send command
     def send_command(self,command):
         w_pipe = self._proc.stdin
-        print("WTF")
         if w_pipe == None:
             logger.debug("pipe is undefined! Maybe the process is still not created?")
         else:
@@ -141,3 +140,9 @@ class MCServerInstance():
                 w_pipe.write(_command)
             else:
                 logger.error("pipe No.%s is closed!" % w_pipe.fileno())
+
+    def get_pid(self):
+        return self._pid
+
+    def get_status(self):
+        return self._status
