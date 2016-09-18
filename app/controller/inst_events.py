@@ -1,7 +1,7 @@
 from app import socketio, db
-from app.model import Users, UserToken
+from app.model import Users, UserToken, ServerInstance
 
-from flask_socketio import emit, send, disconnect
+from flask_socketio import emit, send, disconnect, join_room, leave_room
 from flask import request, session
 
 import logging
@@ -51,6 +51,7 @@ class WSConnections(object):
                     _conns[user_key] = []
 
                 self.connections.get(user_key).append(sid)
+                join_room(user_key)
                 emit("ack",{"sid":sid})
 
     def _init_disconnect_event(self):
@@ -67,6 +68,7 @@ class WSConnections(object):
                     try:
                         # delete sid from sid list
                         sids.remove(sid)
+                        leave_room(user_key)
                     finally:
                         return None
 
@@ -78,7 +80,7 @@ class WSConnections(object):
         sessions = self.connections.get(user_key)
         if sessions != None:
             for sid in sessions:
-                emit(event, data, room=sid)
+                socketio.emit(event, data, room=user_key)
 
 class InstanceEventEmitter(object):
     '''
@@ -97,10 +99,26 @@ class InstanceEventEmitter(object):
             _method = getattr(self, "on_%s" % item)
             self.add_hook_func(item, _method)
 
-        self.ws = WSConnections()
+        self.conn = WSConnections()
 
-    def _send_web_socket(self, event_name, data):
-        pass
+        # KEY : <inst_id>
+        # VALUE : <uid>
+        self._inst_uid_cache = {}
+        # refresh cache the first time
+        self._get_uid_from_inst_id(0)
+
+    def _get_uid_from_inst_id(self, inst_id):
+        inst_key = "inst_%s" % inst_id
+        if self._inst_uid_cache.get(inst_key) != None:
+            return self._inst_uid_cache.get(inst_key)
+        else:
+            # read from database
+            owners = db.session.query(ServerInstance).all()
+            for serv_inst in owners:
+                inst_key = "inst_%s" % serv_inst.inst_id
+                self._inst_uid_cache[inst_key] = serv_inst.owner_id
+
+            return self._inst_uid_cache.get(inst_key)
 
     def on_inst_starting(self, inst_id, p):
         print("<inst %s> start initialize" % inst_id)
@@ -111,7 +129,13 @@ class InstanceEventEmitter(object):
         pass
 
     def on_log_update(self, inst_id, p):
-        print(p)
+        log_str = p
+        uid = self._get_uid_from_inst_id(inst_id)
+
+        log_dict = {
+            "log": log_str
+        }
+        self.conn.send_data("log_update", log_dict, uid)
         pass
 
     def on_connection_lost(self, inst_id, p):

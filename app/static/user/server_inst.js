@@ -70,15 +70,17 @@ var Console = function () {
        // socket.emit("hello");
     });
 
-    socket.on("nig",function (data) {
+    // on connect, server will emit an `ack` event
+    socket.on("ack",function (data) {
         console.log(data);
     })
-    socket.on("recv",function (data) {
-        editor.replaceRange(data, CodeMirror.Pos(editor.lastLine()));
+    socket.on("log_update",function (data) {
+        _log = data["log"];
+        editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
      });
 
     $("#input").click(function () {
-        socket.emit("input", {"data":$("#in").val()})
+        socket.emit("input", {"data":$("#in").val()});
         console.log($("#in").val())
     })
 };

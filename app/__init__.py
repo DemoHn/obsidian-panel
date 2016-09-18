@@ -24,10 +24,8 @@ signals = Namespace()
 # run process watcher
 # in addtion, MPW is 'Minecraft Process Watcher'
 from mpw import Watchdog
-from app.controller.inst_events import InstanceEventEmitter
-
 watcher = Watchdog.getWDInstance()
-watcher.launch(hook_class=InstanceEventEmitter)
+
 # import blueprints
 # to event circular importing, this `import` statement should be put
 # after database declared.

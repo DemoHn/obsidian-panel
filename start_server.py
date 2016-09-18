@@ -3,7 +3,9 @@ import logging
 
 from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
-from app import socketio
+from app.controller.inst_events import InstanceEventEmitter
+
+from app import socketio, watcher
 from app import app as _app
 
 def init_directory():
@@ -43,6 +45,8 @@ logger = init_logger(debug=True)
 init_directory()
 init_database(logger=logger)
 
+# launch watcher
+watcher.launch(hook_class=InstanceEventEmitter)
 if __name__ == "__main__":
     socketio.run(_app,debug=True, use_reloader=False)
     #app.run(debug=True)
