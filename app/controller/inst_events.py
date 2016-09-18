@@ -5,7 +5,7 @@ from flask_socketio import emit, send, disconnect, join_room, leave_room, rooms
 from flask import request, session
 
 import logging
-
+import time
 logger = logging.getLogger("ob_panel")
 
 class WSConnections(object):
@@ -39,9 +39,10 @@ class WSConnections(object):
             return (priv, uid)
 
     def _init_connect_event(self):
-        @socketio.on("connect")
+        @socketio.on("connect", namespace="/channel_inst")
         def on_connect():
             sid = request.sid
+            print(sid)
             priv, uid = self._check_user(request)
             # socket is invalid
             if priv == None:
@@ -52,12 +53,12 @@ class WSConnections(object):
                     _conns = self.connections
                     _conns[user_key] = []
 
-                self.connections.get(user_key).append(sid)
-                join_room(user_key)
-                emit("ack",{"sid":sid})
+                if sid not in self.connections.get(user_key):
+                    self.connections.get(user_key).append(sid)
+                    #emit("ack",{"sid":sid})
 
     def _init_disconnect_event(self):
-        @socketio.on("disconnect")
+        @socketio.on("disconnect", namespace="/channel_inst")
         def on_disconnect():
             sid = request.sid
 
@@ -70,19 +71,18 @@ class WSConnections(object):
                     try:
                         # delete sid from sid list
                         sids.remove(sid)
-                        leave_room(user_key)
                     finally:
                         return None
 
     def _init_command_input_event(self):
-        @socketio.on("command_input")
+        @socketio.on("command_input", namespace="/channel_inst")
         def on_command_input(cmd):
             cmd_str = cmd["command"]
             priv, uid = self._check_user(request)
             # get inst id
             # TODO multi instances for one user support
             inst_obj = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).first()
-
+            # NOW inst id is 1, definitely - 2016.9.18
             if inst_obj != None:
                 inst_id = inst_obj.inst_id
                 self.watcher.send_command(inst_id, cmd_str)
@@ -95,7 +95,7 @@ class WSConnections(object):
         sessions = self.connections.get(user_key)
         if sessions != None:
             for sid in sessions:
-                socketio.emit(event, data, room=user_key)
+                socketio.emit(event, data, room=sid, namespace="/channel_inst")
 
 class InstanceEventEmitter(object):
     '''
@@ -146,7 +146,6 @@ class InstanceEventEmitter(object):
     def on_log_update(self, inst_id, p):
         log_str = p
         uid = self._get_uid_from_inst_id(inst_id)
-
         log_dict = {
             "log": log_str
         }

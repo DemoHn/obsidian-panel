@@ -15,6 +15,9 @@ app.config['SECRET_KEY'] = 'secret!'
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)
 
+# monkey patch eventlet
+import eventlet
+eventlet.monkey_patch()
 # init socketio
 socketio = SocketIO(app, message_queue='redis://')
 

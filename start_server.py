@@ -48,5 +48,5 @@ init_database(logger=logger)
 # launch watcher
 watcher.launch(hook_class=InstanceEventEmitter)
 if __name__ == "__main__":
-    socketio.run(_app,debug=True, use_reloader=False)
+    socketio.run(_app,debug=True, log_output=False)
     #app.run(debug=True)

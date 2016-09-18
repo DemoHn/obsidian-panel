@@ -64,18 +64,20 @@ var Console = function () {
         readOnly : true
     });
     
-    var socket = io.connect('/');
+    var socket = io.connect('/channel_inst');
     socket.on("connect",function () {
         // on connect, server will emit an `ack` event
+        console.log("id: "+socket.id);
 
-        socket.on("log_update",function (data) {
-            _log = data["log"];
+        socket.on("log_update",function (msg) {
+            console.log(this);
+            _log = msg["log"];
             editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
         });
     });
 
     $("#input").click(function () {
         socket.emit("command_input", {"command":$("#in").val()});
-        console.log($("#in").val())
+        //console.log($("#in").val())
     })
 };

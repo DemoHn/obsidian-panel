@@ -109,7 +109,7 @@ class Watchdog(object):
         # scheduler
         self.scheduler = BackgroundScheduler()
         self.scheduler.add_job(self._schedule_read_memory,'interval', seconds = 5)
-        self.scheduler.add_job(self._schedule_check_online_user,'interval', seconds=10)
+        self.scheduler.add_job(self._schedule_check_online_user,'interval', seconds=60)
 
         # socket
         self.socket = MCSocket()
@@ -152,7 +152,8 @@ class Watchdog(object):
                     self.socket = MCSocket()
                     self.socket.connect(port)
                     event_loop.add(self.socket.sock, POLL_IN | POLL_HUP)
-                    self.socket.send_data(b'\x00\x00',"127.0.0.1",port,b'\x01')
+                    # Minecraft PING command
+                    self.socket.send_data(b'\x00\x00', "127.0.0.1", port, b'\x01')
                     self.socket.send_data(b'\x00')
 
     def _run_hook(self, hook_name, inst_id, args_tuple):
