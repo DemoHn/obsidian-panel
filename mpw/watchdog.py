@@ -3,6 +3,7 @@ __author__ = "Nigshoxiz"
 from . import event_loop, SERVER_STATE
 from .instance import MCServerInstance
 from .mc_config import MCWrapperConfig
+from .mc_socket import MCSocket
 
 # scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -12,7 +13,8 @@ import inspect
 import threading
 import logging
 import psutil
-
+import json
+import traceback
 POLL_NULL = 0x00
 POLL_IN = 0x01
 POLL_OUT = 0x04
@@ -109,6 +111,9 @@ class Watchdog(object):
         self.scheduler.add_job(self._schedule_read_memory,'interval', seconds = 5)
         self.scheduler.add_job(self._schedule_check_online_user,'interval', seconds=10)
 
+        # socket
+        self.socket = MCSocket()
+
     @staticmethod
     def getWDInstance():
         if Watchdog.instance == None:
@@ -136,14 +141,19 @@ class Watchdog(object):
     def _schedule_check_online_user(self):
         for inst_key in self.proc_pool:
             inst_dict = self.proc_pool.get(inst_key)
-            inst_id = int(inst_key[5:])
+
             inst = inst_dict.get("inst")
 
             if inst != None:
                 if inst.get_status() == SERVER_STATE.RUNNING:
                     # just send command, hook will be triggered after results shows
-                    inst.send_command("list")
-                    # self._run_hook("inst_player_change", inst_id, (None))
+                    #inst.send_command("list")
+                    port = int(inst.port)
+                    self.socket = MCSocket()
+                    self.socket.connect(port)
+                    event_loop.add(self.socket.sock, POLL_IN | POLL_HUP)
+                    self.socket.send_data(b'\x00\x00',"127.0.0.1",port,b'\x01')
+                    self.socket.send_data(b'\x00')
 
     def _run_hook(self, hook_name, inst_id, args_tuple):
         _names = self._hook_names
@@ -232,19 +242,67 @@ class Watchdog(object):
                 # register UUID of a player
                 self.__UUID_dict[player_name] = player_UUID
 
-            elif re.search(re_online_user_str, log_str) != None \
-                and inst.get_status() == SERVER_STATE.RUNNING:
+            #elif re.search(re_online_user_str, log_str) != None \
+            #    and inst.get_status() == SERVER_STATE.RUNNING:
+            #
+            #    m = re.search(re_online_user_str, log_str)
+            #    online_player = m.group(1)
+            #    total_player  = m.group(2)
+            #
+            #   self._run_hook("inst_player_change", inst_id, (online_player, total_player))
 
-                m = re.search(re_online_user_str, log_str)
-                online_player = m.group(1)
-                total_player  = m.group(2)
+        def _run_hooks_by_sock(inst_id, sock_data, inst):
+            # find packet id
+            # check http://wiki.vg/Server_List_Ping for minecraft protocol details
+            pack_length = sock_data[0]
+            pack_id = sock_data[1]
+            # Minecraft PING response
+            if pack_id == 0x00:
+                # TODO compatible for old versions' protocol
+                json_length = sock_data[2]
+                json_str   = (sock_data[3:]).decode("utf-8")
 
-                self._run_hook("inst_player_change", inst_id, (online_player, total_player))
+                try:
+                    dict = json.loads(json_str)
+                    current_player = dict.get("players").get("online")
+                    total_player   = dict.get("players").get("max")
+                    # modify inst data
+                    inst_key = "inst_%s" % inst_id
+                    inst_dict = self.proc_pool.get(inst_key)
+                    inst_dict["current_player"] = current_player
+                    self._run_hook("inst_player_change", inst_id, (current_player, total_player))
+                except:
+                    logging.debug(traceback.format_exc())
+                    return None
 
         for sock, fd, event in events:
             if event == POLL_IN:
                 #if sock.closed == False:
-                if True:
+                if sock == self.socket.sock:
+                    # minecraft ping protocol
+                    # read sock data
+                    server_ip, server_port = sock.getpeername()
+                    try:
+                        chunk = self.socket.sock.recv(4096)
+                    finally:
+                        event_loop.remove(sock)
+                        self.socket.sock.close()
+
+                    bin_data = chunk
+                    # find instance correspond to peer port
+                    for inst_key in self.proc_pool:
+                        inst_dict = self.proc_pool.get(inst_key)
+                        _port = inst_dict.get("port")
+
+                        inst_id = int(inst_key[5:])
+
+                        inst    = inst_dict.get("inst")
+                        if _port == server_port:
+                            if inst != None:
+                                _run_hooks_by_sock(inst_id, bin_data, inst)
+                                break
+
+                else:
                     # get sender by comparing output fd
                     for inst_key in self.proc_pool:
                         inst_obj = self.proc_pool.get(inst_key)
@@ -258,27 +316,30 @@ class Watchdog(object):
                             inst_id = int(inst_key[5:])
                             _run_hooks_by_log(inst_id, log_str, _inst)
                             break
-                else:
-                    logging.warning("pipe socket is closed!")
+
             # when connection terminate, this branch will start
             elif event == POLL_HUP:
-                for inst_key in self.proc_pool:
-                    inst_obj = self.proc_pool.get(inst_key)
-                    _inst = inst_obj["inst"]
+                if sock == self.socket.sock:
+                    event_loop.remove(sock)
+                else:
+                    # pipe event
+                    for inst_key in self.proc_pool:
+                        inst_obj = self.proc_pool.get(inst_key)
+                        _inst = inst_obj["inst"]
 
-                    if fd == _inst._proc.stdout.fileno():
-                        inst_id = int(inst_key[5:])
-                        # run hook
-                        self._run_hook("inst_terminate", inst_id, (None))
+                        if fd == _inst._proc.stdout.fileno():
+                            inst_id = int(inst_key[5:])
+                            # run hook
+                            self._run_hook("inst_terminate", inst_id, (None))
 
-                        # remove this fd from event loop
-                        # or there will be endless trigger for POLL_HUP
-                        _proc_stdout = _inst._proc.stdout
-                        event_loop.remove(_proc_stdout)
+                            # remove this fd from event loop
+                            # or there will be endless trigger for POLL_HUP
+                            _proc_stdout = _inst._proc.stdout
+                            event_loop.remove(_proc_stdout)
 
-                        # reset instance object dict
-                        inst_obj["inst"] = None
-                        inst_obj["current_player"] = 0
+                            # reset instance object dict
+                            inst_obj["inst"] = None
+                            inst_obj["current_player"] = 0
 
     def add_hook(self, hook_name, fn):
         '''

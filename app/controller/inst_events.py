@@ -54,7 +54,6 @@ class WSConnections(object):
 
                 self.connections.get(user_key).append(sid)
                 join_room(user_key)
-                print(rooms())
                 emit("ack",{"sid":sid})
 
     def _init_disconnect_event(self):

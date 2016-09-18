@@ -67,9 +67,6 @@ var Console = function () {
     var socket = io.connect('/');
     socket.on("connect",function () {
         // on connect, server will emit an `ack` event
-        socket.on("ack",function (data) {
-            console.log(data);
-        });
 
         socket.on("log_update",function (data) {
             _log = data["log"];
