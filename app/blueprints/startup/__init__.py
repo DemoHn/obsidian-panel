@@ -173,7 +173,6 @@ def detect_java_environment():
         return rtn.error(500)
     pass
 
-# TODO socketio.emit<download_result> not WORK!!!
 @start_page.route("/download_java")
 @only_on_startup
 def download_java():
