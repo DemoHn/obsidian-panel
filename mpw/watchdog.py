@@ -7,7 +7,7 @@ from .mc_config import MCWrapperConfig
 # scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 
-import re, os
+import re
 import inspect
 import threading
 import logging

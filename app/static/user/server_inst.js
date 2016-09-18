@@ -70,6 +70,9 @@ var Console = function () {
        // socket.emit("hello");
     });
 
+    socket.on("nig",function (data) {
+        console.log(data);
+    })
     socket.on("recv",function (data) {
         editor.replaceRange(data, CodeMirror.Pos(editor.lastLine()));
      });

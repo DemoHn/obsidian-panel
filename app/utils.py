@@ -256,7 +256,7 @@ def get_line_number(directory):
             num += get_line_number(subdir)
     return num
 # line number stat
-#print("\nfinal line number: "+str(get_line_number(get_file_directory())))
+#print("\nfinal line number: %s" % (get_line_number(get_file_directory()) + get_line_number(get_file_directory()+"/../mpw")))
 
 # test f**king dateUtil
 #print(timeUtil.getReadableTime(timeUtil.getCurrentUTCtimestamp(),8))
