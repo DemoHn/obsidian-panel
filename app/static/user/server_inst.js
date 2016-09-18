@@ -66,19 +66,16 @@ var Console = function () {
     
     var socket = io.connect('/');
     socket.on("connect",function () {
-        socket.emit("ack_client");
-    });
+        // on connect, server will emit an `ack` event
+        socket.on("ack",function (data) {
+            console.log(data);
+        });
 
-    // on connect, server will emit an `ack` event
-    socket.on("ack",function (data) {
-        console.log(data);
+        socket.on("log_update",function (data) {
+            _log = data["log"];
+            editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
+        });
     });
-
-    socket.on("log_update",function (data) {
-        _log = data["log"];
-        editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
-        socket.emit("ack")
-     });
 
     $("#input").click(function () {
         socket.emit("command_input", {"command":$("#in").val()});

@@ -1,7 +1,7 @@
 from app import socketio, db
 from app.model import Users, UserToken, ServerInstance
 
-from flask_socketio import emit, send, disconnect, join_room, leave_room
+from flask_socketio import emit, send, disconnect, join_room, leave_room, rooms
 from flask import request, session
 
 import logging
@@ -53,7 +53,8 @@ class WSConnections(object):
                     _conns[user_key] = []
 
                 self.connections.get(user_key).append(sid)
-                join_room(sid)
+                join_room(user_key)
+                print(rooms())
                 emit("ack",{"sid":sid})
 
     def _init_disconnect_event(self):
@@ -70,17 +71,14 @@ class WSConnections(object):
                     try:
                         # delete sid from sid list
                         sids.remove(sid)
-                        leave_room(sid)
+                        leave_room(user_key)
                     finally:
                         return None
 
     def _init_command_input_event(self):
         @socketio.on("command_input")
         def on_command_input(cmd):
-            print(cmd)
-            sid = request.sid
             cmd_str = cmd["command"]
-
             priv, uid = self._check_user(request)
             # get inst id
             # TODO multi instances for one user support
@@ -98,7 +96,7 @@ class WSConnections(object):
         sessions = self.connections.get(user_key)
         if sessions != None:
             for sid in sessions:
-                socketio.emit(event, data, room=sid)
+                socketio.emit(event, data, room=user_key)
 
 class InstanceEventEmitter(object):
     '''
