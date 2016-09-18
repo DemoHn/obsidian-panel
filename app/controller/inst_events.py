@@ -9,13 +9,15 @@ import logging
 logger = logging.getLogger("ob_panel")
 
 class WSConnections(object):
-    def __init__(self):
+    def __init__(self, watcher_obj):
         # KEY :  <user_key> = user_{%uid}
         # VALUE : [<sid1>, <sid2>, ...]
         self.connections = {}
+        self.watcher = watcher_obj
 
         self._init_connect_event()
         self._init_disconnect_event()
+        self._init_command_input_event()
 
     def _check_user(self, request):
         _token = session.get("session_token")
@@ -51,7 +53,7 @@ class WSConnections(object):
                     _conns[user_key] = []
 
                 self.connections.get(user_key).append(sid)
-                join_room(user_key)
+                join_room(sid)
                 emit("ack",{"sid":sid})
 
     def _init_disconnect_event(self):
@@ -68,9 +70,25 @@ class WSConnections(object):
                     try:
                         # delete sid from sid list
                         sids.remove(sid)
-                        leave_room(user_key)
+                        leave_room(sid)
                     finally:
                         return None
+
+    def _init_command_input_event(self):
+        @socketio.on("command_input")
+        def on_command_input(cmd):
+            print(cmd)
+            sid = request.sid
+            cmd_str = cmd["command"]
+
+            priv, uid = self._check_user(request)
+            # get inst id
+            # TODO multi instances for one user support
+            inst_obj = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).first()
+
+            if inst_obj != None:
+                inst_id = inst_obj.inst_id
+                self.watcher.send_command(inst_id, cmd_str)
 
     def send_data(self, event, data, uid):
         '''
@@ -80,14 +98,14 @@ class WSConnections(object):
         sessions = self.connections.get(user_key)
         if sessions != None:
             for sid in sessions:
-                socketio.emit(event, data, room=user_key)
+                socketio.emit(event, data, room=sid)
 
 class InstanceEventEmitter(object):
     '''
     emit websocket on some events
     '''
-    def __init__(self, add_hook_func):
-        self.add_hook_func = add_hook_func
+    def __init__(self, watcher_obj):
+        self.add_hook_func = watcher_obj.add_hook
 
         _names = ("inst_starting", "inst_running",
                   "log_update",
@@ -99,7 +117,7 @@ class InstanceEventEmitter(object):
             _method = getattr(self, "on_%s" % item)
             self.add_hook_func(item, _method)
 
-        self.conn = WSConnections()
+        self.conn = WSConnections(watcher_obj)
 
         # KEY : <inst_id>
         # VALUE : <uid>

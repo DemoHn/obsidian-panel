@@ -396,7 +396,8 @@ class Watchdog(object):
             return None
         else:
             _inst = self.proc_pool.get(_inst_key).get("inst")
-            _inst.send_command(command)
+            if _inst != None and _inst.get_status() == SERVER_STATE.RUNNING:
+                _inst.send_command(command)
 
     def read_log(self, inst_id):
         _inst_key = "inst_" + str(inst_id)
@@ -414,7 +415,7 @@ class Watchdog(object):
         if hook_class != None:
             if inspect.isclass(hook_class):
                 # init it
-                hook_class(self.add_hook)
+                hook_class(self)
 
         # before start
         event_loop.add_handler(self._event_handler)

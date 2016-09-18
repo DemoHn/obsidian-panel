@@ -22,15 +22,3 @@ def render_console_page(uid, priv):
         return render_template("server_inst/console.html",title="Console")
     except TemplateNotFound:
         abort(404)
-
-#@_send_log_sig.connect_via(app)
-def ws_send(pkg):
-    inst_id , data = pkg
-    socketio.emit("recv",data)
-
-@socketio.on('input')
-def input_data(data):
-    # TODO
-    INST_ID = 1
-    inst = watcher.get_instance(INST_ID)
-    inst.send_command(data["data"])
