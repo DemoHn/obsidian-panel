@@ -70,9 +70,15 @@ class WSConnections(object):
                     finally:
                         return None
 
-    def send_data(self):
-
-
+    def send_data(self, event, data, uid):
+        '''
+        send websocket data to all session that belongs to the user
+        '''
+        user_key = "user_%s" % uid
+        sessions = self.connections.get(user_key)
+        if sessions != None:
+            for sid in sessions:
+                emit(event, data, room=sid)
 
 class InstanceEventEmitter(object):
     '''
