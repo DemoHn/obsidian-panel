@@ -477,12 +477,8 @@ class Downloader(object):
                 _download_slice = self.slices[_index][1]
 
                 _range_item = [0, 0]
-                if _download_slice == 0:
-                    _range_item[0] = range_item[0]
-                    _range_item[1] = range_item[1]
-                else:
-                    _range_item[0] = range_item[0] + _download_slice
-                    _range_item[1] = range_item[1]
+                _range_item[0] = range_item[0] + _download_slice
+                _range_item[1] = range_item[1]
 
                 while True:
                     if self.stopping:
@@ -498,7 +494,6 @@ class Downloader(object):
                     self.fd.write(buf)
                     self.slices[_index][1] += len(buf)
                     self.lock.release()
-
 
                 # shutil.copyfileobj(resp, self.fd)
                 print("%s finished!" % threading.current_thread().getName())
