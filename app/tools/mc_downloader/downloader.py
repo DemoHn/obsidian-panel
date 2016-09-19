@@ -11,6 +11,14 @@ import random
 import string
 import copy
 import time
+
+class AbruptException(Exception):
+    def __init__(self):
+        Exception.__init__(self)
+
+    def __str__(self):
+        return "Just an exception!"
+
 class DownloaderPool(object):
 
     instance = None
@@ -58,8 +66,7 @@ class DownloaderPool(object):
     def pause(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
         if _inst != None:
-            _inst.dl._make_report()
-            _inst.stop()
+            _inst.dl.stop()
 
     def terminate(self, downloader_hash):
         _inst = self.pool.get(downloader_hash)
@@ -67,7 +74,7 @@ class DownloaderPool(object):
         _filename = _inst.dl.filename
         if _inst != None:
             try:
-                _inst.stop()
+                _inst.dl.stop()
                 # time.sleep(0.5)
                 del self.pool[downloader_hash]
             finally:
@@ -84,20 +91,17 @@ class DownloaderPool(object):
     def resume(self, downloader_hash):
 
         _inst = self.pool.get(downloader_hash)
-
-        if _inst.stopped() != True:
-            _inst.stop()
-
-        if _inst != None:
+        _inst.dl.stopping = False
+        #print(_inst)
+        #if _inst != None:
             # copy Downloader object
-            _dl_obj = copy.copy(_inst.dl)
-            # remove old thread
-            self.remove(downloader_hash)
-            new_dt_inst = DownloaderThread('',_dl = _dl_obj)
-            self.pool[downloader_hash] = new_dt_inst
-            new_dt_inst.start()
-        pass
-
+        #    _dl_obj = copy.copy(_inst.dl)
+        #    # remove old thread
+        #    self.remove(downloader_hash)
+        #    new_dt_inst = DownloaderThread('',_dl = _dl_obj)
+        #    self.pool[downloader_hash] = new_dt_inst
+        #    new_dt_inst.start()
+        #pass
 
 class DownloaderThread(threading.Thread):
 
@@ -110,17 +114,8 @@ class DownloaderThread(threading.Thread):
         else:
             self.dl = Downloader(url, **kwargs)
 
-        self._stopper = threading.Event()
-        self._can_run = threading.Event()
-
     def run(self):
         self.dl.download()
-
-    def stop(self):
-        self._stopper.set()
-
-    def stopped(self):
-        self._stopper.isSet()
 
     def hash(self):
         return self.dl.__hash__()
@@ -153,6 +148,7 @@ class Downloader(object):
         self.ssl_ctx = None
         self.headers = {}
 
+        self.stopping = False
         # response
         try:
             # get filename from url
@@ -193,11 +189,11 @@ class Downloader(object):
             req.add_header(i, headers.get(i))
         try:
             print("start analysing URL...")
-            result = urlopen(req, timeout=30)
+            result = urlopen(req, timeout=15)
 
             headers = result.info()
             _len = headers.get("Content-Length")
-
+            print("[DEBUG]Content Length:%s" % _len)
             if _len == None:
                 self.filesize = -1
             else:
@@ -234,8 +230,6 @@ class Downloader(object):
         if os.path.exists(_report_file):
             os.remove(_report_file)
 
-        pass
-
     def getProgress(self):
         """
         get downloaded size of file
@@ -252,6 +246,13 @@ class Downloader(object):
             _total = 0
             for si in self.slices:
                 _total += si[1]
+
+            _, __ = self._read_report()
+
+            if __ranges != None:
+                for __range in __ranges:
+                    _total += __range[1]
+
             return (_total, self.filesize)
         else:
             return (None, self.filesize)
@@ -293,6 +294,9 @@ class Downloader(object):
             self.filename = self.url.split("/")[-1]
             _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
             _ , __ = self._read_report()
+
+            if self.fd.closed == False:
+                self.fd.close()
             if __ == None:
                 self.fd = open(_tmp_file, "wb")
             else:
@@ -300,73 +304,99 @@ class Downloader(object):
         except:
             self.fd.close()
 
+    def stop(self):
+        self.stopping = True
+
     def download(self):
         def _download_singlethread():
-            print("[MC Downloader] directly downloading...")
-            self.dw_type_flag = "single"
-            try:
-                req = Request(url=self.url, headers=self.headers)
-                resp = urlopen(req, context=self.ssl_ctx)
+            while True:
+                print("[MC Downloader] directly downloading...")
+                self._reopen_file()
+                self.fd.seek(0,0)
+                self.dw_type_flag = "single"
+                try:
+                    req = Request(url=self.url, headers=self.headers)
+                    resp = urlopen(req, context=self.ssl_ctx)
 
-                if self.filesize < 0:
-                    _header = resp.info()
-                    _len = _header.get("Content-Length")
-                    self.filesize = _len
-                #self.fd.write(resp.read())
-                shutil.copyfileobj(resp, self.fd,length=8*1024)
+                    if self.filesize < 0:
+                        _header = resp.info()
+                        _len = _header.get("Content-Length")
+                        self.filesize = _len
+                    #self.fd.write(resp.read())
+                    #shutil.copyfileobj(resp, self.fd,length=8*1024)
+                    while not self.stopping:
+                        buf = resp.read(8 * 1024)
+                        if not buf:
+                            break
+                        self.fd.write(buf)
 
-            except HTTPError:
-                return False
-            except:
-                return False
-            return True
+                    if self.stopping == True:
+                        while self.stopping:
+                            time.sleep(1)
+                        continue
+
+                except HTTPError:
+                    return False
+                except:
+                    return False
+                return True
 
         def _download_multithread():
             self.dw_type_flag = "multi"
-            _, slices = self._read_report()
-            _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
-            __exists  = os.path.exists(_tmp_file)
+            while True:
+                self.threads = []
+                _, slices = self._read_report()
+                _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
+                __exists  = os.path.exists(_tmp_file)
 
-            ranges = []
-            if slices != None and __exists == True:
-                for item in slices:
-                    item[0] = int(item[0])
-                    item[1] = int(item[1])
-                    item[2] = int(item[2])
+                ranges = []
+                if slices != None and __exists == True:
+                    for item in slices:
+                        item[0] = int(item[0])
+                        item[1] = int(item[1])
+                        item[2] = int(item[2])
 
-                    if item[0] + item[1] - 1 < item[2]:
-                        ranges.append( (item[0] + item[1], item[2]) )
-                print("[MC downloader] Resume Downloading...")
-            else:
-                ranges = self._split_range()
+                        if item[0] + item[1] - 1 < item[2]:
+                            ranges.append( (item[0] + item[1], item[2]) )
+                    self._reopen_file()
+                    print("[MC downloader] Resume Downloading...")
+                else:
+                    ranges = self._split_range()
 
-            print("[MC downloader] Start Downloading... threads = %s" % len(ranges))
-            _i = 0
-            for threads in range(len(ranges)):
-                self.slices.append([ranges[_i][0], 0, ranges[_i][1]])
+                print("[MC downloader] Start Downloading... threads = %s" % len(ranges))
+                _i = 0
+                for threads in range(len(ranges)):
+                    self.slices.append([ranges[_i][0], 0, ranges[_i][1]])
 
-                range_item = ranges[_i]
-                t = threading.Thread(target=self.download_thread, args=(range_item, _i))
-                t.setDaemon(True)
-                t.start()
-                self.threads.append(t)
-                _i += 1
+                    range_item = ranges[_i]
+                    t = threading.Thread(target=self.download_thread, args=(range_item, _i))
+                    t.setDaemon(True)
+                    t.start()
+                    self.threads.append(t)
+                    _i += 1
 
-            try:
-                for t in self.threads:
-                    t.join()
-            except KeyboardInterrupt:
-                self._make_report()
-                return False
+                try:
+                    for t in self.threads:
+                        t.join()
+                except AbruptException:
+                    self._make_report()
+                    return False
 
-            if self.download_correct_flag == True:
-                return True
-            else:
-                self._make_report()
-                return False
+                # pause
+                if self.stopping == True:
+                    self._make_report()
+                    while self.stopping:
+                        time.sleep(1)
+                    continue
+
+                if self.download_correct_flag == True:
+                    return True
+                else:
+                    self._make_report()
+                    return False
+
         # get filesize, Partial Support, etc.
         self.analyse(self.headers)
-
         if self.force_multithread:
             result = _download_multithread()
         elif self.force_singlethread:
@@ -407,6 +437,8 @@ class Downloader(object):
         return result
 
     def _split_range(self):
+        if self.filesize < 0:
+            return []
         onceDownloadSize = int(self.filesize / self.THREADS_NUM)
         ranges = []
         _index = 0
@@ -422,6 +454,7 @@ class Downloader(object):
         return ranges
 
     def download_thread(self, range_item, _index):
+        _out_break = False
         MAX_RETRY = 5
 
         req = Request(url=self.url)
@@ -432,6 +465,8 @@ class Downloader(object):
 
         retry = 0
         while True:
+            if _out_break == True:
+                break
             try:
                 resp = urlopen(req, timeout=self.timeout, context=self.ssl_ctx)
 
@@ -445,9 +480,12 @@ class Downloader(object):
                 else:
                     _range_item[0] = range_item[0] + _download_slice
                     _range_item[1] = range_item[1]
-                print("range = %s-%s" % (_range_item[0], _range_item[1]))
 
                 while True:
+                    if self.stopping:
+                        _out_break = True
+                        break
+
                     buf = resp.read(8 * 1024)
                     if not buf:
                         break
@@ -455,9 +493,9 @@ class Downloader(object):
                     self.lock.acquire()
                     self.fd.seek(_range_item[0] + self.slices[_index][1], 0)
                     self.fd.write(buf)
+                    self.slices[_index][1] += len(buf)
                     self.lock.release()
 
-                    self.slices[_index][1] += len(buf)
 
                 # shutil.copyfileobj(resp, self.fd)
                 print("%s finished!" % threading.current_thread().getName())
