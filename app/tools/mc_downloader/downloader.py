@@ -87,7 +87,6 @@ class DownloaderPool(object):
                 if os.path.exists(_report_file):
                     os.remove(_report_file)
 
-    # TODO fix it!!
     def resume(self, downloader_hash):
 
         _inst = self.pool.get(downloader_hash)
@@ -400,6 +399,7 @@ class Downloader(object):
 
         # get filesize, Partial Support, etc.
         self.analyse(self.headers)
+
         if self.force_multithread:
             result = _download_multithread()
         elif self.force_singlethread:
@@ -482,6 +482,11 @@ class Downloader(object):
 
                 while True:
                     if self.stopping:
+                        _out_break = True
+                        break
+
+                    # when network error triggered
+                    if not self.download_correct_flag:
                         _out_break = True
                         break
 
