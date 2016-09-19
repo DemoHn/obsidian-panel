@@ -5,16 +5,14 @@ class sourceJAVA(object):
     '''
     get & download java binary file
     '''
-
-
     def __init__(self):
         self._arch = self._get_cpu_arch()
         self._OS   = self._get_OS()
         # KEY : <priority>
         # VALUE : <many objs>
-        self.versions = {
-            "5": {
-                'major': "8", "minor": "102",
+        self.versions = [
+            {
+                'priority':5,'major': "8", "minor": "102",
                 "arch": {
                     "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-i586.tar.gz",
@@ -25,10 +23,10 @@ class sourceJAVA(object):
                         "windows": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-windows-x64.exe"
                     }
                 }
-            },
-            "4": {
-                'major': "8", "minor": "101",
-                "arch": {"x86": {
+            },{
+                'priority':4, 'major': "8", "minor": "101",
+                "arch": {
+                    "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-i586.tar.gz",
                         "windows": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-windows-i586.exe"
                     },"x64": {
@@ -36,9 +34,8 @@ class sourceJAVA(object):
                         "windows": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-windows-x64.exe"
                     }
                 }
-            },
-            "3": {
-                'major': "7", "minor": "80",
+            },{
+                'priority':3, 'major': "7", "minor": "80",
                 "arch": {
                     "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-linux-i586.tar.gz",
@@ -49,9 +46,8 @@ class sourceJAVA(object):
                         "windows": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-windows-x64.exe"
                     }
                 }
-            },
-            "2": {
-                'major': "7", "minor": "79",
+            },{
+                'priority':2, 'major': "7", "minor": "79",
                 "arch": {
                     "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz",
@@ -63,7 +59,7 @@ class sourceJAVA(object):
                     }
                 }
             }
-        }
+        ]
 
     def _get_cpu_arch(self):
         if cpu._is_64bit():
@@ -81,7 +77,6 @@ class sourceJAVA(object):
         else:
             return "linux"
 
-
     def __add_version_info__(self, priority, version_config):
         '''
         If there are new versions of JDK (like java 9), advanced users could use this function to
@@ -96,15 +91,33 @@ class sourceJAVA(object):
            "arch" : {
                "x86" : {
                    "linux" : <linux x86 link>,
-                   "window" : <window x86 link>
+                   "windows" : <windows x86 link>
                    # I bet nobody use Mac OS or Solaris as host OS of his server
                },
                "x64": {
                    "linux" : <linux x64 link>,
-                   "window" : <window x64 link>
+                   "windows" : <windows x64 link>
                }
            }
         }
         '''
         priority = str(priority)
         self.versions[priority] = version_config
+
+    def get_download_list(self):
+        '''
+        download corresponded version (OS, arch) of java binary
+        :return:
+        '''
+        sorted_dict = sorted(self.versions, lambda x:x.get("priority"))
+
+        list = []
+        for item in sorted_dict:
+            _list_dict = {
+                "major" : item["major"],
+                "minor" : item["minor"],
+                "link"  : item["arch"].get(self._arch).get(self._OS)
+            }
+            list.append(_list_dict)
+
+        return list
