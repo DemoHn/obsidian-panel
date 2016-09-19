@@ -247,11 +247,11 @@ class Downloader(object):
             for si in self.slices:
                 _total += si[1]
 
-            _, __ = self._read_report()
+            _, __  = self._read_report()
 
-            if __ranges != None:
-                for __range in __ranges:
-                    _total += __range[1]
+            if __ != None:
+                for _si in __:
+                    _total += _si[1]
 
             return (_total, self.filesize)
         else:
@@ -344,8 +344,8 @@ class Downloader(object):
         def _download_multithread():
             self.dw_type_flag = "multi"
             while True:
-                self.threads = []
                 _, slices = self._read_report()
+
                 _tmp_file = os.path.join(self.download_dir, self.filename + ".tmp")
                 __exists  = os.path.exists(_tmp_file)
 
@@ -384,7 +384,10 @@ class Downloader(object):
 
                 # pause
                 if self.stopping == True:
+                    # clear old data
                     self._make_report()
+                    self.slices = []
+                    self.threads = []
                     while self.stopping:
                         time.sleep(1)
                     continue
