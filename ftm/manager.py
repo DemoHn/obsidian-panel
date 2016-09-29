@@ -6,7 +6,10 @@ from pyftpdlib.servers import FTPServer, ThreadedFTPServer
 from app.utils import salt
 
 import threading
+from multiprocessing import Process, Manager
+import socket
 import hashlib
+import os
 
 class MD5Authorizer(DummyAuthorizer):
     def validate_authentication(self, username, password, handler):
@@ -17,17 +20,29 @@ class MD5Authorizer(DummyAuthorizer):
         except KeyError:
             raise AuthenticationFailed
 
+class ServerThread(threading.Thread):
+    def __init__(self, port):
+        threading.Thread.__init__(self)
+
+        self.manager = FTPManager(port)
+        address = ("127.0.0.1", self.manager.listening_port)
+        self.manager.server = FTPServer(address, self.manager.handler)
+
+    def run(self):
+        self.manager.server.serve_forever()
+
 class FTPManager(object):
-    def __init__(self, listen_port):
+
+    def __init__(self, port):
         self.handler = FTPHandler
         self.authorizer = MD5Authorizer()
         self.handler.authorizer = self.authorizer
-
-        self.listening_port = listen_port
-
+        self.server = None
         self.login_msg = "Login Successful"
         self.quit_msg  = "GoodBye"
-        pass
+        self.listening_port = port
+
+        self.server_process = None
 
     def add_user(self, username, password, working_dir, permission="elradfmw"):
         hash = hashlib.md5(password.encode('utf-8') + salt).hexdigest()
@@ -46,11 +61,7 @@ class FTPManager(object):
         self.quit_msg = msg
 
     def launch(self):
-        def _launch_server():
-            address = ("127.0.0.1", self.listening_port)
-            server = ThreadedFTPServer(address, self.handler)
-            server.serve_forever()
+        address = ("127.0.0.1", self.listening_port)
+        self.server = FTPServer(address, self.handler)
 
-        t = threading.Thread(target=_launch_server)
-        t.daemon = True
-        t.start()
+        self.server.serve_forever(blocking=True)

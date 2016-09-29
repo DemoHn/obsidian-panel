@@ -29,6 +29,9 @@ signals = Namespace()
 from mpw import Watchdog
 watcher = Watchdog.getWDInstance()
 
+#from ftm import FTPManager
+#ftp_manager = FTPManager(2121)
+
 # import blueprints
 # to event circular importing, this `import` statement should be put
 # after database declared.

@@ -41,37 +41,16 @@ port = 5000
 # 2016-8-16
 
 # import app
-from start_server import _app
+from ftm import FTPManager
+from ftm.manager import ServerThread
 
-from chaussette.backend import _backends
-from chaussette.backend._eventlet import Server as eventlet_server
+import threading, socket, os
+#m = FTPManager(2121)
+#m.launch()
 
-from chaussette import logger
-from chaussette.server import make_server
-import sys
+#First .py module
 
-def start_chaussette(use_reloader):
-    _host = "fd://%d" % int(sys.argv[2])
-    def _make_server():
-        try:
-            # instill eventlet_server instance to `_backends` dict to bypass the restriction!
-            _backends['eventlet'] = eventlet_server
-            httpd = make_server(_app, host=_host,
-                                backend='eventlet')
+from ftm.manager import FTPManager
 
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            sys.exit(0)
-
-    if use_reloader:
-        try:
-            from werkzeug.serving import run_with_reloader
-        except ImportError:
-            logger.info("Reloader requires Werkzeug: "
-                        "'pip install werkzeug'")
-            sys.exit(0)
-        run_with_reloader(_make_server)
-    else:
-        _make_server()
-
-start_chaussette(True)
+m =FTPManager(2121)
+m.launch()

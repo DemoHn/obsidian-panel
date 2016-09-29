@@ -13,3 +13,5 @@ logger = logging.getLogger("ob_panel")
 from . import login
 from . import server_core
 from . import java_binary
+from . import file_backup
+from . import info

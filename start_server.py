@@ -5,7 +5,7 @@ from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
 from app.controller.inst_events import InstanceEventEmitter
 
-from app import socketio, watcher
+from app import socketio, watcher#, ftp_manager
 from app import app as _app
 
 def init_directory():
@@ -47,6 +47,10 @@ init_database(logger=logger)
 
 # launch watcher
 watcher.launch(hook_class=InstanceEventEmitter)
+
+# launch ftp manager
+#ftp_manager.launch()
+
 if __name__ == "__main__":
     socketio.run(_app,debug=True, log_output=False)
     #app.run(debug=True)

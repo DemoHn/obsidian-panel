@@ -86,4 +86,3 @@ class Users(db.Model):
             return False
         else:
             return True
-
