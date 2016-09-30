@@ -121,3 +121,22 @@ class sourceJAVA(object):
             list.append(_list_dict)
 
         return list
+
+    def get_download_link(self, major, minor, priority=0):
+        _arch = self._get_cpu_arch()
+        _OS   = self._get_OS()
+
+        priority = int(priority)
+        major    = str(major)
+        minor    = str(minor)
+
+        if priority > 0:
+            for item in self.versions:
+                if item["priority"] == priority:
+                    return item.get("arch").get(_arch).get(_OS)
+            return None
+        else:
+            for item in self.versions:
+                if item["major"] == major and item["minor"] == minor:
+                    return item.get("arch").get(_arch).get(_OS)
+            return None

@@ -12,7 +12,7 @@ errcode['340'] = "refuse operation"
 errcode['400'] = "json parsing error"
 errcode['401'] = "input data is not complete"
 errcode['403'] = "Operation Forbidden"
-
+errcode['404'] = "Not found"
 errcode['405'] = "invalid keyword"
 # file upload
 errcode['411'] = "file extension not allowed"
