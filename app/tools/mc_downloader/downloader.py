@@ -138,7 +138,7 @@ class Downloader(object):
         self.download_correct_flag = True
         self.slices = []
 
-        self.THREADS_NUM = 8
+        self.THREADS_NUM = 4
 
         self._download_finish_hook = []
         self._network_error_hook = []
@@ -215,8 +215,12 @@ class Downloader(object):
 
     # just a wrapper :-)
     def addDownloadFinishHook(self,fn):
-        if inspect.isfunction(fn):
+        if inspect.isfunction(fn) or inspect.ismethod(fn):
             self._download_finish_hook.append(fn)
+
+    def addNetworkErrorHook(self, fn):
+        if inspect.isfunction(fn) or inspect.ismethod(fn):
+            self._network_error_hook.append(fn)
 
     # terminate downloading and remove tmp file
     # WARNING : this operation will remove tep file PERMANENTLY!
@@ -430,12 +434,17 @@ class Downloader(object):
 
             # run finish hook
             for _hook in self._download_finish_hook:
-                if inspect.isfunction(_hook):
+                if inspect.isfunction(_hook) or inspect.ismethod(_hook):
                     _hook(True, _filename)
         else:
+            # first run network error hook
+            # run finish hook
+            for _hook in self._network_error_hook:
+                if inspect.isfunction(_hook) or inspect.ismethod(_hook):
+                    _hook(None)
             # run finish hook
             for _hook in self._download_finish_hook:
-                if inspect.isfunction(_hook):
+                if inspect.isfunction(_hook) or inspect.ismethod(_hook):
                     _hook(False, None)
         return result
 

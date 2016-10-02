@@ -15,7 +15,7 @@
             <div class="col-xs-4">
                 <div class="box box-info">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Java版本</h3>
+                        <h3 class="box-title">Java版本管理</h3>
 
                         <div class="box-tools pull-right">
                             <button class="btn btn-box-tool" type="button" data-widget="collapse">
@@ -25,15 +25,37 @@
                     </div>
                     <div class="box-body">
                         <div class="table-responsive">
-                            <table class="table no-margin">
+                            <table class="table no-margin text-center" id="java_list">
                                 <thead>
                                     <tr>
+                                        <th>序号</th>
                                         <th>Java版本</th>
-                                        <th>安装时间</th>
-                                        <th></th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                <tr v-for="version in versions">
+                                    <td>${ $index + 1 }</td>
+                                    <td>${ version.major +"u" + version.minor}</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm"
+                                                type="button"
+                                                v-if="version.btn_status.status == 1"
+                                                @click="dw_click($index, $event)">&nbsp;&nbsp;下载&nbsp;&nbsp;</button>
+
+                                        <button class="btn btn-primary btn-sm"
+                                                type="button"
+                                                v-if="version.btn_status.status == 2"
+                                                disabled
+                                                @click="dw_click($index, $event)">&nbsp;${version.btn_status.progress.toFixed(1)+"%"}&nbsp;</button>
+
+                                        <button class="btn btn-primary btn-sm"
+                                                type="button"
+                                                v-if="version.btn_status.status == 3"
+                                                disabled
+                                                @click="dw_click($index, $event)">&nbsp;${version.btn_status.progress.toFixed(1)+"%"}&nbsp;</button>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -42,10 +64,4 @@
             </div>
         </div>
     </section>
-{% endblock %}
-<!--import jquery upload file js lib -->
-{% block footer %}
-    <script src="/static/js/jq_f_up/jquery.ui.widget.js"></script>
-    <script src="/static/js/jq_f_up/jquery.iframe-transport.js"></script>
-    <script src="/static/js/jq_f_up/jquery.fileupload.js"></script>
 {% endblock %}

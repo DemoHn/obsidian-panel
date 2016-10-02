@@ -212,9 +212,9 @@ def download_java():
 
     def _send_finish_event(download_result, filename):
         _model = {
-            "event":"_finish",
+            "event": "_finish",
             "hash": _hash,
-            "success" : download_result
+            "success": download_result
         }
         logger.debug('<ws> ' + json.dumps(_model))
         socketio.emit("download_event", _model)

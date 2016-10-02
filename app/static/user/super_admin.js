@@ -7,7 +7,8 @@ $(document).ready(function(){
     var path_item = path_arr[path_arr.length - 1];
 
     var _map = {
-        'server_core' : ServerCorePage
+        'server_core' : ServerCorePage,
+        'java_binary' : JavaBinary
     };
 
     // init
@@ -67,4 +68,104 @@ ServerCorePage.prototype.__init__ = function () {
 
         self.upload_vm.file_name = data.files[0]['name'];
     });
+};
+
+var JavaBinary = function () {
+    var self = this;
+
+    var WAIT = 1,
+        DOWNLOADING = 2,
+        EXTRACTING = 3,
+        FINISH = 4;
+
+    this.list_vm = new Vue({
+        el:"#java_list",
+        data:{
+            "versions" : []
+            /*status model :{
+            *    "status" : WAIT,
+            *    "progress" : 0.0,
+            *    "is_extracting" : false
+            * }
+            * */
+        },
+        methods:{
+            "dw_click" : function (index, event) {
+                var btn_status = self.list_vm.versions[index].btn_status;
+                
+                switch(btn_status.status){
+                    case WAIT:
+                        btn_status.status = DOWNLOADING;
+                        var _major = self.list_vm.versions[index].major;
+                        var _minor = self.list_vm.versions[index].minor;
+                        self._start_downloading(_major, _minor, function (data) {
+                            if(data != null){
+                                var socket = io.connect("/dw");
+                                setTimeout(function () {
+                                    var d = {
+                                        "hash" : data.info
+                                    };
+
+                                    socket.emit("download_event", d);
+                                },1000)
+                            }
+                        });
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    });
+
+    self._init_list(function (data) {
+        if(data != null){
+            // update data
+            //add button status
+            for(var item in data){
+                var _status_model = {
+                    "status":WAIT,
+                    "progress" : 0.0,
+                    "is_extracting" : false
+                };
+
+                self.list_vm.versions.push({
+                    "minor" : data[item].minor,
+                    "major" : data[item].major,
+                    "link"  : data[item].link,
+                    "btn_status" : _status_model
+                });
+            }
+        }
+    })
+};
+
+JavaBinary.prototype._init_list = function (callback) {
+    $.get("/super_admin/java_binary/get_list", function (data) {
+        try{
+            var dt = JSON.parse(data);
+            if(dt.status == "success"){
+                callback(dt.info);
+            }else{
+                callback();
+            }
+        }catch(e){
+            callback();
+        }
+    })
+};
+
+JavaBinary.prototype._start_downloading = function (major, minor, callback) {
+    $.post("/super_admin/java_binary/download",{"major": major, "minor": minor}, function (data) {
+        try{
+            var dt = JSON.parse(data);
+            if(dt.status == "success"){
+                callback(dt.info);
+            }else{
+                callback();
+            }
+        }catch(e){
+            callback();
+        }
+    })
 };

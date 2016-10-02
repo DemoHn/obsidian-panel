@@ -109,7 +109,7 @@ class sourceJAVA(object):
         download corresponded version (OS, arch) of java binary
         :return:
         '''
-        sorted_dict = sorted(self.versions, lambda x:x.get("priority"))
+        sorted_dict = sorted(self.versions, key = lambda y:-y.get("priority"))
 
         list = []
         for item in sorted_dict:
