@@ -53,7 +53,18 @@
                                                 type="button"
                                                 v-if="version.btn_status.status == 3"
                                                 disabled
-                                                @click="dw_click($index, $event)">&nbsp;${version.btn_status.progress.toFixed(1)+"%"}&nbsp;</button>
+                                                @click="dw_click($index, $event)">解压中</button>
+
+                                        <button class="btn btn-primary btn-sm"
+                                                type="button"
+                                                v-if="version.btn_status.status == 4"
+                                                disabled
+                                                @click="dw_click($index, $event)">已下载</button>
+
+                                        <button class="btn btn-danger btn-sm"
+                                                type="button"
+                                                v-if="version.btn_status.status == 5"
+                                                @click="dw_click($index, $event)">下载失败</button>
                                     </td>
                                 </tr>
                                 </tbody>

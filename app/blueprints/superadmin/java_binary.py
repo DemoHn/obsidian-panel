@@ -18,9 +18,42 @@ import tarfile
 import json
 
 # global variables
-download_queue = []
+# item model:
+# <hash>: {
+#    "link" : **,
+#    "progress" : **,
+
+# }
+download_queue = {}
 
 rtn = returnModel("string")
+
+# some dirty but useful functions' collection
+class _utils:
+
+    WAIT = 1
+    DOWNLOADING = 2
+    EXTRACTING = 3
+    FINISH = 4
+    FAIL = 5
+    @staticmethod
+    def queue_add(hash, dw_link):
+        _model = {
+            "link" : dw_link,
+            "status" : _utils.DOWNLOADING,
+            "progress" : 0
+        }
+
+        download_queue[hash] = _model
+
+    @staticmethod
+    def send_dw_signal(name, hash, value):
+        _event_model = {
+            "event": name,
+            "hash": hash,
+            "value": value
+        }
+        socketio.emit("download_event", _event_model, namespace="/dw")
 
 # render page
 @super_admin_page.route('/java_binary', methods=['GET'])
@@ -62,21 +95,14 @@ def add_download_task(uid, priv):
             if download_result == False or filename == None:
                 return None
 
-            # event model, which is being sent by socketio
-            _event_model = {
-                "event": "_extract_finish",
-                "hash": hash,
-                "success": True
-            }
 
             logger.debug("Download Result: %s" % download_result)
             logger.debug("Start Extracting File...")
 
             # send extract_start event
-            _event_model["event"] = "_extract_start"
-            _event_model["success"] = True
-            socketio.emit("download_event", _event_model, namespace="/dw")
+            _utils.send_dw_signal("_extract_start", hash, True)
 
+            # open archive
             archive = tarfile.open(filename)
             try:
                 archive.extractall(path=bin_dir)
@@ -84,25 +110,18 @@ def add_download_task(uid, priv):
                 archive.close()
 
                 # send extract_finish event (when extract failed)
-                _event_model["event"] = "_extract_finish"
-                _event_model["success"] = False
-                socketio.emit("download_event", _event_model, namespace="/dw")
+                _utils.send_dw_signal("_extract_finish", hash, False)
 
             logger.debug("extract dir: %s, finish!" % bin_dir)
             archive.close()
-
-            _event_model["event"] = "_extract_finish"
-            _event_model["success"] = True
-            socketio.emit("download_event", _event_model, namespace="/dw")
+            _utils.send_dw_signal("_extract_finish", hash, True)
 
         def _send_finish_event(download_result, filename):
-            _model = {
-                "event": "_download_finish",
-                "hash": hash,
-                "success": download_result
-            }
-            logger.debug('<ws> ' + json.dumps(_model))
-            socketio.emit("download_event", _model, namespace="/dw")
+            # send finish event
+            _utils.send_dw_signal("_download_finish", hash, True)
+
+        def _network_error(e):
+            _utils.send_dw_signal("_download_finish", hash, False)
 
         dp = DownloaderPool.getInstance()
         inst, hash = dp.newTask(link, download_dir= download_dir)
@@ -111,13 +130,19 @@ def add_download_task(uid, priv):
         inst.setHeaders({
             "Cookie": "oraclelicense=accept-securebackup-cookie"
         })
+        # Since multi thread is not stable here,
+        # we decided to use only one thread to download it
+        inst.set_force_singlethread(True)
         # global config
         gc = GlobalConfig.getInstance()
         bin_dir   = gc.get("lib_bin_dir")
 
+        # add hook
         inst.addDownloadFinishHook(_send_finish_event)
         inst.addDownloadFinishHook(_extract_file)
+        inst.addNetworkErrorHook(_network_error)
         dp.start(hash)
+
         return inst, hash
 
     try:
@@ -132,10 +157,9 @@ def add_download_task(uid, priv):
         link = source.get_download_link(major_ver, minor_ver)
 
         if link != None:
-            download_queue.append(link)
             # create new task and download
             inst, hash = _add_java_task(link, files_dir)
-            print(hash)
+            _utils.queue_add(hash, link)
             return rtn.success(hash)
         else:
             return rtn.error(404)
@@ -153,7 +177,16 @@ def handle_download_event(msg, uid, priv):
     :param msg:
     :return:
     '''
-    print(msg)
-    pass
+    def _parse_msg(msg):
+        return msg.get("hash"), msg.get("event"), msg.get("value")
 
+    hash, event, value = _parse_msg(msg)
+    dp = DownloaderPool.getInstance()
+    if event == "_request_progress":
+        _t = dp.get(hash)
+
+        if _t != None:
+            inst = _t.dl
+            _total, _dw_size = inst.getProgress()
+            _utils.send_dw_signal("_get_progress", hash, (_total, _dw_size))
 

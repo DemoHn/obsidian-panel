@@ -121,7 +121,11 @@ class DownloaderThread(threading.Thread):
 
 class Downloader(object):
 
-    def __init__(self, url, force_multithread=False , force_singlethread=False, download_dir=""):
+    def __init__(self, url,
+                 force_multithread=False,
+                 force_singlethread=False,
+                 fail_clear=True,  # when download fails, clear tmp (report)file
+                 download_dir=""):
         self.url = url
         self.filesize = 0
         self.support_range = False
@@ -132,6 +136,7 @@ class Downloader(object):
 
         self.force_multithread  = force_multithread
         self.force_singlethread = force_singlethread
+        self.fail_clear = fail_clear
         self.download_dir = download_dir
 
         self.dw_type_flag = None
@@ -168,6 +173,15 @@ class Downloader(object):
     def __hash__(self):
         return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(16))
 
+    def set_force_multithread(self, val):
+        self.force_multithread = val
+
+    def set_force_singlethread(self, val):
+        self.force_singlethread = val
+
+    def set_fail_clear(self, val):
+        self.fail_clear = val
+
     def setThreads(self,thread_num):
         """
         indicate the number of creating threads when using
@@ -192,7 +206,6 @@ class Downloader(object):
 
             headers = result.info()
             _len = headers.get("Content-Length")
-            print("[DEBUG]Content Length:%s" % _len)
             if _len == None:
                 self.filesize = -1
             else:
@@ -437,15 +450,15 @@ class Downloader(object):
                 if inspect.isfunction(_hook) or inspect.ismethod(_hook):
                     _hook(True, _filename)
         else:
-            # first run network error hook
+            # fisrt clear file
+            if self.fail_clear:
+                self.clear()
+            # next run network error hook
             # run finish hook
             for _hook in self._network_error_hook:
                 if inspect.isfunction(_hook) or inspect.ismethod(_hook):
                     _hook(None)
-            # run finish hook
-            for _hook in self._download_finish_hook:
-                if inspect.isfunction(_hook) or inspect.ismethod(_hook):
-                    _hook(False, None)
+
         return result
 
     def _split_range(self):
@@ -481,40 +494,9 @@ class Downloader(object):
                 break
             try:
                 resp = urlopen(req, timeout=self.timeout, context=self.ssl_ctx)
-
-                # slices format: [<start size>, <downloaded size>,<end size>]
-                _download_slice = self.slices[_index][1]
-
-                _range_item = [0, 0]
-                _range_item[0] = range_item[0] + _download_slice
-                _range_item[1] = range_item[1]
-
-                while True:
-                    if self.stopping:
-                        _out_break = True
-                        break
-
-                    # when network error triggered
-                    if not self.download_correct_flag:
-                        _out_break = True
-                        break
-
-                    buf = resp.read(8 * 1024)
-                    if not buf:
-                        break
-
-                    self.lock.acquire()
-                    self.fd.seek(_range_item[0] + self.slices[_index][1], 0)
-                    self.fd.write(buf)
-                    self.slices[_index][1] += len(buf)
-                    self.lock.release()
-
-                # shutil.copyfileobj(resp, self.fd)
-                print("%s finished!" % threading.current_thread().getName())
-
-                break
             except TypeError:
                 traceback.print_exc()
+                print("[DEBUG] TypeError")
                 if self.lock.locked():
                     self.lock.release()
 
@@ -531,6 +513,54 @@ class Downloader(object):
                 if self.lock.locked():
                     self.lock.release()
 
-            if retry == MAX_RETRY + 1:
-                self.download_correct_flag = False
+                if retry == MAX_RETRY + 1:
+                    self.download_correct_flag = False
+                    break
+                else:
+                    continue
+
+            # slices format: [<start size>, <downloaded size>,<end size>]
+            _download_slice = self.slices[_index][1]
+
+            _range_item = [0, 0]
+            _range_item[0] = range_item[0] + _download_slice
+            _range_item[1] = range_item[1]
+
+            try:
+                # read data
+                while True:
+                    if self.stopping:
+                        _out_break = True
+                        break
+
+                    # when network error triggered
+                    if not self.download_correct_flag:
+                        _out_break = True
+                        break
+
+                    buf = resp.read(4 * 1024)
+                    if not buf:
+                        break
+                    self.lock.acquire()
+                    self.fd.seek(_range_item[0] + self.slices[_index][1], 0)
+                    self.fd.write(buf)
+                    self.slices[_index][1] += len(buf)
+                    self.lock.release()
+
+                # shutil.copyfileobj(resp, self.fd)
+                print("%s finished!" % threading.current_thread().getName())
                 break
+            except:
+                traceback.print_exc()
+                retry += 1
+                if retry <= MAX_RETRY:
+                    print("retry %s time" % retry)
+
+                if self.lock.locked():
+                    self.lock.release()
+
+                if retry == MAX_RETRY + 1:
+                    self.download_correct_flag = False
+                    break
+                else:
+                    continue

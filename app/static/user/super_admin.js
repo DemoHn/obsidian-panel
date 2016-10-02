@@ -76,8 +76,9 @@ var JavaBinary = function () {
     var WAIT = 1,
         DOWNLOADING = 2,
         EXTRACTING = 3,
-        FINISH = 4;
-
+        FINISH = 4,
+        FAIL = 5;
+    this.socket = io.connect("/dw");
     this.list_vm = new Vue({
         el:"#java_list",
         data:{
@@ -98,18 +99,20 @@ var JavaBinary = function () {
                         btn_status.status = DOWNLOADING;
                         var _major = self.list_vm.versions[index].major;
                         var _minor = self.list_vm.versions[index].minor;
-                        self._start_downloading(_major, _minor, function (data) {
-                            if(data != null){
-                                var socket = io.connect("/dw");
-                                setTimeout(function () {
-                                    var d = {
-                                        "hash" : data.info
+                        self._start_downloading(_major, _minor, function (dw_hash) {
+                            if(dw_hash != null){
+                                setInterval(function () {
+                                    var event_json = {
+                                        "hash" : dw_hash,
+                                        "event" : "_request_progress",
+                                        "value" : true
                                     };
-
-                                    socket.emit("download_event", d);
-                                },1000)
+                                    self.socket.emit("download_event", event_json);
+                                },1000);
                             }
                         });
+
+                        self._add_socket_listener(self.socket, index);
                         break;
                     default:
                         break;
@@ -168,4 +171,23 @@ JavaBinary.prototype._start_downloading = function (major, minor, callback) {
             callback();
         }
     })
+};
+
+JavaBinary.prototype._add_socket_listener = function (socket, index) {
+    var self = this;
+    socket.on("download_event", function (msg) {
+        if(msg.event == "_get_progress"){
+            _hash = msg["hash"];
+            _total = msg["value"][1];
+            _dw = msg["value"][0];
+
+            if(_total !== null && _dw !== null && _total > 0){
+                self.list_vm.versions[index]["btn_status"]["progress"] = _dw / _total * 100;
+            }
+        }else if(msg.event == "_download_finish"){
+
+        }else if(msg.event == "_extract_finish"){
+            // value is true or false
+        }
+    });
 };
