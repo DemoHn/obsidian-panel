@@ -87,8 +87,7 @@ var JavaBinary = function () {
             "versions" : []
             /*status model :{
             *    "status" : WAIT,
-            *    "progress" : 0.0,
-            *    "is_extracting" : false
+            *    "progress" : 0.0
             * }
             * */
         },
@@ -105,7 +104,7 @@ var JavaBinary = function () {
                         self._start_downloading(_major, _minor, function (dw_hash) {
                             self.list_vm.versions[index].dw_hash = dw_hash;
                             if(dw_hash != null){
-                                btn_status._interval_flag = setInterval(function () {
+                                var _flag = setInterval(function () {
                                     var event_json = {
                                         "hash" : dw_hash,
                                         "event" : "_request_progress",
@@ -113,6 +112,8 @@ var JavaBinary = function () {
                                     };
                                     self.socket.emit("download_event", event_json);
                                 },1000);
+                                
+                                btn_status._interval_flag = _flag;
                             }
                         });
 
@@ -131,9 +132,8 @@ var JavaBinary = function () {
             //add button status
             for(var item in data){
                 var _status_model = {
-                    "status":WAIT,
-                    "progress" : 0.0,
-                    "is_extracting" : false,
+                    "status":data[item]["dw"]["status"],
+                    "progress" : data[item]["dw"]["progress"],
                     "_interval_flag" : 0
                 };
 

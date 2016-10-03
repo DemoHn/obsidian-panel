@@ -212,7 +212,7 @@ def add_download_task(uid, priv):
         inst.addDownloadFinishHook(_extract_file)
         inst.addNetworkErrorHook(_network_error)
         dp.start(hash)
-        download_queue[hash]["status"] = _utils.DOWNLOADING
+
         return inst, hash
 
     try:
@@ -230,10 +230,13 @@ def add_download_task(uid, priv):
             # create new task and download
             inst, hash = _add_java_task(link, files_dir)
             _utils.queue_add(hash, link)
+            download_queue[hash]["status"] = _utils.DOWNLOADING
+
             return rtn.success(hash)
         else:
             return rtn.error(404)
     except:
+        logger.error(traceback.format_exc())
         return rtn.error(500)
 
 #@super_admin_page.route("/java_binary/")
@@ -257,5 +260,11 @@ def handle_download_event(msg, uid, priv):
 
         if _t != None:
             inst = _t.dl
-            _total, _dw_size = inst.getProgress()
-            _utils.send_dw_signal("_get_progress", hash, (_total, _dw_size))
+            _dw, _filesize = inst.getProgress()
+
+            # update data on download_queue
+            if _filesize > 0 and \
+                _dw != None and _filesize != None:
+                download_queue[hash]["progress"] = _dw / _filesize
+
+            _utils.send_dw_signal("_get_progress", hash, (_dw, _filesize))
