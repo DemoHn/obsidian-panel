@@ -78,7 +78,9 @@ def logout():
 def main_page(uid, priv):
     try:
         if priv == utils.PRIV_ROOT:
-            return render_template("superadmin/index.html")
+            #return render_template("superadmin/index.html")
+            # TEST
+            return render_template("server_inst/new_inst.html")
         else:
             abort(403)
     except TemplateNotFound:

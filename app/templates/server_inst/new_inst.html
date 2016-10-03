@@ -1,0 +1,103 @@
+{% extends "server_inst/_layout.html" %}
+{% block content %}
+
+    <section class="content-header">
+        <br>
+        <h1>新建 Minecraft 世界</h1>
+        <div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="row">
+            <div class="col-xs-8">
+                <form action="/server_inst/new_inst" method="POST" class="form-horizontal">
+                    <!--<span class="step_sign">1</span>
+                    <span class="step_text">基本设置</span>-->
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <label for="inst_name" class="col-sm-2 control-label">名称 </label>
+                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
+                                <input type="text" class="form-control" id="inst_name"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <label for="inst_max_RAM" class="col-sm-2 control-label">最大内存 </label>
+                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
+                                <input type="text" class="form-control" id="inst_max_RAM"/>
+                            </div>
+
+                            <div class="col-md-1 col-lg-1 col-sm-offset-0">M</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <label for="inst_max_user" class="col-sm-2 control-label">用户上限 </label>
+                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
+                                <input type="text" class="form-control" id="inst_max_user"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <label for="file_select" class="col-sm-2 control-label">服务器核心 </label>
+                            <div class="col-sm-4">
+                                <select name="" id="file_select" class="form-control">
+                                    <option value="bukkit">Bukkit</option>
+                                    <option value="spigot">Spigot</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <label for="file_select" class="col-sm-2 control-label">JAVA版本 </label>
+                            <div class="col-sm-4">
+                                <select name="" id="file_select" class="form-control">
+                                    <option value="bukkit">JAVA 7</option>
+                                    <option value="spigot">JAVA 8</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <label for="inst_listening_port" class="col-sm-2 control-label">侦听端口 </label>
+                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
+                                <input type="text" class="form-control" id="inst_listening_port"/>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <label for="file_select" class="col-sm-2 control-label">正版验证 </label>
+                            <div class="col-sm-4">
+                                <select name="" id="file_select" class="form-control">
+                                    <option value="bukkit">开启</option>
+                                    <option value="spigot">关闭</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <button class="btn btn-primary pull-left" type="submit">创建</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+<!--import jquery upload file js lib -->

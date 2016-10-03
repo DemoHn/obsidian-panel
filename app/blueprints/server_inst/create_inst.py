@@ -17,9 +17,9 @@ from datetime import datetime
 
 rtn = returnModel("string")
 
-@server_inst_page.route("/_create_inst", methods=["GET"])
+@server_inst_page.route("/new_inst", methods=["GET"])
 @check_login
-def create_new_instance(uid, priv):
+def new_Minecraft_instance(uid, priv):
     '''
     create a new MC Server instance.
     So How to create a new instance?
@@ -34,7 +34,6 @@ def create_new_instance(uid, priv):
     :return:
     '''
     try:
-
-        return render_template("server_inst/dashboard.html",title="Dashboard")
+        return render_template("server_inst/new_inst.html",title="新建")
     except TemplateNotFound:
         abort(404)

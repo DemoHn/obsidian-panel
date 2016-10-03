@@ -14,3 +14,4 @@ from . import views
 from . import dashboard
 from . import console
 from . import ftp
+from . import create_inst
