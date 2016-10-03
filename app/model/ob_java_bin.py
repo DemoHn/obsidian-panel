@@ -8,7 +8,7 @@ class JavaBinary(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     # java version (main)
     major_version = db.Column(db.String(100))
-    # minor version. e.g. : '1.8.10_92'. '1.8.10' is major and '_92' is minor
+    # minor version. e.g. : '1.8.10_92'. '1.8.10' is major and '92' is minor
     minor_version = db.Column(db.String(20))
     # java dir
     bin_directory = db.Column(db.Text)

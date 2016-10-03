@@ -65,6 +65,11 @@
                                                 type="button"
                                                 v-if="version.btn_status.status == 5"
                                                 @click="dw_click($index, $event)">下载失败</button>
+
+                                        <button class="btn btn-danger btn-sm"
+                                                type="button"
+                                                v-if="version.btn_status.status == 6"
+                                                @click="dw_click($index, $event)">解压失败</button>
                                     </td>
                                 </tr>
                                 </tbody>

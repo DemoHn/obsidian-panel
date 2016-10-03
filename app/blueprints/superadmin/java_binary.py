@@ -8,14 +8,15 @@ from app.controller.global_config import GlobalConfig
 from app.tools.mc_downloader import DownloaderPool
 
 from app.utils import returnModel
-from app.model import ServerCORE
+from app.model import JavaBinary
 from app.tools.mc_downloader.sourceJAVA import sourceJAVA
 
 from . import super_admin_page, logger
 from .check_login import super_admin_only, ws_super_admin_only
 
 import tarfile
-import json
+import traceback
+from datetime import datetime
 
 # global variables
 # item model:
@@ -36,6 +37,8 @@ class _utils:
     EXTRACTING = 3
     FINISH = 4
     FAIL = 5
+    EXTRACT_FAIL= 6
+
     @staticmethod
     def queue_add(hash, dw_link):
         _model = {
@@ -68,8 +71,54 @@ def render_java_binary_page(uid, priv):
 @super_admin_only
 def get_download_list(uid, priv):
     source = sourceJAVA()
-    list = source.get_download_list()
-    return rtn.success(list)
+    _list = source.get_download_list()
+    '''
+    list model :
+    {
+        "major": **,
+        "minor": **,
+        "link" : **,
+        "dw" : {
+            "progress" : **,
+            "status" : **,
+            "current_hash" : ""
+        }
+    }
+    '''
+    dw_list = []
+    for item in _list:
+
+        _dw = {
+            "progress": 0.0,
+            "status": _utils.WAIT,
+            "current_hash": ""
+        }
+        # get status from cache (to return correct data even if the web page refreshed)
+        for _key in download_queue:
+            q = download_queue.get(_key)
+            if q.get("link") == item.get("link"):
+                _dw["progress"] = q.get("progress")
+                _dw["status"] = q.get("status")
+                _dw["current_hash"] = _key
+
+        # and fetch from database if there are some versions already installed.
+        res = db.session.query(JavaBinary).filter(
+            JavaBinary.major_version == str(item.get("major")) and
+            JavaBinary.minor_version == str(item.get("minor"))
+        ).first()
+        # that means, this java version has record on the database
+        if res != None:
+            _dw["status"] = _utils.FINISH
+
+        _model = {
+            "major": item.get("major"),
+            "minor": item.get("minor"),
+            "link": item.get("link"),
+            "dw" : _dw
+        }
+
+        dw_list.append(_model)
+    return rtn.success(dw_list)
 
 # TODO TEST
 @super_admin_page.route("/java_binary/download", methods=["POST"])
@@ -95,11 +144,11 @@ def add_download_task(uid, priv):
             if download_result == False or filename == None:
                 return None
 
-
             logger.debug("Download Result: %s" % download_result)
             logger.debug("Start Extracting File...")
 
             # send extract_start event
+            download_queue[hash]["status"] = _utils.EXTRACTING
             _utils.send_dw_signal("_extract_start", hash, True)
 
             # open archive
@@ -108,19 +157,40 @@ def add_download_task(uid, priv):
                 archive.extractall(path=bin_dir)
             except:
                 archive.close()
-
+                download_queue[hash]["status"] = _utils.EXTRACT_FAIL
                 # send extract_finish event (when extract failed)
                 _utils.send_dw_signal("_extract_finish", hash, False)
+                return None
 
             logger.debug("extract dir: %s, finish!" % bin_dir)
             archive.close()
+
+            try:
+                # save the version info into the database
+                version_data = JavaBinary(
+                    major_version = major_ver,
+                    minor_version = minor_ver,
+                    bin_directory = bin_dir,
+                    install_time  = datetime.now()
+                )
+                db.session.add(version_data)
+                db.session.commit()
+            except:
+                # writing database error
+                logger.error(traceback.format_exc())
+                download_queue[hash]["status"] = _utils.FAIL
+                _utils.send_dw_signal("_download_finish", hash, False)
+
+            download_queue[hash]["status"] = _utils.FINISH
             _utils.send_dw_signal("_extract_finish", hash, True)
 
         def _send_finish_event(download_result, filename):
             # send finish event
+            download_queue[hash]["status"] = _utils.FINISH
             _utils.send_dw_signal("_download_finish", hash, True)
 
         def _network_error(e):
+            download_queue[hash]["status"] = _utils.FAIL
             _utils.send_dw_signal("_download_finish", hash, False)
 
         dp = DownloaderPool.getInstance()
@@ -142,7 +212,7 @@ def add_download_task(uid, priv):
         inst.addDownloadFinishHook(_extract_file)
         inst.addNetworkErrorHook(_network_error)
         dp.start(hash)
-
+        download_queue[hash]["status"] = _utils.DOWNLOADING
         return inst, hash
 
     try:
@@ -189,4 +259,3 @@ def handle_download_event(msg, uid, priv):
             inst = _t.dl
             _total, _dw_size = inst.getProgress()
             _utils.send_dw_signal("_get_progress", hash, (_total, _dw_size))
-

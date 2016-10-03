@@ -129,7 +129,7 @@ class Downloader(object):
         self.url = url
         self.filesize = 0
         self.support_range = False
-        self.timeout = 5
+        self.timeout = 10
         self.threads = []
 
         self.lock = threading.Lock()
@@ -332,7 +332,7 @@ class Downloader(object):
                 self.dw_type_flag = "single"
                 try:
                     req = Request(url=self.url, headers=self.headers)
-                    resp = urlopen(req, context=self.ssl_ctx)
+                    resp = urlopen(req, context=self.ssl_ctx, timeout=self.timeout)
 
                     if self.filesize < 0:
                         _header = resp.info()

@@ -77,7 +77,9 @@ var JavaBinary = function () {
         DOWNLOADING = 2,
         EXTRACTING = 3,
         FINISH = 4,
-        FAIL = 5;
+        FAIL = 5,
+        EXTRACT_FAIL = 6;
+
     this.socket = io.connect("/dw");
     this.list_vm = new Vue({
         el:"#java_list",
@@ -95,13 +97,15 @@ var JavaBinary = function () {
                 var btn_status = self.list_vm.versions[index].btn_status;
                 
                 switch(btn_status.status){
+                    case FAIL:
                     case WAIT:
                         btn_status.status = DOWNLOADING;
                         var _major = self.list_vm.versions[index].major;
                         var _minor = self.list_vm.versions[index].minor;
                         self._start_downloading(_major, _minor, function (dw_hash) {
+                            self.list_vm.versions[index].dw_hash = dw_hash;
                             if(dw_hash != null){
-                                setInterval(function () {
+                                btn_status._interval_flag = setInterval(function () {
                                     var event_json = {
                                         "hash" : dw_hash,
                                         "event" : "_request_progress",
@@ -129,13 +133,15 @@ var JavaBinary = function () {
                 var _status_model = {
                     "status":WAIT,
                     "progress" : 0.0,
-                    "is_extracting" : false
+                    "is_extracting" : false,
+                    "_interval_flag" : 0
                 };
 
                 self.list_vm.versions.push({
                     "minor" : data[item].minor,
                     "major" : data[item].major,
                     "link"  : data[item].link,
+                    "dw_hash" : "",
                     "btn_status" : _status_model
                 });
             }
@@ -163,7 +169,7 @@ JavaBinary.prototype._start_downloading = function (major, minor, callback) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
-                callback(dt.info);
+                callback(dt.info);  // dt.info -> download hash
             }else{
                 callback();
             }
@@ -173,21 +179,60 @@ JavaBinary.prototype._start_downloading = function (major, minor, callback) {
     })
 };
 
-JavaBinary.prototype._add_socket_listener = function (socket, index) {
+JavaBinary.prototype._add_socket_listener = function (socket) {
     var self = this;
+
+    var WAIT = 1,
+        DOWNLOADING = 2,
+        EXTRACTING = 3,
+        FINISH = 4,
+        FAIL = 5,
+        EXTRACT_FAIL = 6;
+
+    function _find_index_by_hash(_hash){
+        var list = self.list_vm.versions;
+        for(var i=0;i<list.length;i++){
+            if(list[i]["dw_hash"] == _hash){
+                return i;
+            }
+        }
+
+        return null;
+    }
     socket.on("download_event", function (msg) {
         if(msg.event == "_get_progress"){
             _hash = msg["hash"];
             _total = msg["value"][1];
             _dw = msg["value"][0];
 
+            _index = _find_index_by_hash(_hash);
+
             if(_total !== null && _dw !== null && _total > 0){
-                self.list_vm.versions[index]["btn_status"]["progress"] = _dw / _total * 100;
+                self.list_vm.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
             }
         }else if(msg.event == "_download_finish"){
+            _hash = msg["hash"];
+            _result = msg["value"];
 
+            _index = _find_index_by_hash(_hash);
+            clearInterval(self.list_vm.versions[_index]["btn_status"]["_interval_flag"]);
+
+            if(_result == true){
+                self.list_vm.versions[_index]["btn_status"]["status"] = EXTRACTING;
+            }else{
+                self.list_vm.versions[_index]["btn_status"]["status"] = FAIL;
+            }
         }else if(msg.event == "_extract_finish"){
-            // value is true or false
+            _hash = msg["hash"];
+            _result = msg["value"];
+
+            _index = _find_index_by_hash(_hash);
+            clearInterval(self.list_vm.versions[_index]["btn_status"]["_interval_flag"]);
+            if(_result == true){
+                self.list_vm.versions[_index]["btn_status"]["status"] = FINISH; //extract success
+            }else{
+                self.list_vm.versions[_index]["btn_status"]["status"] = EXTRACT_FAIL;
+            }
         }
     });
 };
