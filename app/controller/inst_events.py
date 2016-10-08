@@ -104,7 +104,7 @@ class InstanceEventEmitter(object):
     '''
     def __init__(self, watcher_obj):
         self.add_hook_func = watcher_obj.add_hook
-
+        self.watcher_obj   = watcher_obj
         _names = ("inst_starting", "inst_running",
                   "log_update",
                   "connection_lost", "inst_terminate",
@@ -137,54 +137,52 @@ class InstanceEventEmitter(object):
             return self._inst_uid_cache.get(inst_key)
 
     # event name : inst_event
-    def _send(self, inst_id, event, value, uid):
+    def _send(self, inst_id, event, value):
         _event_model = {
             "event": event,
             "inst_id" : inst_id,
             "value": value
         }
-        self.conn.send_data("download_event", _event_model, uid)
+        uid = self._get_uid_from_inst_id(inst_id)
+        self.conn.send_data("inst_event", _event_model, uid)
 
     # event listeners
     def on_inst_starting(self, inst_id, p):
-        uid = self._get_uid_from_inst_id(inst_id)
-        self._send(inst_id, "status_change", SERVER_STATE.STARTING, uid)
+        self._send(inst_id, "status_change", SERVER_STATE.STARTING)
 
     def on_inst_running(self, inst_id, p):
-        uid = self._get_uid_from_inst_id(inst_id)
-        self._send(inst_id, "status_change", SERVER_STATE.RUNNING, uid)
+        self._send(inst_id, "status_change", SERVER_STATE.RUNNING)
 
     def on_log_update(self, inst_id, p):
         log_str = p
-        uid = self._get_uid_from_inst_id(inst_id)
-
-        self._send(inst_id, "log_update", log_str, uid)
-        #self.conn.send_data("log_update", log_dict, uid)
-        pass
+        if len(log_str) > 0: # prevent sending empty string
+            self._send(inst_id, "log_update", log_str)
 
     def on_connection_lost(self, inst_id, p):
         pass
 
     def on_inst_terminate(self, inst_id, p):
-        print("<inst %s> stopped!" % inst_id)
-        pass
+        self._send(inst_id, "status_change", SERVER_STATE.HALT)
 
     def on_inst_player_login(self, inst_id ,p):
-        print("<inst %s> login" % inst_id)
-        print(p)
-        pass
+        inst_obj = self.watcher_obj.just_get(inst_id)
+        if inst_obj != None:
+            players_num = inst_obj.get("current_player")
+            self._send(inst_id, "player_change", players_num)
 
     def on_inst_player_logout(self, inst_id, p):
-        print("<inst %s> logout" % inst_id)
-        print(p)
-        pass
+        inst_obj = self.watcher_obj.just_get(inst_id)
+        if inst_obj != None:
+            players_num = inst_obj.get("current_player")
+            self._send(inst_id, "player_change", players_num)
+
 
     def on_inst_player_change(self, inst_id, p):
         online, total = p
-        print("<inst %s> online player: %s" % (inst_id, online))
-        pass
+        self._send(inst_id, "player_change", online)
+        #print("<inst %s> online player: %s" % (inst_id, online))
 
     def on_inst_memory_change(self, inst_id, p):
         mem = p
-        print("<inst %s> memory : %s" % (inst_id, mem))
-        pass
+        self._send(inst_id, "memory_change", mem)
+        #print("<inst %s> memory : %s" % (inst_id, mem))

@@ -98,8 +98,8 @@ def get_instance_status(uid, priv):
             _status_model["status"] = SERVER_STATE.HALT
         else:
             _status_model["status"] = active_inst.get_status()
-            _status_model["current_player"] = active_inst.just_get().get("current_player")
-            _status_model["current_RAM"] = active_inst.just_get().get("RAM")
+            _status_model["current_player"] = watcher.just_get(inst_id).get("current_player")
+            _status_model["current_RAM"] = watcher.just_get(inst_id).get("RAM")
         return rtn.success(_status_model)
     except:
         logger.error(traceback.format_exc())

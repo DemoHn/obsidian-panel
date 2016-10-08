@@ -21,10 +21,17 @@
                         <span class="info-box-text">工作状态</span>
                         <span class="info-box-number">${ work_status }</span>
                         <span class="control-btn" id="control_btn">
-                            <button class="btn btn-xs btn-default">
+                            <button class="btn btn-xs btn-default"
+                                    v-if="start_btn"
+                                    :disabled="start_btn_disable"
+                                    @click="start_inst">
+
                                 <i class="ion ion-play"></i>
-                            </button> &nbsp;
-                            <button class="btn btn-xs btn-default">
+                            </button>
+                            <button class="btn btn-xs btn-default"
+                                    v-if="!start_btn"
+                                    :disabled="stop_btn_disable"
+                                    @click="stop_inst">
                                 <i class="ion ion-pause"></i>
                             </button>
                         </span>

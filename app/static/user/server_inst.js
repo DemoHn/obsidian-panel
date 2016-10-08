@@ -28,6 +28,12 @@ var Dashboard = function () {
     this.inst_id = $("#instID").val();
     this.socket = io.connect("/channel_inst");
 
+    this.status_dict = {
+        "0" : "未运行",
+        "1" : "启动中",
+        "2" : "运行中"
+    };
+
     this.dashboard_vm = new Vue({
         el:"#dash_board",
         data:{
@@ -36,28 +42,46 @@ var Dashboard = function () {
             "total_player" : "-" ,
             "current_RAM" : "-", 
             "max_RAM" : "-",
-            "start_btn" : true
+            "start_btn" : true,
+            "start_btn_disable" : true,
+            "stop_btn_disable" : true
         },
         computed:{
 
         },
         methods:{
+            "start_inst" : function (e) {
+                self.start_inst(function (i_id) {/* nothing */ })
+            },
+            "stop_inst" : function (e) {
+                self.stop_inst(function (i_id) {/* nothing */ })
+            }
         }
     });
 
+    this._add_socket_listener(self.socket);
+    //read status at the beginning
     this.fetch_status(function (data) {
         var dvm = self.dashboard_vm;
         if(data != null){
             if(dvm.status != -1)
                 switch(data.status){
                     case 0:
-                        dvm.work_status = "未运行";
+                        dvm.work_status = self.status_dict["0"];
+                        dvm.start_btn = true;
+                        dvm.start_btn_disable = false;
                         break;
                     case 1:
-                        dvm.work_status = "启动中";
+                        dvm.work_status = self.status_dict["1"];
+                        //dvm.work_status = "启动中";
+                        dvm.start_btn = false;
+                        dvm.stop_btn_disable = true;
                         break;
                     case 2:
-                        dvm.work_status = "运行中";
+                        dvm.work_status = self.status_dict["2"];
+                        //dvm.work_status = "运行中";
+                        dvm.start_btn = false;
+                        dvm.stop_btn_disable = false;
                         break;
                     default:
                         break;
@@ -93,10 +117,64 @@ Dashboard.prototype.fetch_status = function (callback) {
     })
 };
 
+Dashboard.prototype.start_inst = function (callback) {
+    var self = this;
+    $.post("/server_inst/dashboard/start_inst",{"inst_id": self.inst_id}, function (data) {
+        try{
+            var dt = JSON.parse(data);
+            if(dt.status == "success"){
+                callback(dt.info);
+            }
+        }catch(e){
+            callback(null);
+        }
+    })
+};
+
+Dashboard.prototype.stop_inst = function (callback) {
+    var self = this;
+    $.post("/server_inst/dashboard/stop_inst",{"inst_id": self.inst_id}, function (data) {
+        try{
+            var dt = JSON.parse(data);
+            if(dt.status == "success"){
+                callback(dt.info);
+            }
+        }catch(e){
+            callback(null);
+        }
+    })
+};
 
 Dashboard.prototype._add_socket_listener = function (socket) {
+    var self = this;
+    var dvm  = self.dashboard_vm;
+    socket.on("connect", function () {
+        // enable the button
+        self.dashboard_vm.start_btn_disable = false;
+    });
+
     socket.on("inst_event", function (msg) {
-        console.log(msg);
+        if(msg.event == "status_change"){
+
+            if(msg.value == 1){ // starting
+                dvm.work_status = self.status_dict["1"];
+                dvm.start_btn = false;
+                dvm.stop_btn_disable = true;
+
+            }else if(msg.value == 2){ //running
+                dvm.work_status = self.status_dict["2"];
+                dvm.start_btn = false;
+                dvm.stop_btn_disable = false;
+                dvm.current_player = 0;
+            }else{ // msg.value == 0, halt
+                dvm.work_status = self.status_dict["0"];
+
+            }
+        }else if(msg.event == "player_change"){
+            dvm.current_player = msg.value;
+        }else if(msg.event == "memory_change") {
+            dvm.current_RAM = msg.value.toFixed(1);
+        }
     })
 };
 
@@ -115,9 +193,9 @@ var Console = function () {
         // on connect, server will emit an `ack` event
         console.log("id: "+socket.id);
 
-        socket.on("log_update",function (msg) {
-            console.log(this);
-            _log = msg["log"];
+        socket.on("inst_event",function (msg) {
+            if(msg.event = "log_update")
+            _log = msg.value;
             editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
         });
     });

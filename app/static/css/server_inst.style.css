@@ -4,3 +4,7 @@ span.control-btn{
     display: inline-block;
     line-height: 2.4em;
 }
+
+[v-cloak]{
+    display: none;
+}

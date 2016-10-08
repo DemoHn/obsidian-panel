@@ -109,8 +109,11 @@ class Watchdog(object):
 
         # scheduler
         self.scheduler = BackgroundScheduler()
-        self.scheduler.add_job(self._schedule_read_memory,'interval', seconds = 5)
-        self.scheduler.add_job(self._schedule_check_online_user,'interval', seconds=60)
+
+        self._read_memory_job = \
+            self.scheduler.add_job(self._schedule_read_memory,'interval', seconds = 6)
+        self._check_online_user_job = \
+            self.scheduler.add_job(self._schedule_check_online_user,'interval', seconds=73)
 
         # socket
         self.socket = MCSocket()
@@ -332,17 +335,21 @@ class Watchdog(object):
 
                         if fd == _inst._proc.stdout.fileno():
                             inst_id = int(inst_key[5:])
-                            # run hook
-                            self._run_hook("inst_terminate", inst_id, (None))
-
                             # remove this fd from event loop
                             # or there will be endless trigger for POLL_HUP
                             _proc_stdout = _inst._proc.stdout
                             event_loop.remove(_proc_stdout)
-
+                            # remove
                             # reset instance object dict
                             inst_obj["inst"] = None
                             inst_obj["current_player"] = 0
+                            # remove socket background
+                            if self._read_memory_job != None:
+                                self._read_memory_job.remove()
+
+                            # finally, run hook
+                            self._run_hook("inst_terminate", inst_id, (None))
+
 
     def add_hook(self, hook_name, fn):
         '''
