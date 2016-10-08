@@ -69,11 +69,11 @@ def submit_new_inst(uid, priv):
             i.set_server_core(core_file_id)
             i.set_max_user(max_user)
 
-            i.create_inst()
+            inst_id = i.create_inst()
+            return redirect("/server_inst/dashboard/%s" % inst_id)
         except:
             traceback.print_exc()
-
-        return render_template("server_inst/dashboard.html")
+            abort(502)
     except Exception as e:
         logger.error(traceback.format_exc())
         abort(500)
