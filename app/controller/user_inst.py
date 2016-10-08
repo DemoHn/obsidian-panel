@@ -255,12 +255,10 @@ class InstanceController(object):
         # hook functions
         def _send_log_func(log_data):
             logger.debug("inst[%s] log %s" % (inst_id, log_data))
-            #_send_log_sig.send((inst_id, log_data))
 
-            socketio.emit("recv",log_data)
         def _inst_starting_func():
             logger.debug("inst[%s] START" % inst_id)
-            #_inst_starting_sig.send(inst_id)
+
 
         _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE)
         item = _q.filter(ServerInstance.inst_id == inst_id).first()
@@ -281,18 +279,6 @@ class InstanceController(object):
             watcher.add_instance(inst_id, _port, mc_w_config)
 
             watcher.start_instance(inst_id)
-            #_running_inst = watcher.get_instance(inst_id)
-            #_running_inst.add_hook("data_received", _send_log_func)
-            #_running_inst.add_hook("inst_starting", _inst_starting_func)
-        #mc_pool = MCProcessPool.getInstance()
-        # retrieve instance info from database
-
-        #t = MCServerInstanceThread(port= _port, config = mc_w_config)
-
-        #mc_pool.add(_port, t)
-        #t.start()
-
-        # add hooks
 
     @staticmethod
     def stop(inst_id):

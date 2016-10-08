@@ -60,28 +60,50 @@ def render_dashboard_page(uid, priv, inst_id):
 
 @server_inst_page.route("/dashboard/start_inst", methods=["POST"])
 @check_login
-def start_inst(uid, priv, inst_id):
-    pass
+def start_inst(uid, priv):
+    F = request.form
+    inst_id = F.get("inst_id")
+
+    # check if inst is allowed to control
+    _inst = db.session.query(ServerInstance) \
+        .filter(ServerInstance.inst_id == inst_id).first()
+
+    if _inst == None:
+        return rtn.error(500)
+    else:
+        owner = _inst.owner_id
+        if owner != uid:
+            return rtn.error(403)
+    try:
+
+        # then start the instance!
+        InstanceController.start(inst_id)
+        return rtn.success(inst_id)
+    except:
+        logger.error(traceback.format_exc())
+        return rtn.error(500)
 
 @server_inst_page.route("/dashboard/stop_inst", methods=["POST"])
 @check_login
-def stop_inst(uid, priv, inst_id):
-    pass
+def stop_inst(uid, priv):
+    F = request.form
+    inst_id = F.get("inst_id")
 
-# TODO
-@server_inst_page.route("/dashboard/restart_inst", methods=["POST"])
-def restart_inst(uid, priv, inst_id):
-    pass
+    # check if inst is allowed to control
+    _inst = db.session.query(ServerInstance) \
+        .filter(ServerInstance.inst_id == inst_id).first()
 
-'''
-@server_inst_page.route("/boom", methods=["GET"])
-@ajax_check_login
-def boom(uid, priv):
+    if _inst == None:
+        return rtn.error(500)
+    else:
+        owner = _inst.owner_id
+        if owner != uid:
+            return rtn.error(403)
 
     try:
-        InstanceController.start(1)
-        return rtn.success(200)
-    except Exception:
-        traceback.print_exc()
+        # then start the instance!
+        InstanceController.stop(inst_id)
+        return rtn.success(inst_id)
+    except:
+        logger.error(traceback.format_exc())
         return rtn.error(500)
-'''
