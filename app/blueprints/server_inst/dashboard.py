@@ -18,14 +18,15 @@ from datetime import datetime
 
 rtn = returnModel("string")
 
-@server_inst_page.route("/dashboard", methods=["GET"])
+@server_inst_page.route("/dashboard/<inst_id>", methods=["GET"])
 @check_login
-def render_dashboard_page(uid, priv):
+def render_dashboard_page(uid, priv, inst_id):
     try:
         return render_template("server_inst/dashboard.html",title="Dashboard")
     except TemplateNotFound:
         abort(404)
 
+'''
 @server_inst_page.route("/boom", methods=["GET"])
 @ajax_check_login
 def boom(uid, priv):
@@ -36,3 +37,4 @@ def boom(uid, priv):
     except Exception:
         traceback.print_exc()
         return rtn.error(500)
+'''

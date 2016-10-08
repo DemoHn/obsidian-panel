@@ -18,7 +18,7 @@
                         <div class="col-xs-7">
                             <label for="inst_name" class="col-sm-2 control-label">名称 </label>
                             <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" id="inst_name"/>
+                                <input type="text" class="form-control" name="inst_name"/>
                             </div>
                         </div>
                     </div>
@@ -27,7 +27,7 @@
                         <div class="col-xs-7">
                             <label for="inst_max_RAM" class="col-sm-2 control-label">最大内存 </label>
                             <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" id="inst_max_RAM"/>
+                                <input type="text" class="form-control" name="max_RAM"/>
                             </div>
 
                             <div class="col-md-1 col-lg-1 col-sm-offset-0">M</div>
@@ -38,7 +38,7 @@
                         <div class="col-xs-7">
                             <label for="inst_max_user" class="col-sm-2 control-label">用户上限 </label>
                             <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" id="inst_max_user"/>
+                                <input type="text" class="form-control" name="max_user"/>
                             </div>
                         </div>
                     </div>
@@ -48,9 +48,9 @@
                         <div class="col-xs-7">
                             <label for="file_select" class="col-sm-2 control-label">服务器核心 </label>
                             <div class="col-sm-4">
-                                <select name="" id="file_select" class="form-control">
-                                    <option value="bukkit">Bukkit</option>
-                                    <option value="spigot">Spigot</option>
+                                <select name="core_file_id" id="file_select" class="form-control">
+                                    <option value="0">Bukkit</option>
+                                    <option value="1">Spigot</option>
                                 </select>
                             </div>
                         </div>
@@ -60,9 +60,9 @@
                         <div class="col-xs-7">
                             <label for="file_select" class="col-sm-2 control-label">JAVA版本 </label>
                             <div class="col-sm-4">
-                                <select name="" id="file_select" class="form-control">
-                                    <option value="bukkit">JAVA 7</option>
-                                    <option value="spigot">JAVA 8</option>
+                                <select name="java_bin_id" id="file_select" class="form-control">
+                                    <option value="0">JAVA 7</option>
+                                    <option value="1">JAVA 8</option>
                                 </select>
                             </div>
                         </div>
@@ -72,7 +72,7 @@
                         <div class="col-xs-7">
                             <label for="inst_listening_port" class="col-sm-2 control-label">侦听端口 </label>
                             <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" id="inst_listening_port"/>
+                                <input type="text" class="form-control" name="listening_port"/>
                             </div>
                         </div>
                     </div>
