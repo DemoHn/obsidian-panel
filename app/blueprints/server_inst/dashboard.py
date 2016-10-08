@@ -23,7 +23,8 @@ def render_inst_selection_page(uid, priv):
     try:
         user_list = []
 
-        user_insts = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).all()
+        user_insts = db.session.query(ServerInstance)\
+            .filter(ServerInstance.owner_id == uid).all()
 
         if user_insts != None:
             for item in user_insts:
@@ -47,7 +48,8 @@ def render_inst_selection_page(uid, priv):
 @check_login
 def render_dashboard_page(uid, priv, inst_id):
     try:
-        inst_data = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+        inst_data = db.session.query(ServerInstance)\
+            .filter(ServerInstance.inst_id == inst_id).first()
 
         if inst_data == None:
             abort(500)
@@ -55,6 +57,21 @@ def render_dashboard_page(uid, priv, inst_id):
             return render_template("server_inst/dashboard.html",title="Dashboard")
     except TemplateNotFound:
         abort(404)
+
+@server_inst_page.route("/dashboard/start_inst", methods=["POST"])
+@check_login
+def start_inst(uid, priv, inst_id):
+    pass
+
+@server_inst_page.route("/dashboard/stop_inst", methods=["POST"])
+@check_login
+def stop_inst(uid, priv, inst_id):
+    pass
+
+# TODO
+@server_inst_page.route("/dashboard/restart_inst", methods=["POST"])
+def restart_inst(uid, priv, inst_id):
+    pass
 
 '''
 @server_inst_page.route("/boom", methods=["GET"])

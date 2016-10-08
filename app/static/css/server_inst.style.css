@@ -1,1 +1,6 @@
 /*Author: Nigshoxiz 2016.9.19*/
+
+span.control-btn{
+    display: inline-block;
+    line-height: 2.4em;
+}
