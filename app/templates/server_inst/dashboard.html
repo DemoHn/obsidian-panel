@@ -10,21 +10,22 @@
         </div>
     </section>
 
-    <section class="content">
+    <input type="hidden" name="inst_id" value={{ inst_id }} id="instID">
+    <section class="content" id="dash_board">
         <div class="col-xs-3">
             <div>
                 <div class="info-box"><span class="info-box-icon bg-aqua">
                     <i class="ion ion-ios-gear-outline"></i>
                 </span>
-                    <div class="info-box-content">
+                    <div class="info-box-content" id="work_status">
                         <span class="info-box-text">工作状态</span>
-                        <span class="info-box-number">WORK</span>
-                        <span class="control-btn">
+                        <span class="info-box-number">${ work_status }</span>
+                        <span class="control-btn" id="control_btn">
                             <button class="btn btn-xs btn-default">
                                 <i class="ion ion-play"></i>
                             </button> &nbsp;
                             <button class="btn btn-xs btn-default">
-                                <i class="ion ion-stop"></i>
+                                <i class="ion ion-pause"></i>
                             </button>
                         </span>
                     </div>
@@ -34,9 +35,9 @@
                 <div class="info-box"><span class="info-box-icon bg-green">
                     <i class="ion ion-ios-people-outline"></i>
                 </span>
-                    <div class="info-box-content">
+                    <div class="info-box-content" id="online_ctrl">
                         <span class="info-box-text">在线用户</span>
-                        <span class="info-box-number"> 0 / 40</span>
+                        <span class="info-box-number"> ${ current_player } / ${ total_player }</span>
                     </div>
                 </div>
             </div>
@@ -44,9 +45,9 @@
                 <div class="info-box"><span class="info-box-icon bg-yellow">
                     <i class="ion ion-ios-list-outline"></i>
                 </span>
-                    <div class="info-box-content">
+                    <div class="info-box-content" id="memory_ctrl">
                         <span class="info-box-text">内存消耗</span>
-                        <span class="info-box-number"> 256 M / 1024 M</span>
+                        <span class="info-box-number"> ${current_RAM} M / ${max_RAM} M</span>
                     </div>
                 </div>
             </div>

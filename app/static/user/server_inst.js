@@ -4,7 +4,7 @@ Vue.config.delimiters = ['${','}'];
 $(document).ready(function(){
     var pathname = location.pathname;
     var path_arr = pathname.split("/");
-    var path_item = path_arr[path_arr.length - 1];
+    var path_item = path_arr[2];
 
     var _map = {
         'dashboard' : Dashboard,
@@ -22,39 +22,85 @@ var Dashboard = function () {
     var self = this;
     
     this._file_data = null;
-    this.vm = new Vue({
-        el:"#ttt",
+    // get instID rendered by template
+    // of course if you fetch it from URL,
+    // that's also fine
+    this.inst_id = $("#instID").val();
+    this.socket = io.connect("/channel_inst");
+
+    this.dashboard_vm = new Vue({
+        el:"#dash_board",
         data:{
-            "hello":"Hello"
+            "work_status" : "-",
+            "current_player" : "-",
+            "total_player" : "-" ,
+            "current_RAM" : "-", 
+            "max_RAM" : "-",
+            "start_btn" : true
         },
         computed:{
 
         },
         methods:{
-            "cl":function () {
-                $.get("/server_inst/boom",function (e) {
-                    console.log(e)
-                })
-            }
         }
     });
-    
-  //  this.__init__()
-};
 
-Dashboard.prototype.__init__ = function () {
-    var self = this;
-    $("#file_select").fileupload({
-        url : "/super_admin/upload_core_file",
-        autoUpload: false,
-        dataType : 'json'
-    }).on('fileuploadadd', function (e,data) {
-        self._file_data = data;
+    this.fetch_status(function (data) {
+        var dvm = self.dashboard_vm;
+        if(data != null){
+            if(dvm.status != -1)
+                switch(data.status){
+                    case 0:
+                        dvm.work_status = "未运行";
+                        break;
+                    case 1:
+                        dvm.work_status = "启动中";
+                        break;
+                    case 2:
+                        dvm.work_status = "运行中";
+                        break;
+                    default:
+                        break;
+                }
 
-        self.upload_vm.file_name = data.files[0]['name'];
+
+            if(data.current_player != -1)
+                dvm.current_player = data.current_player;
+
+            if(data.max_player != -1)
+                dvm.total_player = data.max_player;
+
+            if(data.max_RAM != -1)
+                dvm.max_RAM = data.max_RAM;
+
+            if(data.current_RAM != -1)
+                dvm.current_RAM = data.current_RAM;
+        }
     });
 };
 
+Dashboard.prototype.fetch_status = function (callback) {
+    var self = this;
+    $.post("/server_inst/dashboard/get_status",{"inst_id": self.inst_id}, function (data) {
+        try{
+            var dt = JSON.parse(data);
+            if(dt.status == "success"){
+                callback(dt.info);
+            }
+        }catch(e){
+            callback(null);
+        }
+    })
+};
+
+
+Dashboard.prototype._add_socket_listener = function (socket) {
+    socket.on("inst_event", function (msg) {
+        console.log(msg);
+    })
+};
+
+/* Console */
 var Console = function () {
     var self = this;
     // init

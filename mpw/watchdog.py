@@ -33,7 +33,8 @@ class Watchdog(object):
             "port" : MC listening port,
             "inst" : MC inst obj,
             "log" : MC running log,
-            "current_player" : 0
+            "current_player" : 0,
+            "RAM" : 0
         }
         '''
         self.proc_pool = {}
@@ -136,6 +137,7 @@ class Watchdog(object):
             finally:
                 if mem != None and inst != None:
                     if inst.get_status() == SERVER_STATE.RUNNING:
+                        inst_dict["RAM"] = mem
                         self._run_hook("inst_memory_change", inst_id, (mem))
 
     def _schedule_check_online_user(self):
@@ -379,6 +381,7 @@ class Watchdog(object):
             "port" : _port, # READ_ONLY
             "log" : "",
             "current_player" : 0,
+            "RAM" : 0,
             "inst": None,  # MCServerInstance(_port),
         }
 
@@ -446,6 +449,13 @@ class Watchdog(object):
             return None
         else:
             return self.proc_pool.get(_inst_key).get("inst")
+
+    def just_get(self, inst_id):
+        _inst_key = "inst_" + str(inst_id)
+        if self.proc_pool.get(_inst_key) == None:
+            return None
+        else:
+            return self.proc_pool.get(_inst_key)
 
     def send_command(self, inst_id, command):
         '''

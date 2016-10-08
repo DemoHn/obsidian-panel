@@ -1,11 +1,13 @@
 from app import socketio, db
 from app.model import Users, UserToken, ServerInstance
 
+from mpw import SERVER_STATE
+
 from flask_socketio import emit, send, disconnect, join_room, leave_room, rooms
 from flask import request, session
 
 import logging
-import time
+
 logger = logging.getLogger("ob_panel")
 
 class WSConnections(object):
@@ -42,7 +44,6 @@ class WSConnections(object):
         @socketio.on("connect", namespace="/channel_inst")
         def on_connect():
             sid = request.sid
-            print(sid)
             priv, uid = self._check_user(request)
             # socket is invalid
             if priv == None:
@@ -135,21 +136,30 @@ class InstanceEventEmitter(object):
 
             return self._inst_uid_cache.get(inst_key)
 
+    # event name : inst_event
+    def _send(self, inst_id, event, value, uid):
+        _event_model = {
+            "event": event,
+            "inst_id" : inst_id,
+            "value": value
+        }
+        self.conn.send_data("download_event", _event_model, uid)
+
+    # event listeners
     def on_inst_starting(self, inst_id, p):
-        print("<inst %s> start initialize" % inst_id)
-        pass
+        uid = self._get_uid_from_inst_id(inst_id)
+        self._send(inst_id, "status_change", SERVER_STATE.STARTING, uid)
 
     def on_inst_running(self, inst_id, p):
-        print("<inst %s> start running. Time %s" % (inst_id, p))
-        pass
+        uid = self._get_uid_from_inst_id(inst_id)
+        self._send(inst_id, "status_change", SERVER_STATE.RUNNING, uid)
 
     def on_log_update(self, inst_id, p):
         log_str = p
         uid = self._get_uid_from_inst_id(inst_id)
-        log_dict = {
-            "log": log_str
-        }
-        self.conn.send_data("log_update", log_dict, uid)
+
+        self._send(inst_id, "log_update", log_str, uid)
+        #self.conn.send_data("log_update", log_dict, uid)
         pass
 
     def on_connection_lost(self, inst_id, p):

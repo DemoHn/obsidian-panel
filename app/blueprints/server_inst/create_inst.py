@@ -28,7 +28,7 @@ def new_Minecraft_instance(uid, priv):
     1. Select the Server Core File (or upload it by user?)
     2. Select Java Version
     3. Set server.properties
-    4. Upload Mods & Plugins (If so)
+    4. Upload Mods & Plugins (If necessary)
     5. Go For It!
 
     :return:

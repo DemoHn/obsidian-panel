@@ -3,13 +3,15 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect
 from jinja2 import TemplateNotFound
 
-from app import db, socketio
+from app import db, socketio, watcher
 from app.controller.user_inst import InstanceController
 from app.utils import returnModel
-from app.model import ServerCORE, ServerInstance
+
+from app.model import ServerInstance
+from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 from . import server_inst_page, logger
-from app.blueprints.superadmin.check_login import check_login, ajax_check_login
+from mpw import SERVER_STATE
 
 import traceback
 import os, json
@@ -54,9 +56,55 @@ def render_dashboard_page(uid, priv, inst_id):
         if inst_data == None:
             abort(500)
         else:
-            return render_template("server_inst/dashboard.html",title="Dashboard")
+            return render_template("server_inst/dashboard.html",
+                                   title="Dashboard",
+                                   inst_id = inst_id)
     except TemplateNotFound:
         abort(404)
+
+# get instance status
+@server_inst_page.route("/dashboard/get_status", methods=["POST"])
+@check_login
+def get_instance_status(uid, priv):
+    F = request.form
+    inst_id = F.get("inst_id")
+
+    # check if inst is allowed to control
+    _inst = db.session.query(ServerInstance) \
+        .filter(ServerInstance.inst_id == inst_id).first()
+
+    if _inst == None:
+        return rtn.error(500)
+    else:
+        owner = _inst.owner_id
+        if owner != uid:
+            return rtn.error(403)
+    try:
+        # get status
+        _status_model = {
+            "status" : -1,
+            "max_player" : _inst.max_user,
+            "current_player" : -1,
+            "current_RAM" : -1,
+            "max_RAM" : _inst.max_RAM
+        }
+
+        # search proc_pool to get some information
+        active_inst = watcher.get_instance(inst_id)
+
+        # if active_inst is None, that means there's no active process
+        # running in the server, thus status must be 'HALT'
+        if active_inst == None:
+            _status_model["status"] = SERVER_STATE.HALT
+        else:
+            _status_model["status"] = active_inst.get_status()
+            _status_model["current_player"] = active_inst.just_get().get("current_player")
+            _status_model["current_RAM"] = active_inst.just_get().get("RAM")
+        return rtn.success(_status_model)
+    except:
+        logger.error(traceback.format_exc())
+        return rtn.error(500)
+
 
 @server_inst_page.route("/dashboard/start_inst", methods=["POST"])
 @check_login
@@ -82,6 +130,7 @@ def start_inst(uid, priv):
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
+
 
 @server_inst_page.route("/dashboard/stop_inst", methods=["POST"])
 @check_login
