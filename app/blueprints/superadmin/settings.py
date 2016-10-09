@@ -26,6 +26,7 @@ def render_settings_page(uid, priv):
     except TemplateNotFound:
         abort(404)
 
+# set password
 @super_admin_page.route("/settings/passwd", methods=["POST"])
 @ajax_super_admin_only
 def set_password(uid, priv):

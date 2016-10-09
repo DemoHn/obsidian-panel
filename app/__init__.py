@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
-from blinker import Namespace
 
 app = Flask(__name__)
 
@@ -20,9 +19,6 @@ import eventlet
 eventlet.monkey_patch()
 # init socketio
 socketio = SocketIO(app, message_queue='redis://')
-
-# init signals
-signals = Namespace()
 
 # run process watcher
 # in addtion, MPW is 'Minecraft Process Watcher'
