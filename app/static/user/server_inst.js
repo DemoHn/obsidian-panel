@@ -98,7 +98,7 @@ var Dashboard = function () {
                 dvm.max_RAM = data.max_RAM;
 
             if(data.current_RAM != -1)
-                dvm.current_RAM = data.current_RAM;
+                dvm.current_RAM = data.current_RAM.toFixed(1);
         }
     });
 };
@@ -168,7 +168,10 @@ Dashboard.prototype._add_socket_listener = function (socket) {
                 dvm.current_player = 0;
             }else{ // msg.value == 0, halt
                 dvm.work_status = self.status_dict["0"];
-
+                dvm.start_btn = true;
+                dvm.start_btn_disable = false;
+                dvm.current_player = "-";
+                dvm.current_RAM = "-";
             }
         }else if(msg.event == "player_change"){
             dvm.current_player = msg.value;
@@ -190,8 +193,7 @@ var Console = function () {
     
     var socket = io.connect('/channel_inst');
     socket.on("connect",function () {
-        // on connect, server will emit an `ack` event
-        console.log("id: "+socket.id);
+        // on connect, server will emit an `ack` even
 
         socket.on("inst_event",function (msg) {
             if(msg.event = "log_update")

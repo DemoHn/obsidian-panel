@@ -1,5 +1,7 @@
 from . import SERVER_STATE, logger, event_loop
+
 from .parser import ServerPropertiesParser
+import signal
 
 import traceback
 import subprocess
@@ -13,13 +15,14 @@ POLL_ERR = 0x08
 POLL_HUP = 0x10
 POLL_NVAL = 0x20
 
-class MCServerInstance():
-    def __init__(self, port, loop=None):
 
-        if loop == None:
-            self.loop = event_loop
+class MCServerInstance():
+    def __init__(self, port, watcher=None):
+        if watcher == None:
+            from .watchdog import Watchdog
+            self.watcher = Watchdog.getWDInstance()
         else:
-            self.loop = loop
+            self.watcher = watcher
 
         self.port = port
         # init pid
@@ -104,7 +107,8 @@ class MCServerInstance():
                                       stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT)
-        self.loop.add(self._proc.stdout, POLL_IN | POLL_HUP)
+        # self.loop.add(self._proc.stdout, POLL_IN | POLL_HUP)
+        self.watcher.add_f(self._proc.stdout, POLL_IN | POLL_HUP)
         self._pid = self._proc.pid
 
         logger.debug("PID = %s" % self._pid)
@@ -118,8 +122,8 @@ class MCServerInstance():
     def stop_process(self):
         if self._pid > 0:
             logger.info("kill process PID %s" % self._pid)
-
             self.send_command("stop")
+            #os.kill(self._pid, signal.SIGINT)
         else:
             logger.error("Kill Process Falied! PID value is None!")
 

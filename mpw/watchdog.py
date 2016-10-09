@@ -1,6 +1,7 @@
 __author__ = "Nigshoxiz"
 
-from . import event_loop, SERVER_STATE
+from . import SERVER_STATE
+from .event_loop import EventLoop
 from .instance import MCServerInstance
 from .mc_config import MCWrapperConfig
 from .mc_socket import MCSocket
@@ -37,6 +38,7 @@ class Watchdog(object):
             "RAM" : 0
         }
         '''
+        self.event_loop = EventLoop.getInstance()
         self.proc_pool = {}
         # hook functions
         # parameters: (<inst_id>, (<param1>, ...))
@@ -107,13 +109,11 @@ class Watchdog(object):
         # stores UUID
         self.__UUID_dict = {}
 
+        # emergency stop handler
+        self.__alert_counter = {}
+
         # scheduler
         self.scheduler = BackgroundScheduler()
-
-        self._read_memory_job = \
-            self.scheduler.add_job(self._schedule_read_memory,'interval', seconds = 6)
-        self._check_online_user_job = \
-            self.scheduler.add_job(self._schedule_check_online_user,'interval', seconds=73)
 
         # socket
         self.socket = MCSocket()
@@ -156,7 +156,7 @@ class Watchdog(object):
                     port = int(inst.port)
                     self.socket = MCSocket()
                     self.socket.connect(port)
-                    event_loop.add(self.socket.sock, POLL_IN | POLL_HUP)
+                    self.add_f(self.socket.sock, POLL_IN | POLL_HUP)
                     # Minecraft PING command
                     self.socket.send_data(b'\x00\x00', "127.0.0.1", port, b'\x01')
                     self.socket.send_data(b'\x00')
@@ -291,7 +291,7 @@ class Watchdog(object):
                     try:
                         chunk = self.socket.sock.recv(4096)
                     finally:
-                        event_loop.remove(sock)
+                        self.remove_f(sock)
                         self.socket.sock.close()
 
                     bin_data = chunk
@@ -317,6 +317,15 @@ class Watchdog(object):
                         if fd == _inst._proc.stdout.fileno():
                             line = _inst._proc.stdout.readline()
                             log_str = line.decode('utf-8')
+
+                            # alert handler
+                            if len(log_str) == 0:
+                                self.__alert_counter[fd] += 1
+
+                            if self.__alert_counter[fd] >= 30:
+                                # and we suppose that is the signal of termination
+                                self._on_pollhup_stdout(sock, fd)
+
                             # append log
                             inst_obj["log"] += log_str
                             inst_id = int(inst_key[5:])
@@ -326,30 +335,36 @@ class Watchdog(object):
             # when connection terminate, this branch will start
             elif event == POLL_HUP:
                 if sock == self.socket.sock:
-                    event_loop.remove(sock)
+                    self.remove_f(sock)
                 else:
-                    # pipe event
-                    for inst_key in self.proc_pool:
-                        inst_obj = self.proc_pool.get(inst_key)
-                        _inst = inst_obj["inst"]
+                    self._on_pollhup_stdout(sock, fd)
 
-                        if fd == _inst._proc.stdout.fileno():
-                            inst_id = int(inst_key[5:])
-                            # remove this fd from event loop
-                            # or there will be endless trigger for POLL_HUP
-                            _proc_stdout = _inst._proc.stdout
-                            event_loop.remove(_proc_stdout)
-                            # remove
-                            # reset instance object dict
-                            inst_obj["inst"] = None
-                            inst_obj["current_player"] = 0
-                            # remove socket background
-                            if self._read_memory_job != None:
-                                self._read_memory_job.remove()
 
-                            # finally, run hook
-                            self._run_hook("inst_terminate", inst_id, (None))
+    def _on_pollhup_stdout(self, sock, fd):
+        # pipe event
+        for inst_key in self.proc_pool:
+            inst_obj = self.proc_pool.get(inst_key)
+            _inst = inst_obj["inst"]
 
+            if fd == _inst._proc.stdout.fileno():
+                inst_id = int(inst_key[5:])
+                # remove this fd from event loop
+                # or there will be endless trigger for POLL_HUP
+                _proc_stdout = _inst._proc.stdout
+                self.remove_f(_proc_stdout)
+                # remove
+                # reset instance object dict
+                inst_obj["inst"] = None
+                inst_obj["current_player"] = 0
+                # remove socket background
+                if self._read_memory_job != None:
+                    self._read_memory_job.remove()
+
+                if self._check_online_user_job != None:
+                    self._check_online_user_job.remove()
+
+                # finally, run hook
+                self._run_hook("inst_terminate", inst_id, (None))
 
     def add_hook(self, hook_name, fn):
         '''
@@ -401,6 +416,18 @@ class Watchdog(object):
             self.proc_pool[_inst_key]["inst"] = MCServerInstance(_port)
         return True
 
+    def add_f(self, f, mode):
+        self.event_loop.add(f, mode)
+        self.__alert_counter[f.fileno()] = 0
+
+    def remove_f(self, f, ):
+        self.__alert_counter[f.fileno()] = 0
+        self.event_loop.remove(f)
+
+        if self.__alert_counter.get(f.fileno()) != None:
+            del self.__alert_counter[f.fileno()]
+
+
     def add_instance(self, inst_id, port, config):
         '''
         just an alias of method `register_instance`
@@ -437,6 +464,12 @@ class Watchdog(object):
                 if pid != None:
                     self._run_hook("inst_starting", inst_id, (None))
 
+                    # and add bg job
+                    self._read_memory_job = \
+                        self.scheduler.add_job(self._schedule_read_memory, 'interval', seconds=6)
+                    self._check_online_user_job = \
+                        self.scheduler.add_job(self._schedule_check_online_user, 'interval', seconds=73)
+
     def stop_instance(self, inst_id):
         _inst_key = "inst_" + str(inst_id)
         _inst_profile = self.proc_pool.get(_inst_key)
@@ -449,6 +482,7 @@ class Watchdog(object):
                     or _inst._status == SERVER_STATE.STARTING:
                 # TODO
                 _inst.stop_process()
+
 
     def get_instance(self, inst_id):
         _inst_key = "inst_" + str(inst_id)
@@ -488,7 +522,7 @@ class Watchdog(object):
 
     def launch(self, hook_class = None):
         def _launch_loop():
-            event_loop.run()
+            self.event_loop.run()
 
         # add hook
         if hook_class != None:
@@ -497,8 +531,8 @@ class Watchdog(object):
                 hook_class(self)
 
         # before start
-        event_loop.add_handler(self._event_handler)
-        event_loop.stopping = False
+        self.event_loop.add_handler(self._event_handler)
+        self.event_loop.stopping = False
         t = threading.Thread(target=_launch_loop)
         t.daemon = True
         t.start()
@@ -509,6 +543,6 @@ class Watchdog(object):
 
     def terminate(self):
         # set stopping to True -> terminate while loop
-        event_loop.stopping = True
+        self.event_loop.stopping = True
         self.scheduler.shutdown()
         logging.info("stop Watchdog thread.")

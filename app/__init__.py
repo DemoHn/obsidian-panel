@@ -26,7 +26,7 @@ signals = Namespace()
 
 # run process watcher
 # in addtion, MPW is 'Minecraft Process Watcher'
-from mpw import Watchdog
+from mpw.watchdog import Watchdog
 watcher = Watchdog.getWDInstance()
 
 #from ftm import FTPManager
