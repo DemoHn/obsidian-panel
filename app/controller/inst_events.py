@@ -1,5 +1,6 @@
 from app import socketio, db
 from app.model import Users, UserToken, ServerInstance
+from app.controller.global_config import GlobalConfig
 
 from mpw import SERVER_STATE
 
@@ -110,18 +111,22 @@ class InstanceEventEmitter(object):
                   "connection_lost", "inst_terminate",
                   "inst_player_login", "inst_player_logout",
                   "inst_player_change","inst_memory_change")
-        # add hook function
-        for item in _names:
-            _method = getattr(self, "on_%s" % item)
-            self.add_hook_func(item, _method)
 
-        self.conn = WSConnections(watcher_obj)
+        gc = GlobalConfig.getInstance()
 
-        # KEY : <inst_id>
-        # VALUE : <uid>
-        self._inst_uid_cache = {}
-        # refresh cache the first time
-        self._get_uid_from_inst_id(0)
+        if gc.getInitFlag() == True:
+            # add hook function
+            for item in _names:
+                _method = getattr(self, "on_%s" % item)
+                self.add_hook_func(item, _method)
+
+            self.conn = WSConnections(watcher_obj)
+
+            # KEY : <inst_id>
+            # VALUE : <uid>
+            self._inst_uid_cache = {}
+            # refresh cache the first time
+            self._get_uid_from_inst_id(0)
 
     def _get_uid_from_inst_id(self, inst_id):
         inst_key = "inst_%s" % inst_id
