@@ -8,7 +8,8 @@ $(document).ready(function(){
 
     var _map = {
         'server_core' : ServerCorePage,
-        'java_binary' : JavaBinary
+        'java_binary' : JavaBinary,
+        'settings'    : Settings
     };
 
     // init
@@ -196,9 +197,9 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
                 return i;
             }
         }
-
         return null;
     }
+
     socket.on("download_event", function (msg) {
         if(msg.event == "_get_progress"){
             _hash = msg["hash"];
@@ -235,4 +236,41 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
             }
         }
     });
+};
+
+/*Settings*/
+var Settings = function () {
+    var self = this;
+
+    this.set_passwd_vm = new Vue({
+        el:"#password_settings",
+        data:{
+            ori_passwd : "",
+            new_passwd : ""
+        },
+        methods:{
+            'modify_passwd' : function () {
+                self.set_password(self.set_passwd_vm.ori_passwd,
+                self.set_passwd_vm.new_passwd, function () {
+                    });
+            }
+        }
+    });
+};
+
+Settings.prototype.set_password = function (ori_passwd, new_passwd, callback) {
+    $.post("/super_admin/settings/passwd", {
+        ori_password : ori_passwd,
+        new_password : new_passwd
+    }, function (data) {
+        try{
+            var dt = JSON.parse(data);
+            console.log(dt);
+            if(dt.status == "success"){
+                callback(true);
+            }
+        }catch(e){
+            callback(null);
+        }
+    })
 };

@@ -11,7 +11,8 @@ super_admin_page = Blueprint("super_admin_page", __name__,
 logger = logging.getLogger("ob_panel")
 # import routes
 from . import login
+from . import info
 from . import server_core
 from . import java_binary
 from . import file_backup
-from . import info
+from . import settings

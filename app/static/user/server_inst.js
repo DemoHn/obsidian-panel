@@ -196,9 +196,10 @@ var Console = function () {
         // on connect, server will emit an `ack` even
 
         socket.on("inst_event",function (msg) {
-            if(msg.event = "log_update")
-            _log = msg.value;
-            editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
+            if(msg.event == "log_update") {
+                _log = msg.value;
+                editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
+            }
         });
     });
 

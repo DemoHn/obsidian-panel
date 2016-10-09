@@ -46,7 +46,7 @@ class Users(db.Model):
             raise ValueError("username `%s` is too long!" % self.username)
 
         password_re = "^\w{6,30}$"
-        if re.match(password_re,self.password) == None:
+        if re.match(password_re, self.password) == None:
             raise ValueError("password format doesn't matches!")
 
         self.hash = hashlib.md5(self._password.encode('utf-8') + SALT).hexdigest()
@@ -62,7 +62,7 @@ class Users(db.Model):
         db.session.commit()
 
     @staticmethod
-    def compare_password(username, password):
+    def compare_password(username, password, uid = None):
         '''
 
         :param username: input username
@@ -71,12 +71,38 @@ class Users(db.Model):
         '''
         hash = hashlib.md5(password.encode('utf-8') + SALT).hexdigest()
 
-        record = Users.query.filter_by(username=username, hash = hash).first()
+        if uid != None:
+            record = Users.query.filter_by(id=uid, hash=hash).first()
+        else:
+            record = Users.query.filter_by(username=username, hash=hash).first()
 
         if record == None:
             return (False, None)
         else:
             return (True, record)
+
+    @staticmethod
+    def set_password(password, uid = None, username = None):
+        password_re = "^\w{6,30}$"
+        if re.match(password_re, password) == None:
+            raise ValueError("password format doesn't matches!")
+
+        _hash = hashlib.md5(password.encode('utf-8') + SALT).hexdigest()
+
+        rec = None
+        if uid == None:
+            if username == None:
+                raise ValueError("null username or uid!")
+            else:
+                rec = Users.query.filter_by(username = username).first()
+        else:
+            rec = Users.query.filter_by(id = uid).first()
+
+        if rec != None:
+            rec.hash = _hash
+            db.session.commit()
+        else:
+            raise ValueError("uid or username not find!")
 
     @staticmethod
     def search_username(username):

@@ -162,7 +162,6 @@ class InstanceEventEmitter(object):
         pass
 
     def on_inst_terminate(self, inst_id, p):
-        print("TERMINATE")
         self._send(inst_id, "status_change", SERVER_STATE.HALT)
 
     def on_inst_player_login(self, inst_id ,p):
