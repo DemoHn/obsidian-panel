@@ -3,10 +3,8 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect
 from jinja2 import TemplateNotFound
 
-from app import db, socketio
 from app.controller.user_inst import UserInstance
-from app.utils import returnModel, get_file_hash
-from app.model import ServerCORE, ServerInstance
+from app.utils import returnModel
 
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login
