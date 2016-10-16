@@ -7,7 +7,7 @@ from . import super_admin_page, logger
 from .check_login import super_admin_only
 
 from app.model import Users, UserToken
-
+from app import db
 
 #import libs
 import string, random
@@ -33,12 +33,14 @@ def login():
         password = F.get("password")
 
         remember_me = F.get("remember_me")
-        if not Users.search_username(username):
+        #if not Users.search_username(username):
+        if db.session.query(Users).filter(Users.username == username).first() == None:
             return render_template("superadmin/login.html",login_error="username_not_found")
 
         result, _user = Users.compare_password(username, password)
 
         if result:
+            print("TRRRRRRRRRRRRRRUE")
             _token_str = make_token(32)
             tk = UserToken(token=_token_str)
             tk.insert(username)

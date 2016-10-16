@@ -3,11 +3,11 @@ from app.controller.global_config import GlobalConfig
 from app.controller.config_env import DatabaseEnv
 from sqlalchemy_utils import create_database, database_exists
 from app import app, db
+from app.model import Users, UserToken
 
 import logging
 import traceback
 
-from app.model import Users
 import app.utils as utils
 def init_database(logger=None):
 
@@ -39,6 +39,7 @@ def init_database(logger=None):
             create_database(database_uri)
 
         db.create_all(app=app)
+        db.session.commit()
     else:
         logger.warning("Main database NOT initialized as starter configuration not finished yet.")
 

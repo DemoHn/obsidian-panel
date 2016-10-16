@@ -20,7 +20,7 @@ class UserToken(db.Model):
 
     def insert(self, username):
         self.last_login = datetime.now()
-        l = Users.query.filter_by(username=username).first()
+        l = db.session.query(Users).filter(Users.username == username).first()
         self.uid = l.id
 
         db.session.add(self)

@@ -72,9 +72,9 @@ class Users(db.Model):
         hash = hashlib.md5(password.encode('utf-8') + SALT).hexdigest()
 
         if uid != None:
-            record = Users.query.filter_by(id=uid, hash=hash).first()
+            record = db.session.query(Users).filter(Users.id==uid, Users.hash==hash).first()
         else:
-            record = Users.query.filter_by(username=username, hash=hash).first()
+            record = db.session.query(Users).filter(Users.username==username, Users.hash==hash).first()
 
         if record == None:
             return (False, None)
@@ -94,9 +94,9 @@ class Users(db.Model):
             if username == None:
                 raise ValueError("null username or uid!")
             else:
-                rec = Users.query.filter_by(username = username).first()
+                rec = db.session.query(Users).filter(Users.username == username).first()
         else:
-            rec = Users.query.filter_by(id = uid).first()
+            rec = db.session.query(Users).filter(Users.id == uid).first()
 
         if rec != None:
             rec.hash = _hash
@@ -106,7 +106,7 @@ class Users(db.Model):
 
     @staticmethod
     def search_username(username):
-        rec = Users.query.filter_by(username=username).first()
+        rec = db.session.query(Users).filter(Users.username == username).first()
 
         if rec == None:
             return False
