@@ -107,3 +107,7 @@ fi
 
 echo "[HINT] Finally, run the instance!"
 circusd production.ini &
+
+# chausette
+# psutil
+# redis
