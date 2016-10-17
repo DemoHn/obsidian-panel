@@ -106,7 +106,7 @@ if [ $_OSTYPE = "YUM" ]; then
 fi
 
 echo "[HINT] Finally, run the instance!"
-circusd production.ini &
+circusd production.ini --daemon
 
 #
 # psutil
