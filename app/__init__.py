@@ -10,6 +10,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 # close SQLalchemy debug mode
 app.config["SQLALCHEMY_ECHO"] = False
 app.config['SECRET_KEY'] = 'secret!'
+app.config['REDIS_QUEUE_KEY'] = 'reboot_queue'
 
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)

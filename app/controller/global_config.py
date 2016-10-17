@@ -146,7 +146,9 @@ class GlobalConfig(object):
             "temp_superadmin_email":"",
             "temp_superadmin_hash":"",
 
-            "database_uri" : ""
+            "database_uri" : "",
+
+            "_RESTART_LOCK" : "False"
         }
 
         # set 'ob_init_flag=False' and so on

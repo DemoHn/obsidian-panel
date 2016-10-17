@@ -1,12 +1,15 @@
 __author__ = "Nigshoxiz"
 
 # import models
-from flask import Blueprint, render_template, abort, request
+from flask import Blueprint, render_template, abort, request, current_app, redirect
 from flask_socketio import send, emit
 from jinja2 import TemplateNotFound
 from app import socketio
 from app.utils import returnModel, salt
 
+from redis import Redis
+from pickle import loads, dumps
+from uuid import uuid4
 import threading
 import hashlib
 import traceback
@@ -20,7 +23,9 @@ from functools import wraps
 from app.controller.config_env import DatabaseEnv, JavaEnv
 from app.controller.init_main_db import init_database, migrate_superadmin
 from app.controller.global_config import GlobalConfig
+from app.controller.sys_process import SystemProcessClient
 from app.tools.mc_downloader import  DownloaderPool
+
 
 start_page = Blueprint("start_page", __name__,
                        template_folder='templates',
@@ -97,15 +102,6 @@ def handle_init_config():
     except TemplateNotFound:
         abort(404)
 
-# make sure use circusd!
-def _restart_process():
-    def _restart():
-        print("RESTART")
-        p = subprocess.Popen("circusd restart web", shell=True)
-
-
-    t = threading.Thread(target=_restart)
-    t.start()
 
 @start_page.route("/finish", methods=["POST"])
 @only_on_startup
@@ -125,7 +121,7 @@ def starter_finish():
             # then init database
             init_database()
             migrate_superadmin()
-
+            gc.set("_RESTART_LOCK", "True")
             return render_template("startup/finish.html")
         elif db_env == "mysql":
             db.setDatabaseType("mysql")
@@ -138,8 +134,8 @@ def starter_finish():
 
                 db.setMySQLinfo(_u, _p)
                 init_database()
-
                 migrate_superadmin()
+                gc.set("_RESTART_LOCK", "True")
                 return render_template("startup/finish.html")
             else:
                 return render_template("startup/step_3.html",g_error_hidden="block")
@@ -147,6 +143,14 @@ def starter_finish():
     except TemplateNotFound:
         abort(404)
 
+@start_page.route("/__reboot", methods=["GET"])
+def __reboot_once():
+    gc = GlobalConfig.getInstance()
+
+    if gc.get("_RESTART_LOCK") == True:
+        gc.set("_RESTART_LOCK", "False")
+        _restart_process()
+    #return response
 # ajax data
 #
 # in step=2 (detect Java Environment)
@@ -309,3 +313,17 @@ def test_mysql_connection():
         return rtn.success(db_env.testMySQLdb(mysql_username, mysql_password))
     except:
         return rtn.error(500)
+
+# make sure use circusd!
+def _restart_process():
+    client = SystemProcessClient()
+    client.send_restart_cmd("web")
+'''
+@start_page.teardown_request
+def teardown_request(exception=None):
+    gc = GlobalConfig.getInstance()
+    if gc.get("_RESTART_LOCK") == True:
+        gc.set("_RESTART_LOCK", False)
+        _restart_process()
+'''
+
