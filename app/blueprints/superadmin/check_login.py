@@ -5,12 +5,18 @@ from app.model import UserToken, Users
 from app import db
 from functools import wraps
 from app.utils import returnModel
+from app.controller.global_config import GlobalConfig
 import app.utils as utils
 # check if user is login
 
 ###########################################
 #         check login decorator           #
 ###########################################
+
+# write database uri
+gc = GlobalConfig.getInstance()
+if gc.get("database_uri") != None:
+    db.app.config["SQLALCHEMY_DATABASE_URI"] = gc.get("database_uri")
 
 def check_login(fn):
     @wraps(fn)

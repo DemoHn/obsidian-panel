@@ -13,6 +13,8 @@ import traceback
 import logging
 import tarfile
 import json
+import subprocess
+import time
 from functools import wraps
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
@@ -95,6 +97,16 @@ def handle_init_config():
     except TemplateNotFound:
         abort(404)
 
+# make sure use circusd!
+def _restart_process():
+    def _restart():
+        print("RESTART")
+        p = subprocess.Popen("circusd restart web", shell=True)
+
+
+    t = threading.Thread(target=_restart)
+    t.start()
+
 @start_page.route("/finish", methods=["POST"])
 @only_on_startup
 def starter_finish():
@@ -128,7 +140,6 @@ def starter_finish():
                 init_database()
 
                 migrate_superadmin()
-
                 return render_template("startup/finish.html")
             else:
                 return render_template("startup/step_3.html",g_error_hidden="block")

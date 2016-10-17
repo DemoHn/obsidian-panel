@@ -103,7 +103,7 @@ def get_download_list(uid, priv):
 
         # and fetch from database if there are some versions already installed.
         res = db.session.query(JavaBinary).filter(
-            JavaBinary.major_version == str(item.get("major")) and
+            JavaBinary.major_version == str(item.get("major")),
             JavaBinary.minor_version == str(item.get("minor"))
         ).first()
         # that means, this java version has record on the database

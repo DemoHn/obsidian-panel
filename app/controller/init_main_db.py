@@ -32,6 +32,7 @@ def init_database(logger=None):
                 db_env.get("db_name")
             )
 
+        gc.set("database_uri", database_uri)
         # let SQLAlchemy know the database URI
         app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 

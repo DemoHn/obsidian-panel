@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
-
+from app.controller.global_config import GlobalConfig
 app = Flask(__name__)
 
 # shut up, please. I don't wanna see your useless notice again !!
@@ -39,6 +39,12 @@ from app.blueprints.server_inst import server_inst_page
 app.register_blueprint(start_page)
 app.register_blueprint(super_admin_page)
 app.register_blueprint(server_inst_page)
+
+# set sqlalchemy database uri
+gc = GlobalConfig.getInstance()
+
+if gc.get("database_uri") != None:
+    app.config["SQLALCHEMY_DATABASE_URI"] = gc.get("database_uri")
 
 # import main views
 from app import views

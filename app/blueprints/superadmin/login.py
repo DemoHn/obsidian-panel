@@ -13,7 +13,6 @@ from app import db
 import string, random
 
 import app.utils as utils
-
 @super_admin_page.route("/login", methods=["GET"])
 def get_login_page():
     try:
@@ -40,7 +39,6 @@ def login():
         result, _user = Users.compare_password(username, password)
 
         if result:
-            print("TRRRRRRRRRRRRRRUE")
             _token_str = make_token(32)
             tk = UserToken(token=_token_str)
             tk.insert(username)

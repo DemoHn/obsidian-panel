@@ -144,7 +144,9 @@ class GlobalConfig(object):
             # temporal super admin database
             "temp_superadmin_username":"",
             "temp_superadmin_email":"",
-            "temp_superadmin_hash":""
+            "temp_superadmin_hash":"",
+
+            "database_uri" : ""
         }
 
         # set 'ob_init_flag=False' and so on
