@@ -37,6 +37,16 @@ def render_server_core_page(uid, priv):
 @super_admin_page.route("/get_core_file_info")
 @ajax_super_admin_only
 def get_core_file_info(uid, priv):
+
+    def _filesize_format(size):
+        if size > 1e9:
+            return "%.1f G" % (size / 1e9)
+        elif size > 1e6:
+            return "%.1f M" % (size / 1e6)
+        elif size > 1e3:
+            return "%.1f K" % (size / 1e3)
+        else:
+            return "%.1f B" % size
     try:
         info = db.session.query(ServerCORE).all()
         _model_arr = []
@@ -47,7 +57,7 @@ def get_core_file_info(uid, priv):
                 "core_type" : item.core_type,
                 "core_version" : item.core_version,
                 "minecraft_version" : item.minecraft_version,
-                "file_size" : item.file_size,
+                "file_size" : _filesize_format(item.file_size),
                 "note" : item.note
             }
             _model_arr.append(_model)

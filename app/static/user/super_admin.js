@@ -50,6 +50,7 @@ var ServerCorePage = function () {
                 self._file_data.submit().done(function (data) {
                     //TODO
                     console.log(data);
+                    window.alert("Upload succeed!");
                 });
             }
         }
@@ -64,6 +65,7 @@ ServerCorePage.prototype.__init__ = function () {
         url : "/super_admin/upload_core_file",
         autoUpload: false,
         dataType : 'json'
+
     }).on('fileuploadadd', function (e,data) {
         self._file_data = data;
 
