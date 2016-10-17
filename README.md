@@ -1,4 +1,4 @@
-** WRANING: This website currently only has Chinese version. For English version, please wait for a while :-) **
+**WRANING: This website currently only has Chinese version. For English version, please wait for a while :-) **
 
 ## Introduction
 Wanna hosting a Minecraft Server but no handy management panel?
@@ -18,7 +18,6 @@ Only input one line to install it!
 ## Installation
 
 ### One-Line Method
-(Linux Server only, tested on Ubuntu, CentOS)
 ```
 curl -s http://static.demohn.com/sh/install-obpanel | sh
 ```
@@ -37,7 +36,6 @@ cd obsidian-panel
 virtualenv env
 . env/bin/activate
 pip3 install -r requirement.txt
-# run the whole application
 circusd production.ini --daemon
 ```
 
@@ -52,6 +50,7 @@ cd obsidian-panel
 virtualenv env
 . env/bin/activate
 pip3.5 install -r requirement.txt
-# run the whole application
 circusd production.ini --daemon
 ```
+
+Then open your browser and input `[your server domain]:5000` to start!
