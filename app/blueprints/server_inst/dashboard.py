@@ -11,7 +11,7 @@ from app.model import ServerInstance
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 from . import server_inst_page, logger
-from mpw import SERVER_STATE
+from process_watcher import SERVER_STATE
 
 import traceback
 import os, json
@@ -90,7 +90,9 @@ def get_instance_status(uid, priv):
         }
 
         # search proc_pool to get some information
-        active_inst = watcher.get_instance(inst_id)
+        # TODO active insta
+        #active_inst = watcher.get_instance(inst_id)
+        active_inst = None
 
         # if active_inst is None, that means there's no active process
         # running in the server, thus status must be 'HALT'

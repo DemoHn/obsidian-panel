@@ -53,7 +53,7 @@ def start_chaussette(use_reloader):
     from chaussette import logger
     from chaussette.server import make_server
 
-    _host = "fd://%d" % int(sys.argv[3])
+    _host = "fd://%d" % int(sys.argv[4])
     def _make_server():
         try:
             # instill eventlet_server instance to `_backends` dict to bypass the restriction!

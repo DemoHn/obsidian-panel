@@ -14,7 +14,7 @@ from app.controller.ftp_controller import FTPController
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users
 from app import socketio
 from app.blueprints.server_inst import logger
-from app import db, watcher
+from app import db#, watcher
 
 class UserInstance():
     def __init__(self, uid):
@@ -285,9 +285,9 @@ class InstanceController(object):
             }
 
             _port = int(item.listening_port)
-            watcher.add_instance(inst_id, _port, mc_w_config)
+            #watcher.add_instance(inst_id, _port, mc_w_config)
 
-            watcher.start_instance(inst_id)
+            #watcher.start_instance(inst_id)
 
     @staticmethod
     def stop(inst_id):
@@ -300,12 +300,13 @@ class InstanceController(object):
             raise Exception('instance info is NULL!')
         else:
             #s = mc_pool.get(_port).inst._status
-            s = watcher.get_instance(inst_id)
+            #s = watcher.get_instance(inst_id)
+            s = None
             if s != None:
                 _status = s._status
                 print("current status: %s" % _status)
             #mc_pool.get(_port).inst.stop_process()
-            watcher.stop_instance(inst_id)
+            #watcher.stop_instance(inst_id)
 
     @staticmethod
     def restart(inst_id):
