@@ -16,7 +16,7 @@ class UserToken(db.Model):
     last_login = db.Column(db.DateTime)
 
     def __repr__(self):
-        return "<username %s, token=%s>" % (self.username, self.token)
+        return "<uid %s, token=%s>" % (self.uid, self.token)
 
     def insert(self, username):
         self.last_login = datetime.now()

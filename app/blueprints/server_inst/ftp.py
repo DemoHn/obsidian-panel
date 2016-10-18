@@ -6,7 +6,7 @@ from jinja2 import TemplateNotFound
 from app import db, socketio
 from app.controller.global_config import GlobalConfig
 from app.utils import returnModel, get_file_hash
-from app.model.ob_server_core import ServerCORE
+from app.model import FTPAccount
 
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login
@@ -21,6 +21,12 @@ rtn = returnModel("string")
 @check_login
 def render_ftp_page(uid, priv):
     try:
-        return render_template("server_inst/ftp.html",title="FTP")
+        account_name = ""
+        ftp_obj = db.session.query(FTPAccount).filter(FTPAccount.owner_id == uid).first()
+
+        if ftp_obj != None:
+            account_name = ftp_obj.username
+        return render_template("server_inst/ftp.html",
+                               title="FTP",ftp_account_name = account_name)
     except TemplateNotFound:
         abort(404)

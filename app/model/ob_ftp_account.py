@@ -6,7 +6,7 @@ class FTPAccount(db.Model):
     # account id
     id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
 
-    # username
+    # username for this ftp account (different from login account!)
     username = db.Column(db.String(80), unique=True)
 
     # hash

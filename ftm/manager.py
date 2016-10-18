@@ -9,7 +9,8 @@ from app.controller.global_config import GlobalConfig
 import threading
 import hashlib
 import traceback
-
+import logging
+import json
 class MD5Authorizer(DummyAuthorizer):
     def validate_authentication(self, username, password, handler):
         hash = hashlib.md5(password.encode('utf-8') + salt).hexdigest()
@@ -49,10 +50,10 @@ class FTPManager(object):
             self._add_account_data()
 
     def _get_initdb_status(self):
-        if self._global_config.get("ob_init_flag") == None:
-            return False
-        else:
+        if self._global_config.get("init_super_admin") == True:
             return True
+        else:
+            return False
 
     def _add_account_data(self):
         db_type = self._global_config.get("db_type")

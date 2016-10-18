@@ -7,10 +7,6 @@ from jinja2 import TemplateNotFound
 from app import socketio
 from app.utils import returnModel, salt
 
-from redis import Redis
-from pickle import loads, dumps
-from uuid import uuid4
-import threading
 import hashlib
 import traceback
 import logging
@@ -318,12 +314,3 @@ def test_mysql_connection():
 def _restart_process():
     client = SystemProcessClient()
     client.send_restart_cmd("web")
-'''
-@start_page.teardown_request
-def teardown_request(exception=None):
-    gc = GlobalConfig.getInstance()
-    if gc.get("_RESTART_LOCK") == True:
-        gc.set("_RESTART_LOCK", False)
-        _restart_process()
-'''
-
