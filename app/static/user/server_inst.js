@@ -15,6 +15,13 @@ $(document).ready(function(){
     new _map[path_item]();
 });
 
+function getCurrentHost(){
+    var http = location.protocol;
+    var slashes = http.concat("//");
+    var host = slashes.concat(window.location.hostname);
+    return host;
+}
+
 /*
 * Server Core Page Management
 * */
@@ -26,7 +33,7 @@ var Dashboard = function () {
     // of course if you fetch it from URL,
     // that's also fine
     this.inst_id = $("#instID").val();
-    this.socket = io.connect("/channel_inst");
+    this.socket = io.connect(getCurrentHost()+":5001");
 
     this.status_dict = {
         "0" : "未运行",
@@ -191,7 +198,7 @@ var Console = function () {
         readOnly : true
     });
     
-    var socket = io.connect('/channel_inst');
+    var socket = io.connect(getCurrentHost()+":5001");
     socket.on("connect",function () {
         // on connect, server will emit an `ack` even
 

@@ -16,6 +16,13 @@ $(document).ready(function(){
     new _map[path_item]();
 });
 
+function getCurrentHost(){
+    var http = location.protocol;
+    var slashes = http.concat("//");
+    var host = slashes.concat(window.location.hostname);
+    return host;
+}
+
 /*
 * Server Core Page Management
 * */
@@ -83,7 +90,7 @@ var JavaBinary = function () {
         FAIL = 5,
         EXTRACT_FAIL = 6;
 
-    this.socket = io.connect("/dw");
+    this.socket = io.connect(getCurrentHost()+":5001");
     this.list_vm = new Vue({
         el:"#java_list",
         data:{

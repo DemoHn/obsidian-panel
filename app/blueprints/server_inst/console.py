@@ -6,7 +6,7 @@ from app.utils import returnModel
 
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login
-
+from app import socketio
 rtn = returnModel("string")
 
 @server_inst_page.route("/console", methods=["GET"])
@@ -16,3 +16,10 @@ def render_console_page(uid, priv):
         return render_template("server_inst/console.html",title="Console")
     except TemplateNotFound:
         abort(404)
+
+import redis
+import time
+
+@socketio.on("hello")
+def test():
+    print("TEST")

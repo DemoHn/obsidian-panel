@@ -1,6 +1,6 @@
 import socketio
 import eventlet
-
+import pickle
 eventlet.monkey_patch()
 
 mgr = socketio.RedisManager("redis://")
@@ -10,9 +10,9 @@ sio = socketio.Server(client_manager=mgr)
 def connect(sid, environ):
     print('connect ', sid)
 
-@sio.on('hello')
-def message(sid, data):
-    print('message ', data)
+@sio.on('message', namespace="/")
+def emit_message(sid, data):
+    mgr.redis.publish("socketio",pickle.dumps(data))
 
 @sio.on('disconnect')
 def disconnect(sid):
