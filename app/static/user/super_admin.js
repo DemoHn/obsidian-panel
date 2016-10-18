@@ -91,6 +91,11 @@ var JavaBinary = function () {
         EXTRACT_FAIL = 6;
 
     this.socket = io.connect(getCurrentHost()+":5001");
+    
+    this.socket.on("connect",function () {
+        console.log("hehe");
+        self.socket.emit("message",{"data":"dat"})
+    });
     this.list_vm = new Vue({
         el:"#java_list",
         data:{

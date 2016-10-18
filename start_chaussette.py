@@ -74,4 +74,4 @@ def start_chaussette(use_reloader):
     else:
         _make_server()
 
-start_chaussette(True)
+start_chaussette(False)

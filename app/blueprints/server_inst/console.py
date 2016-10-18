@@ -3,7 +3,7 @@ from flask import render_template, abort, request
 from jinja2 import TemplateNotFound
 
 from app.utils import returnModel
-
+import os
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login
 from app import socketio
@@ -16,10 +16,3 @@ def render_console_page(uid, priv):
         return render_template("server_inst/console.html",title="Console")
     except TemplateNotFound:
         abort(404)
-
-import redis
-import time
-
-@socketio.on("hello")
-def test():
-    print("TEST")

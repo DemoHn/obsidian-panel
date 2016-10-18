@@ -1,9 +1,7 @@
-__author__ = "Nigshoxiz"
-
 import redis
-import threading
 import json
 import pickle
+
 class MessageQueueProxy(object):
     instance = None
     '''
@@ -29,8 +27,6 @@ class MessageQueueProxy(object):
 
         self.handlers = []
 
-        t = threading.Thread(target=self._listen)
-        t.start()
 
     def _listen(self):
         for msg in self.pubsub.listen():
@@ -46,7 +42,7 @@ class MessageQueueProxy(object):
             "method" : "emit",
             "event": event,
             "data" : message,
-            "namespace" : "/",
+            "namespace" : "/mc_proc",
             "room": room,
             "skip_sid" : skip_sid,
             "callback" : None
@@ -63,4 +59,3 @@ class MessageQueueProxy(object):
             return _handler
         return decorator
         pass
-

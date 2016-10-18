@@ -1,12 +1,12 @@
-import os
 import logging
 
+import os
+from app import app as _app
+from app import socketio, watcher#, ftp_manager
 from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
-from app.controller.inst_events import InstanceEventEmitter
+from mpw.inst_events import InstanceEventEmitter
 
-from app import socketio, watcher#, ftp_manager
-from app import app as _app
 
 def init_directory():
     gc = GlobalConfig.getInstance()

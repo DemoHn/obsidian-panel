@@ -21,9 +21,9 @@ db = SQLAlchemy(app)
 import eventlet
 eventlet.monkey_patch()
 # init socketio
-socketio = SocketIO(app, message_queue='redis://')
+#socketio = SocketIO(app, message_queue='redis://')
 
-proxy = MessageQueueProxy()
+socketio = MessageQueueProxy.getInstance()
 # run process watcher
 # in addtion, MPW is 'Minecraft Process Watcher'
 from mpw.watchdog import Watchdog
