@@ -2,7 +2,7 @@ from app import socketio, db
 from app.model import Users, UserToken, ServerInstance
 from app.controller.global_config import GlobalConfig
 
-from mpw import SERVER_STATE
+from . import SERVER_STATE
 
 from flask_socketio import emit, send, disconnect, join_room, leave_room, rooms
 from flask import request, session
