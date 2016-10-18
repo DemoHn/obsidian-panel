@@ -4,6 +4,8 @@ import redis
 import threading
 import json
 import pickle
+import inspect
+
 WS_TAG = "APP"
 class MessageQueueProxy(object):
     instance = None
@@ -37,33 +39,45 @@ class MessageQueueProxy(object):
         for msg in self.pubsub.listen():
             channel = self.channel.encode()
             if msg["type"] == "message" and msg['channel'] == channel:
-                data = pickle.loads(msg["data"])
-                print("TAG: %s" % WS_TAG)
-                print(data)
-            # run handlers
-            pass
+                msg_json = pickle.loads(msg["data"])
 
-    def send(self, event, message, room=None, skip_sid=None):
+                dest = msg_json.get("to")
+                event_name = msg_json.get("event")
+                values = msg_json.get("props")
 
-        #send_msg = {
-        #    "method" : "emit",
-        #    "event": event,
-        #    "data" : message,
-        #    "namespace" : "/",
-        #    "room": room,
-        #    "skip_sid" : skip_sid,
-        #    "callback" : None
-        #}
+                if dest == WS_TAG and event_name != None and values != None:
+                    if self.handlers[event_name] != None:
+                        handler = self.handlers[event_name]
+                        handler(values)
+
+    def send(self, event, dest, values):
+        if dest == "CLIENT":
+            send_msg = {
+                "method" : "emit",
+                "event": "message",
+                "data" : {
+                    "event": event,
+                    "to" : "CLIENT",
+                    "props" : values
+                },
+                "namespace" : "/",
+                "room": None,
+                "skip_sid" : None,
+                "callback" : None
+            }
+        else:
+            send_msg = {
+                "event" : event,
+                "to" : dest,
+                "props" : values
+            }
+
+        self.redis.publish(self.channel, json.dumps(send_msg).encode())
         #self._publish({'method': 'emit', 'event': event, 'data': data,
         #               'namespace': namespace, 'room': room,
         #               'skip_sid': skip_sid, 'callback': callback})
         #self.redis.publish(self.channel, json.dumps(send_msg).encode())
-        pass
 
-    def on(self, event_name, namespace="/"):
-        def decorator(handler):
-            def _handler(*args):
-                self.handlers[event_name] = handler
-            return _handler
-        return decorator
-        pass
+    def register_handler(self, event_name, handler):
+        if inspect.isfunction(handler) == True or inspect.ismethod(handler) == True:
+            self.handlers[event_name] = handler

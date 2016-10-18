@@ -21,9 +21,9 @@ db = SQLAlchemy(app)
 import eventlet
 eventlet.monkey_patch()
 # init socketio
-#socketio = SocketIO(app, message_queue='redis://')
+socketio = SocketIO(app, message_queue='redis://')
 
-socketio = MessageQueueProxy.getInstance()
+#socketio = MessageQueueProxy.getInstance()
 
 # import blueprints
 # to event circular importing, this `import` statement should be put

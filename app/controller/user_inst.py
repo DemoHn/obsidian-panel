@@ -292,7 +292,6 @@ class InstanceController(object):
     @staticmethod
     def stop(inst_id):
         #mc_pool = MCProcessPool.getInstance()
-
         _q = db.session.query(ServerInstance)
         _inst = _q.filter(ServerInstance.inst_id == inst_id).first()
 

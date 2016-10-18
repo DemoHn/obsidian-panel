@@ -2,6 +2,9 @@ import redis
 import json
 import pickle
 import inspect
+
+from websocket_server.server import WSConnections
+
 WS_TAG = "MPW"
 class MessageQueueProxy(object):
     instance = None
@@ -44,20 +47,41 @@ class MessageQueueProxy(object):
                         handler(values)
 
 
-    def send(self, message, room=None, skip_sid=None):
-        send_msg = {
-            "method" : "emit",
-            "event": "message",
-            "data" : message,
-            "namespace" : "/",
-            "room": room,
-            "skip_sid" : skip_sid,
-            "callback" : None
-        }
-        #self._publish({'method': 'emit', 'event': event, 'data': data,
-        #               'namespace': namespace, 'room': room,
-        #               'skip_sid': skip_sid, 'callback': callback})
-        self.redis.publish(self.channel, json.dumps(send_msg).encode())
+    def send(self, event, dest, values, uid = None):
+        if dest == "CLIENT":
+            if uid != None:
+                data = {
+                    "event": event,
+                    "to": "CLIENT",
+                    "props": values
+                }
+                ws = WSConnections.getInstance()
+                ws.send("message", data, uid)
+            else:
+                # send data directly
+                send_msg = {
+                    "method" : "emit",
+                    "event": "message",
+                    "data": {
+                        "event": event,
+                        "to": "CLIENT",
+                        "props": values
+                    },
+                    "namespace" : "/",
+                    "room": None,
+                    "skip_sid" : None,
+                    "callback" : None
+                }
+                self.redis.publish(self.channel, json.dumps(send_msg).encode())
+        else:
+            send_msg = {
+                "event" : event,
+                "to" : dest,
+                "props" : values
+            }
+
+            self.redis.publish(self.channel, json.dumps(send_msg).encode())
+
 
     def register_handler(self, event_name, handler):
         if inspect.isfunction(handler) == True or inspect.ismethod(handler) == True:
