@@ -2,10 +2,9 @@ import logging
 
 import os
 from app import app as _app
-from app import socketio, watcher#, ftp_manager
+from app import socketio#, ftp_manager
 from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
-from mpw.inst_events import InstanceEventEmitter
 
 
 def init_directory():
@@ -44,9 +43,6 @@ logger = init_logger(debug=True)
 # init directories
 init_directory()
 init_database(logger=logger)
-
-# launch watcher
-watcher.launch(hook_class=InstanceEventEmitter)
 
 # launch ftp manager
 #ftp_manager.launch()

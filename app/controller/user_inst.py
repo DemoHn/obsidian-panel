@@ -7,7 +7,7 @@ import time
 
 #from app.tools.mc_wrapper import MCProcessPool
 #from app.tools.mc_wrapper.instance import MCServerInstanceThread
-from mpw.parser import ServerPropertiesParser
+from process_watcher.parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
 from app.controller.ftp_controller import FTPController
 # models

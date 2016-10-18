@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect
 from jinja2 import TemplateNotFound
 
-from app import db, socketio, watcher
+from app import db, socketio
 from app.controller.user_inst import InstanceController
 from app.utils import returnModel
 
@@ -98,8 +98,9 @@ def get_instance_status(uid, priv):
             _status_model["status"] = SERVER_STATE.HALT
         else:
             _status_model["status"] = active_inst.get_status()
-            _status_model["current_player"] = watcher.just_get(inst_id).get("current_player")
-            _status_model["current_RAM"] = watcher.just_get(inst_id).get("RAM")
+            # TODO
+            _status_model["current_player"] = 0 #watcher.just_get(inst_id).get("current_player")
+            _status_model["current_RAM"] = 0 #watcher.just_get(inst_id).get("RAM")
         return rtn.success(_status_model)
     except:
         logger.error(traceback.format_exc())

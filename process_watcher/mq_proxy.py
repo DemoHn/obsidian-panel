@@ -27,8 +27,7 @@ class MessageQueueProxy(object):
 
         self.handlers = []
 
-
-    def _listen(self):
+    def listen(self):
         for msg in self.pubsub.listen():
             channel = self.channel.encode()
             if msg["type"] == "message" and msg['channel'] == channel:

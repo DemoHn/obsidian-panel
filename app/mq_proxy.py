@@ -63,4 +63,3 @@ class MessageQueueProxy(object):
             return _handler
         return decorator
         pass
-

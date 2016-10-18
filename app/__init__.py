@@ -24,13 +24,6 @@ eventlet.monkey_patch()
 #socketio = SocketIO(app, message_queue='redis://')
 
 socketio = MessageQueueProxy.getInstance()
-# run process watcher
-# in addtion, MPW is 'Minecraft Process Watcher'
-from mpw.watchdog import Watchdog
-watcher = Watchdog.getWDInstance()
-
-#from ftm import FTPManager
-#ftp_manager = FTPManager(2121)
 
 # import blueprints
 # to event circular importing, this `import` statement should be put
