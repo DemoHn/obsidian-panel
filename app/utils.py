@@ -13,9 +13,12 @@ from app.error_code import errcode
 salt = b"\x87\x93\xfb\x00\xfa\xc2\x88\xba$\x86\x98\'\xba\xa8\xc6"
 
 # consts
-PRIV_ROOT = 1
-PRIV_FREE_USER = 2
-PRIV_INST_OWNER = 4
+class PRIVILEGES:
+    ULTIMATE = 0
+    ROOT_USER = 1
+    FREE_USER = 2
+    INST_OWNER = 4
+    EVERYONE = 8
 
 def get_file_directory():
     full_path = os.path.realpath(__file__)

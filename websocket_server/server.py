@@ -1,11 +1,12 @@
 from app import db
 from app.model import Users, UserToken
 
+from app.utils import PRIVILEGES
 import socketio
 import eventlet
 import pickle
 import re
-from functools import wraps
+
 
 eventlet.monkey_patch()
 
@@ -93,6 +94,29 @@ class WSConnections(object):
                 if sid in self.connections.get(user_key):
                     self.connections.get(user_key).remove(sid)
 
+    def sid_available(self, sid, permission = None):
+        if permission == None:
+            return True
+        else:
+            _uid = None
+            _priv = None
+            for user_key in self.connections:
+                if sid in self.connections.get(user_key):
+                    _uid = user_key[5:]
+                    break
+            if _uid == None:
+                return False
+            else:
+                user_obj = db.session.query(Users).filter(Users.id == int(_uid)).first()
+                if user_obj == None:
+                    return False
+                else:
+                    _priv = user_obj.privilege
+
+            if _priv > permission:
+                return False
+            else:
+                return True
 
     def send_data(self, event, data, uid):
         '''
@@ -106,7 +130,18 @@ class WSConnections(object):
 
 @sio.on('message', namespace="/")
 def emit_message(sid, data):
-    mgr.redis.publish("socketio",pickle.dumps(data))
+    _send_data_model = {
+        "to" : data.get("to"),
+        "props": data.get("props"),
+        "event": data.get("event")
+    }
+
+    ws = WSConnections.getInstance()
+    # only root user could operate it
+    avail = ws.sid_available(sid, permission=PRIVILEGES.ROOT_USER)
+
+    if avail == True:
+        mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
 
 def start_websocket_server():
     #init

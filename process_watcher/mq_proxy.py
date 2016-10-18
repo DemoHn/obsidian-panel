@@ -1,7 +1,8 @@
 import redis
 import json
 import pickle
-
+import inspect
+WS_TAG = "MPW"
 class MessageQueueProxy(object):
     instance = None
     '''
@@ -31,17 +32,24 @@ class MessageQueueProxy(object):
         for msg in self.pubsub.listen():
             channel = self.channel.encode()
             if msg["type"] == "message" and msg['channel'] == channel:
-                data = pickle.loads(msg["data"])
-                print(data)
-            # run handlers
-            pass
+                msg_json = pickle.loads(msg["data"])
 
-    def send(self, event, message, room=None, skip_sid=None):
+                dest = msg_json.get("to")
+                event_name = msg_json.get("event")
+                values = msg_json.get("props")
+
+                if dest == WS_TAG and event_name != None and values != None:
+                    if self.handlers[event_name] != None:
+                        handler = self.handlers[event_name]
+                        handler(values)
+
+
+    def send(self, message, room=None, skip_sid=None):
         send_msg = {
             "method" : "emit",
-            "event": event,
+            "event": "message",
             "data" : message,
-            "namespace" : "/mc_proc",
+            "namespace" : "/",
             "room": room,
             "skip_sid" : skip_sid,
             "callback" : None
@@ -51,10 +59,6 @@ class MessageQueueProxy(object):
         #               'skip_sid': skip_sid, 'callback': callback})
         self.redis.publish(self.channel, json.dumps(send_msg).encode())
 
-    def on(self, event_name, namespace="/"):
-        def decorator(handler):
-            def _handler(*args):
-                self.handlers[event_name] = handler
-            return _handler
-        return decorator
-        pass
+    def register_handler(self, event_name, handler):
+        if inspect.isfunction(handler) == True or inspect.ismethod(handler) == True:
+            self.handlers[event_name] = handler

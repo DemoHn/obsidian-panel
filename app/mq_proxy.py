@@ -4,6 +4,7 @@ import redis
 import threading
 import json
 import pickle
+WS_TAG = "APP"
 class MessageQueueProxy(object):
     instance = None
     '''
@@ -37,24 +38,27 @@ class MessageQueueProxy(object):
             channel = self.channel.encode()
             if msg["type"] == "message" and msg['channel'] == channel:
                 data = pickle.loads(msg["data"])
+                print("TAG: %s" % WS_TAG)
                 print(data)
             # run handlers
             pass
 
     def send(self, event, message, room=None, skip_sid=None):
-        send_msg = {
-            "method" : "emit",
-            "event": event,
-            "data" : message,
-            "namespace" : "/",
-            "room": room,
-            "skip_sid" : skip_sid,
-            "callback" : None
-        }
+
+        #send_msg = {
+        #    "method" : "emit",
+        #    "event": event,
+        #    "data" : message,
+        #    "namespace" : "/",
+        #    "room": room,
+        #    "skip_sid" : skip_sid,
+        #    "callback" : None
+        #}
         #self._publish({'method': 'emit', 'event': event, 'data': data,
         #               'namespace': namespace, 'room': room,
         #               'skip_sid': skip_sid, 'callback': callback})
-        self.redis.publish(self.channel, json.dumps(send_msg).encode())
+        #self.redis.publish(self.channel, json.dumps(send_msg).encode())
+        pass
 
     def on(self, event_name, namespace="/"):
         def decorator(handler):

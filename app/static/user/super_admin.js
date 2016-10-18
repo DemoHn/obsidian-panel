@@ -93,8 +93,15 @@ var JavaBinary = function () {
     this.socket = io.connect(getCurrentHost()+":5001");
     
     this.socket.on("connect",function () {
-        console.log("hehe");
-        self.socket.emit("message",{"data":"dat"})
+        var pub_model = {
+            "event":"download.test",
+            "to":"MPW",
+            "props": {
+                "data": "dat",
+                "A":"B"
+            }
+        };
+        self.socket.emit("message", pub_model);
     });
     this.list_vm = new Vue({
         el:"#java_list",
