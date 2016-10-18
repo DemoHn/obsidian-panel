@@ -55,7 +55,10 @@ def login():
             if remember_me == "on":
                 resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
             else:
-                session['session_token'] = _token_str
+                # session
+                resp.set_cookie("session_token", _token_str, expires=0)
+                #session['session_token'] = _token_str
+
             return resp
             #return render_template("superadmin/index.html")
         else:
