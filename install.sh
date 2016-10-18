@@ -71,7 +71,7 @@ echo "Package Manager: $_OSTYPE"
 # for Ubuntu, Debian
 if [ $_OSTYPE = "DPKG" ]; then
     $_SUDO apt-get update
-    $_SUDO apt-get install -y python3 python3-pip git
+    $_SUDO apt-get install -y python3 python3-pip git redis-server
 
     # install virtualenv,circusd
     $_SUDO pip3 install virtualenv circus
@@ -81,7 +81,13 @@ fi
 if [ $_OSTYPE = "YUM" ]; then
     $_SUDO yum update
     $_SUDO yum install -y python3.5 pip3.5 git
-
+    $_SUDO yum groupinstall 'Development Tools'
+    wget http://download.redis.io/releases/redis-2.8.3.tar.gz
+    tar xzvf redis-2.8.3.tar.gz
+    cd redis-2.8.3
+    make
+    make install
+    cd ..
     $_SUDO pip3.5 install virtualenv circus
 fi
 
@@ -104,8 +110,10 @@ fi
 if [ $_OSTYPE = "YUM" ]; then
     pip3.5 install -r requirement.txt
 fi
+echo "[INFO] Start redis server!"
+redis-server &
 
-echo "[HINT] Finally, run the instance!"
+echo "[INFO] Finally, run the instance!"
 circusd production.ini --daemon
 
 #
