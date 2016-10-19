@@ -41,6 +41,7 @@ class MessageQueueProxy(object):
             return uuid.uuid4()
         else:
             return flag
+
     def _listen(self):
         for msg in self.pubsub.listen():
             channel = self.channel.encode()

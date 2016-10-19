@@ -132,8 +132,8 @@ class WatcherEvents(object):
             else:
                 return _q.owner_id
         EVENT_NAME = "process.get_active_status.callback"
-        uid = values.get("_uid")
-        print("uid = %s flag = %s" % (uid, flag))
+        sid = values.get("_sid")
+
         rtn_data = {
             "status": "success",
             "inst": []
@@ -157,7 +157,7 @@ class WatcherEvents(object):
                     _get_owner_uid(_obj["inst_id"]) == uid:
                 rtn_data["inst"].append(_model)
 
-        self.proxy.send(EVENT_NAME, "CLIENT", flag, rtn_data, uid=uid)
+        self.proxy.send(EVENT_NAME, "CLIENT", flag, rtn_data, sid=sid)
 
     def get_instance_log(self, flag, values):
         # TODO
