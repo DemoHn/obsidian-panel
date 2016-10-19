@@ -1,5 +1,5 @@
 from app import db
-from app.model import Users, UserToken, ServerInstance
+from app.model import ServerInstance
 from app.controller.global_config import GlobalConfig
 
 from . import SERVER_STATE
@@ -38,16 +38,15 @@ class WatcherEvents(object):
                     self.proxy.register_handler(event_name, _method)
             except:
                 continue
-
         pass
 
-    def get_instance_status(self, values):
+    def get_instance_status(self, flag, values):
         '''
-        DESCRIPTION: get all instances registered on the process pool.
+        DESCRIPTION: get all instances of ONE user registered on the process pool.
 
         EVENT NAME: process.get_instance_status
 
-        :param values: {'inst_id': "all"} | {"inst_id" : <inst_id>}
+        :param values: {'uid': <user_id>}
         :return: {
             "status" : "success",
             "inst": [{
@@ -62,10 +61,45 @@ class WatcherEvents(object):
             "status" : "error"
         }
         '''
-        self.proxy.send("process.get_instance_status.callback", "CLIENT", {"inst_id" : 1}, uid = 1)
-        pass
 
-    def get_active_instances(self, values):
+        def _get_status(inst_obj):
+            return inst_obj.get_status()
+
+        def _get_owner_uid(inst_id):
+            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+            if _q  == None:
+                return None
+            else:
+                return _q.owner_id
+
+        EVENT_NAME = "process.get_instance_status.callback"
+        rtn_data = {
+            "status": "success",
+            "inst": []
+        }
+        uid = values.get("_uid")
+
+        if uid == None:
+            #rtn_data["status"] = "error"
+            return None
+            #self.proxy.send(EVENT_NAME, "CLIENT", rtn_data, uid=1)
+        pool = self.watcher.proc_pool
+        for key in pool:
+            _obj = pool[key]
+            _model = {
+                "inst_id": _obj["inst_id"],
+                "port": _obj["port"],
+                "current_player": _obj["current_player"],
+                "RAM": _obj["RAM"],
+                "status": _get_status(_obj["inst"])
+            }
+
+            if int(_get_owner_uid(_obj["inst_id"])) == int(uid):
+                rtn_data["inst"].append(_model)
+
+        self.proxy.send(EVENT_NAME, "CLIENT", rtn_data, uid=uid)
+
+    def get_active_instances(self, flag, values):
         '''
         DESCRIPTION: return all active instances (STARING | RUNNING)
 
@@ -88,9 +122,45 @@ class WatcherEvents(object):
             "status" : "error"
         }
         '''
-        pass
 
-    def get_instance_log(self, values):
+        def _get_status(inst_obj):
+            return inst_obj.get_status()
+        def _get_owner_uid(inst_id):
+            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+            if _q  == None:
+                return None
+            else:
+                return _q.owner_id
+        EVENT_NAME = "process.get_active_status.callback"
+        uid = values.get("_uid")
+        print("uid = %s flag = %s" % (uid, flag))
+        rtn_data = {
+            "status": "success",
+            "inst": []
+        }
+
+        if uid == None:
+            return None
+
+        pool = self.watcher.proc_pool
+        for key in pool:
+            _obj = pool[key]
+            _model = {
+                "inst_id": _obj["inst_id"],
+                "port": _obj["port"],
+                "current_player": _obj["current_player"],
+                "RAM": _obj["RAM"],
+                "status": _get_status(_obj["inst"])
+            }
+
+            if _get_status(_obj["inst"]) != SERVER_STATE.HALT and \
+                    _get_owner_uid(_obj["inst_id"]) == uid:
+                rtn_data["inst"].append(_model)
+
+        self.proxy.send(EVENT_NAME, "CLIENT", flag, rtn_data, uid=uid)
+
+    def get_instance_log(self, flag, values):
+        # TODO
         '''
         DESCRIPTION: get instance log (all log)
 
@@ -105,17 +175,32 @@ class WatcherEvents(object):
         '''
         pass
 
-    def add_instance(self, values):
+    def add_instance(self, flag, values):
         '''
         DESCRIPTION: add instance. But not activate it immediately.
 
         EVENT_NAME: process.add_instance
-        :param values:
+        :param values: {"inst_id": <inst_id>, "port": <port>, "config": <config json>}
         :return:
         '''
+        EVENT_NAME = "process.add_instance.callback"
+
+        rtn_data = {
+            "status" : "success",
+            "inst_id" : None
+        }
+
+        _inst_id = values.get("inst_id")
+        _port    = values.get("port")
+        _config  = values.get("config")
+
+        self.watcher.register_instance(_inst_id, _port, _config)
+        rtn_data["inst_id"] = _inst_id
+
+        self.proxy.send(EVENT_NAME, "CLIENT", rtn_data)
         pass
 
-    def remove_instance(self, values):
+    def remove_instance(self, flag, values):
         '''
         DESCRIPTION: remove instance from process pool.
 
@@ -126,7 +211,7 @@ class WatcherEvents(object):
         '''
         pass
 
-    def start_instance(self, values):
+    def start_instance(self, flag, values):
         '''
         DESCRIPTION: start a instance.
 
@@ -137,7 +222,7 @@ class WatcherEvents(object):
         '''
         pass
 
-    def stop_instance(self, values):
+    def stop_instance(self, flag, values):
         '''
         DESCRIPTION: stop a instance.
 

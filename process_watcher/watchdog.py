@@ -339,7 +339,6 @@ class Watchdog(object):
                 else:
                     self._on_pollhup_stdout(sock, fd)
 
-
     def _on_pollhup_stdout(self, sock, fd):
         # pipe event
         for inst_key in self.proc_pool:
@@ -427,7 +426,6 @@ class Watchdog(object):
         if self.__alert_counter.get(f.fileno()) != None:
             del self.__alert_counter[f.fileno()]
 
-
     def add_instance(self, inst_id, port, config):
         '''
         just an alias of method `register_instance`
@@ -482,7 +480,6 @@ class Watchdog(object):
                     or _inst._status == SERVER_STATE.STARTING:
                 # TODO
                 _inst.stop_process()
-
 
     def get_instance(self, inst_id):
         _inst_key = "inst_" + str(inst_id)

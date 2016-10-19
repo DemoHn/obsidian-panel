@@ -2,6 +2,7 @@ import redis
 import json
 import pickle
 import inspect
+import uuid
 
 WS_TAG = "CLIENT"
 class MessageQueueProxy(object):
@@ -27,6 +28,13 @@ class MessageQueueProxy(object):
         # subscribe socketio to recv data from websocket server
         self.pubsub.subscribe(self.channel)
 
+
+    def get_flag(self, flag):
+        if flag == None:
+            return uuid.uuid4()
+        else:
+            return flag
+
     def listen(self):
         from websocket_server.server import WSConnections,mgr
         for msg in self.pubsub.listen():
@@ -38,6 +46,8 @@ class MessageQueueProxy(object):
                 dest = msg_json.get("to")
                 event_name = msg_json.get("event")
                 values = msg_json.get("props")
+
+                flag = self.get_flag(msg_json.get("flag"))
                 if dest == WS_TAG and event_name != None and values != None:
                     ws = WSConnections.getInstance()
                     _uid = msg_json.get("_uid")
@@ -47,20 +57,27 @@ class MessageQueueProxy(object):
                             # prevent infinite handling
                             "to" : "CLIENT_BYE",
                             "event": event_name,
-                            "props": values
+                            "props": values,
+                            "flag" : flag
                         }
                         ws.send_data("message", _s, _uid)
                     else:
+                        sid = msg_json.get("_sid")
+                        if sid == None:
+                            # just drop the message
+                            return None
+
                         send_msg = {
                             "method": "emit",
                             "event": "message",
                             "data": {
                                 "event": event_name,
                                 "to": "CLIENT_BYE",
-                                "props": values
+                                "props": values,
+                                "flag" : flag
                             },
                             "namespace": "/",
-                            "room": None,
+                            "room": sid,
                             "skip_sid": None,
                             "callback": None
                         }

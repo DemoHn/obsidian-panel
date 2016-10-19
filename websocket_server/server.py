@@ -119,6 +119,14 @@ class WSConnections(object):
             else:
                 return True
 
+    def find_uid(self, sid):
+        _uid = None
+        for user_key in self.connections:
+            if sid in self.connections.get(user_key):
+                _uid = user_key[5:]
+                break
+        return _uid
+
     def send_data(self, event, data, uid):
         '''
         send websocket data to all session that belongs to the user
@@ -131,13 +139,16 @@ class WSConnections(object):
 
 @sio.on('message', namespace="/")
 def emit_message(sid, data):
+    ws = WSConnections.getInstance()
     _send_data_model = {
         "to" : data.get("to"),
         "props": data.get("props"),
-        "event": data.get("event")
+        "event": data.get("event"),
+        "flag" : data.get("flag"),
+        "_uid" : ws.find_uid(sid),
+        "_sid" : sid
     }
 
-    ws = WSConnections.getInstance()
     # only root user could operate it
     avail = ws.sid_available(sid, permission=PRIVILEGES.ROOT_USER)
     if avail == True:
@@ -154,17 +165,3 @@ def start_websocket_server():
     app = socketio.Middleware(sio)
     # deploy as an eventlet WSGI server
     eventlet.wsgi.server(eventlet.listen(('', 5001)), app)
-
-
-
-'''
-
-protocol :
-[PUB]
-{
-   "event" : "<namespace>"."<event name>",
-   "to": "MPW",
-   "props": {}
-}
-
-'''

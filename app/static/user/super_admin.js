@@ -94,14 +94,19 @@ var JavaBinary = function () {
     
     this.socket.on("connect",function () {
         var pub_model = {
-            "event":"download.test",
+            "event":"process.get_active_instances",
             "to":"MPW",
+            "flag" : self._generate_flag(16),
             "props": {
                 "data": "dat",
                 "A":"B"
             }
         };
         self.socket.emit("message", pub_model);
+    });
+
+    this.socket.on("message", function (msg) {
+        console.log(msg)
     });
     this.list_vm = new Vue({
         el:"#java_list",
@@ -171,6 +176,14 @@ var JavaBinary = function () {
     })
 };
 
+JavaBinary.prototype._generate_flag = function (num) {
+    var series = "0123456789abcdefghijklmnopqrstuvwxyzZ";
+    var str = "";
+    for(var i=0;i<num;i++){
+        str += series[Math.floor(Math.random() * 36)]
+    }
+    return str;
+};
 JavaBinary.prototype._init_list = function (callback) {
     $.get("/super_admin/java_binary/get_list", function (data) {
         try{

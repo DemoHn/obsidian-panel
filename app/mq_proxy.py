@@ -5,6 +5,7 @@ import threading
 import json
 import pickle
 import inspect
+import uuid
 
 WS_TAG = "APP"
 class MessageQueueProxy(object):
@@ -35,6 +36,11 @@ class MessageQueueProxy(object):
         t = threading.Thread(target=self._listen)
         t.start()
 
+    def get_flag(self, flag):
+        if flag == None:
+            return uuid.uuid4()
+        else:
+            return flag
     def _listen(self):
         for msg in self.pubsub.listen():
             channel = self.channel.encode()
@@ -44,26 +50,28 @@ class MessageQueueProxy(object):
                 dest = msg_json.get("to")
                 event_name = msg_json.get("event")
                 values = msg_json.get("props")
+                flag = self.get_flag(msg_json.get("flag"))
 
                 if dest == WS_TAG and event_name != None and values != None:
+                    _uid = msg_json.get("_uid")
+                    _sid = msg_json.get("_sid")
+                    # add info about uid
+                    values["_uid"] = _uid
+                    values["_sid"] = _sid
+
                     if self.handlers[event_name] != None:
                         handler = self.handlers[event_name]
-                        handler(values)
+                        handler(flag, values)
 
-    def send(self, event, dest, values):
+    def send(self, event, dest, flag, values, uid=None, sid=None):
         if dest == "CLIENT":
             send_msg = {
-                "method" : "emit",
-                "event": "message",
-                "data" : {
-                    "event": event,
-                    "to" : "CLIENT",
-                    "props" : values
-                },
-                "namespace" : "/",
-                "room": None,
-                "skip_sid" : None,
-                "callback" : None
+                "event": event,
+                "to": "CLIENT",
+                "flag": flag,
+                "props": values,
+                "_uid": uid,
+                "_sid": sid
             }
         else:
             send_msg = {
