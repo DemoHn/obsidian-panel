@@ -16,6 +16,7 @@ eventlet.monkey_patch()
 mgr = socketio.RedisManager("redis://")
 sio = socketio.Server(client_manager=mgr)
 
+WS_TAG = "CLIENT"
 class WSConnections(object):
     instance = None
 
@@ -146,7 +147,8 @@ def emit_message(sid, data):
         "event": data.get("event"),
         "flag" : data.get("flag"),
         "_uid" : ws.find_uid(sid),
-        "_sid" : sid
+        "_sid" : sid,
+        "_from" : WS_TAG
     }
 
     # only root user could operate it

@@ -20,6 +20,13 @@ class PRIVILEGES:
     INST_OWNER = 4
     EVERYONE = 8
 
+class WS_TAG:
+    MPW = "MPW"
+    CLIENT = "CLIENT"
+    CLIENT_BYE = "CLIENT_BYE"
+    APP = "APP"
+    FTM = "FTM"
+
 def get_file_directory():
     full_path = os.path.realpath(__file__)
     path,file = os.path.split(full_path)

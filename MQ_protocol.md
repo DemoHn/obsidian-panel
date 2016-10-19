@@ -40,7 +40,8 @@ Here is the message for notification
     "props": <values>,
     "flag" : <flag>,
     "_uid" : <uid>,
-    "_sid" : <sid> or None
+    "_sid" : <sid> or None,
+    "_from" : <module TAG>
 }
 ```
 

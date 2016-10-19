@@ -7,7 +7,7 @@ import pickle
 import inspect
 import uuid
 
-WS_TAG = "APP"
+from app.utils import WS_TAG
 class MessageQueueProxy(object):
     instance = None
     '''
@@ -53,32 +53,36 @@ class MessageQueueProxy(object):
                 values = msg_json.get("props")
                 flag = self.get_flag(msg_json.get("flag"))
 
-                if dest == WS_TAG and event_name != None and values != None:
+                if dest == WS_TAG.APP and event_name != None and values != None:
                     _uid = msg_json.get("_uid")
                     _sid = msg_json.get("_sid")
+                    _from = msg_json.get("_from")
                     # add info about uid
                     values["_uid"] = _uid
                     values["_sid"] = _sid
+                    values["_from"] = _from
 
                     if self.handlers[event_name] != None:
                         handler = self.handlers[event_name]
                         handler(flag, values)
 
     def send(self, event, dest, flag, values, uid=None, sid=None):
-        if dest == "CLIENT":
+        if dest == WS_TAG.CLIENT:
             send_msg = {
                 "event": event,
-                "to": "CLIENT",
+                "to": WS_TAG.CLIENT,
                 "flag": flag,
                 "props": values,
                 "_uid": uid,
-                "_sid": sid
+                "_sid": sid,
+                "_from" : WS_TAG.APP
             }
         else:
             send_msg = {
                 "event" : event,
                 "to" : dest,
-                "props" : values
+                "props" : values,
+                "_from" : WS_TAG.APP
             }
 
         self.redis.publish(self.channel, pickle.dumps(send_msg))

@@ -3,8 +3,8 @@ import json
 import pickle
 import inspect
 import uuid
+from app.utils import WS_TAG
 
-WS_TAG = "CLIENT"
 class MessageQueueProxy(object):
     instance = None
     '''
@@ -48,14 +48,14 @@ class MessageQueueProxy(object):
                 values = msg_json.get("props")
 
                 flag = self.get_flag(msg_json.get("flag"))
-                if dest == WS_TAG and event_name != None and values != None:
+                if dest == WS_TAG.CLIENT and event_name != None and values != None:
                     ws = WSConnections.getInstance()
                     _uid = msg_json.get("_uid")
 
                     if _uid != None:
                         _s = {
                             # prevent infinite handling
-                            "to" : "CLIENT_BYE",
+                            "to" : WS_TAG.CLIENT_BYE,
                             "event": event_name,
                             "props": values,
                             "flag" : flag
@@ -72,7 +72,7 @@ class MessageQueueProxy(object):
                             "event": "message",
                             "data": {
                                 "event": event_name,
-                                "to": "CLIENT_BYE",
+                                "to": WS_TAG.CLIENT_BYE,
                                 "props": values,
                                 "flag" : flag
                             },
