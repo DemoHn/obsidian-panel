@@ -4,9 +4,12 @@ from app.model import Users, UserToken
 from app.utils import PRIVILEGES
 import socketio
 import eventlet
-import pickle
+import json
 import re
+import threading
+import pickle
 
+from .mq_proxy import MessageQueueProxy
 
 eventlet.monkey_patch()
 
@@ -73,18 +76,16 @@ class WSConnections(object):
         @sio.on("connect")
         def on_connect(sid, environment):
             priv, uid = self._check_user(environment)
-
             # socket is invalid
             if priv == None:
                 sio.disconnect(sid, namespace="/")
             else:
                 user_key = "user_%s" % uid
                 if self.connections.get(user_key) == None:
-                    _conns = self.connections
-                    _conns[user_key] = []
+                    self.connections[user_key] = []
 
                 if sid not in self.connections.get(user_key):
-                    self.connections.get(user_key).append(sid)
+                    self.connections[user_key].append(sid)
                     #emit("ack",{"sid":sid})
 
     def _init_disconnect_event(self):
@@ -139,16 +140,22 @@ def emit_message(sid, data):
     ws = WSConnections.getInstance()
     # only root user could operate it
     avail = ws.sid_available(sid, permission=PRIVILEGES.ROOT_USER)
-
     if avail == True:
         mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
 
 def start_websocket_server():
     #init
-    w = WSConnections.getInstance()
+    WSConnections.getInstance()
+    # add listen thread
+    proxy = MessageQueueProxy.getInstance()
+    t = threading.Thread(target=proxy.listen)
+    t.start()
+
     app = socketio.Middleware(sio)
     # deploy as an eventlet WSGI server
     eventlet.wsgi.server(eventlet.listen(('', 5001)), app)
+
+
 
 '''
 

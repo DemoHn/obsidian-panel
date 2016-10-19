@@ -156,10 +156,23 @@ Dashboard.prototype._add_socket_listener = function (socket) {
     var self = this;
     var dvm  = self.dashboard_vm;
     socket.on("connect", function () {
+        var pub_model = {
+            "event":"process.get_instance_status",
+            "to":"MPW",
+            "props": {
+                "inst_id": 1,
+                "A":"B"
+            }
+        };
+        console.log(pub_model);
+        self.socket.emit("message", pub_model);
         // enable the button
         self.dashboard_vm.start_btn_disable = false;
     });
 
+    socket.on("message", function (msg) {
+        console.log(msg);
+    });
     socket.on("inst_event", function (msg) {
         if(msg.event == "status_change"){
 

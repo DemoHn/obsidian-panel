@@ -3,7 +3,7 @@ import json
 import pickle
 import inspect
 
-WS_TAG = "MPW"
+WS_TAG = "CLIENT"
 class MessageQueueProxy(object):
     instance = None
     '''
@@ -27,41 +27,44 @@ class MessageQueueProxy(object):
         # subscribe socketio to recv data from websocket server
         self.pubsub.subscribe(self.channel)
 
-        self.handlers = {}
-
     def listen(self):
+        from websocket_server.server import WSConnections,mgr
         for msg in self.pubsub.listen():
             channel = self.channel.encode()
 
             if msg["type"] == "message" and msg['channel'] == channel:
-                msg_json = pickle.loads(msg['data'])
+                msg_json = pickle.loads(msg["data"])
 
                 dest = msg_json.get("to")
                 event_name = msg_json.get("event")
                 values = msg_json.get("props")
                 if dest == WS_TAG and event_name != None and values != None:
-                    if self.handlers.get(event_name) != None:
-                        handler = self.handlers.get(event_name)
-                        handler(values)
+                    ws = WSConnections.getInstance()
+                    _uid = msg_json.get("_uid")
+
+                    if _uid != None:
+                        _s = {
+                            # prevent infinite handling
+                            "to" : "CLIENT_BYE",
+                            "event": event_name,
+                            "props": values
+                        }
+                        ws.send_data("message", _s, _uid)
+                    else:
+                        send_msg = {
+                            "method": "emit",
+                            "event": "message",
+                            "data": {
+                                "event": event_name,
+                                "to": "CLIENT_BYE",
+                                "props": values
+                            },
+                            "namespace": "/",
+                            "room": None,
+                            "skip_sid": None,
+                            "callback": None
+                        }
+
+                        mgr.redis.publish(self.channel, pickle.dumps(send_msg))
 
 
-    def send(self, event, dest, values, uid = None):
-        if dest == "CLIENT":
-            send_msg = {
-                "event": event,
-                "to": "CLIENT",
-                "props": values,
-                "_uid": uid
-            }
-        else:
-            send_msg = {
-                "event": event,
-                "to": dest,
-                "props": values
-            }
-
-        self.redis.publish(self.channel, pickle.dumps(send_msg))
-
-    def register_handler(self, event_name, handler):
-        if inspect.isfunction(handler) == True or inspect.ismethod(handler) == True:
-            self.handlers[event_name] = handler

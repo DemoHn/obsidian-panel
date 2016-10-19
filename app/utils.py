@@ -100,7 +100,12 @@ def get_line_number(directory):
             num += get_line_number(subdir)
     return num
 # line number stat
-#print("\nfinal line number: %s" % (get_line_number(get_file_directory()) + get_line_number(get_file_directory()+"/../mpw")))
+#print("\nfinal line number: %s" % (
+#    get_line_number(get_file_directory())
+#    + get_line_number(get_file_directory()+"/../ftp_manager")
+#    + get_line_number(get_file_directory()+"/../process_watcher")
+#    + get_line_number(get_file_directory()+"/../websocket_server")
+#    ))
 
 # test f**king dateUtil
 #print(timeUtil.getReadableTime(timeUtil.getCurrentUTCtimestamp(),8))

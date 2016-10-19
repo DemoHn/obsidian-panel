@@ -92,13 +92,14 @@ def start_websocket_server():
 
 def start_process_watcher():
     from process_watcher.watchdog import Watchdog
-    from process_watcher.events import EventSender
+    from process_watcher.events import EventSender, WatcherEvents
     from process_watcher.mq_proxy import MessageQueueProxy
 
     watcher = Watchdog.getWDInstance()
     watcher.launch(hook_class=EventSender)
-
-    proxy = MessageQueueProxy()
+    # init recv events
+    proxy = MessageQueueProxy.getInstance()
+    WatcherEvents()
     proxy.listen()
 
 launch_branch_name = sys.argv[2]

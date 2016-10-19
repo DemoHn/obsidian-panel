@@ -72,7 +72,7 @@ class MessageQueueProxy(object):
                 "props" : values
             }
 
-        self.redis.publish(self.channel, json.dumps(send_msg).encode())
+        self.redis.publish(self.channel, pickle.dumps(send_msg))
         #self._publish({'method': 'emit', 'event': event, 'data': data,
         #               'namespace': namespace, 'room': room,
         #               'skip_sid': skip_sid, 'callback': callback})

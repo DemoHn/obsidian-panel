@@ -1,4 +1,4 @@
-from app import socketio, db
+from app import db
 from app.model import Users, UserToken, ServerInstance
 from app.controller.global_config import GlobalConfig
 
@@ -6,6 +6,7 @@ from . import SERVER_STATE
 from .mq_proxy import MessageQueueProxy
 from .watchdog import Watchdog
 
+import inspect
 class WatcherEvents(object):
     '''
     This class handles control events from other side (app,websocket and so on).
@@ -17,13 +18,34 @@ class WatcherEvents(object):
     def __init__(self):
         self.watcher = Watchdog.getWDInstance()
         self.proxy   = MessageQueueProxy.getInstance()
+
+        events = (
+            "get_instance_status",
+            "get_active_instances",
+            "get_instance_log",
+            "add_instance",
+            "remove_instance",
+            "start_instance",
+            "stop_instance"
+        )
+
+        # register handler
+        for e in events:
+            try:
+                _method = getattr(self, e)
+                if inspect.ismethod(_method):
+                    event_name = "process.%s" % e
+                    self.proxy.register_handler(event_name, _method)
+            except:
+                continue
+
         pass
 
     def get_instance_status(self, values):
         '''
         DESCRIPTION: get all instances registered on the process pool.
 
-        EVENT NAME: process.all_instances
+        EVENT NAME: process.get_instance_status
 
         :param values: {'inst_id': "all"} | {"inst_id" : <inst_id>}
         :return: {
@@ -40,13 +62,14 @@ class WatcherEvents(object):
             "status" : "error"
         }
         '''
+        self.proxy.send("process.get_instance_status.callback", "CLIENT", {"inst_id" : 1}, uid = 1)
         pass
 
     def get_active_instances(self, values):
         '''
         DESCRIPTION: return all active instances (STARING | RUNNING)
 
-        EVENT NAME: process.get_instance
+        EVENT NAME: process.get_active_instances
 
         :param values: {'inst_id': <inst_id> }
         :return:
@@ -67,7 +90,7 @@ class WatcherEvents(object):
         '''
         pass
 
-    def get_inst_log(self, values):
+    def get_instance_log(self, values):
         '''
         DESCRIPTION: get instance log (all log)
 
