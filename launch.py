@@ -92,7 +92,7 @@ def start_websocket_server():
 
 def start_process_watcher():
     from process_watcher.watchdog import Watchdog
-    from process_watcher.events import EventSender, WatcherEvents
+    from process_watcher.mq_events import EventSender, WatcherEvents
     from process_watcher.mq_proxy import MessageQueueProxy
 
     watcher = Watchdog.getWDInstance()

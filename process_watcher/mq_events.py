@@ -20,26 +20,17 @@ class WatcherEvents(object):
         self.watcher = Watchdog.getWDInstance()
         self.proxy   = MessageQueueProxy.getInstance()
 
-        events = (
-            "get_instance_status",
-            "get_active_instances",
-            "get_instance_log",
-            "add_instance",
-            "remove_instance",
-            "start_instance",
-            "stop_instance"
-        )
-
-        # register handler
-        for e in events:
+        methods_dict = WatcherEvents.__dict__
+        # register all methods into proxy
+        for method_name in methods_dict:
             try:
-                _method = getattr(self, e)
-                if inspect.ismethod(_method):
-                    event_name = "process.%s" % e
-                    self.proxy.register_handler(event_name, _method)
+                # to filter python's internal method (magical method)
+                if method_name.find("__") != 0:
+                    method = methods_dict[method_name]
+                    event_name = "process.%s" % method_name
+                    self.proxy.register_handler(event_name, method)
             except:
                 continue
-        pass
 
     def get_instance_status(self, flag, values):
         '''
@@ -320,7 +311,7 @@ class EventSender(object):
                 _method = getattr(self, "on_%s" % item)
                 self.add_hook_func(item, _method)
 
-            self.conn = MessageQueueProxy.getInstance()
+            self.proxy = MessageQueueProxy.getInstance()
             # KEY : <inst_id>
             # VALUE : <uid>
             self._inst_uid_cache = {}
@@ -341,13 +332,17 @@ class EventSender(object):
             return self._inst_uid_cache.get(inst_key)
 
     # event name : inst_event
-    def send(self, inst_id, event, value):
+    def send(self, inst_id, event_name, value):
+        event_prefix = "process"
+        event_type   = "notification"
+
+        event_name   = "%s.%s.%s" % (event_prefix, event_name, event_type)
         values = {
             "inst_id" : inst_id,
-            "value" : value
+            "val" : value
         }
         uid = self._get_uid_from_inst_id(inst_id)
-        self.conn.send(event, "CLIENT", values, uid = uid)
+        self.proxy.send(event_name, WS_TAG.CLIENT, values, uid = uid)
 
     # event listeners
     def on_inst_starting(self, inst_id, p):
