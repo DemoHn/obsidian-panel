@@ -28,6 +28,8 @@ class MessageQueueProxy(object):
         # subscribe socketio to recv data from websocket server
         self.pubsub.subscribe(self.channel)
 
+        self.handlers = {}
+
 
     def get_flag(self, flag):
         if flag == None:
@@ -84,4 +86,32 @@ class MessageQueueProxy(object):
 
                         mgr.redis.publish(self.channel, pickle.dumps(send_msg))
 
+                elif dest == WS_TAG.CLIENT_CONTROL and event_name != None and values != None:
+                    _uid = msg_json.get("_uid")
+                    _sid = msg_json.get("_sid")
+                    _from = msg_json.get("_from")
+                    # add info about uid
+                    values["_uid"] = _uid
+                    values["_sid"] = _sid
+                    values["_from"] = _from
+
+                    if self.handlers.get(event_name) != None:
+                        handler = self.handlers.get(event_name)
+                        handler(flag, values)
+
+    def send(self, event, dest, flag, values):
+        send_msg = {
+            "event": event,
+            "to": dest,
+            "flag": flag,
+            "props": values,
+            "_uid": values.get("_uid"),
+            "_sid": values.get("_sid"),
+            "_from": WS_TAG.CLIENT_CONTROL
+        }
+        self.redis.publish(self.channel, pickle.dumps(send_msg))
+
+    def register_handler(self, event_name, handler):
+        if inspect.ismethod(handler) or inspect.isfunction(handler):
+            self.handlers[event_name] = handler
 

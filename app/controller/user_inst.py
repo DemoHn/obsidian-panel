@@ -259,32 +259,8 @@ class InstanceController(object):
     '''
 
     @staticmethod
-    def start(inst_id):
-        # _inst_running_sig = signals.signal("inst")
-        # hook functions
-        def _send_log_func(log_data):
-            logger.debug("inst[%s] log %s" % (inst_id, log_data))
-
-        def _inst_starting_func():
-            logger.debug("inst[%s] START" % inst_id)
-
-
-        _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE)
-        item = _q.filter(ServerInstance.inst_id == inst_id).first()
-
-        if item == None:
-            raise Exception("Item is None!")
-        else:
-            # generate config dict
-            mc_w_config = {
-                "jar_file": os.path.join(item.ob_server_core.file_dir, item.ob_server_core.file_name),
-                "java_bin": item.ob_java_bin.bin_directory,
-                "max_RAM": int(item.max_RAM),
-                "min_RAM": math.floor(int(item.max_RAM) / 2),
-                "proc_cwd": item.inst_dir
-            }
-
-            _port = int(item.listening_port)
+    def add(inst_id):
+        pass
             #watcher.add_instance(inst_id, _port, mc_w_config)
 
             #watcher.start_instance(inst_id)

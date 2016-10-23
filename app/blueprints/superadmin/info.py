@@ -11,9 +11,8 @@ from app.model import ServerCORE
 from . import super_admin_page, logger
 from .check_login import super_admin_only, ajax_super_admin_only
 
-import traceback
-import os, json
-from datetime import datetime
+from app.utils import WS_TAG
+from app.mq_proxy import MessageQueueProxy
 
 rtn = returnModel("string")
 
@@ -22,6 +21,8 @@ rtn = returnModel("string")
 @super_admin_only
 def render_info_page(uid, priv):
     try:
+        #proxy = MessageQueueProxy.getInstance()
+        #proxy.send("process._test", WS_TAG.MPW, "123456", {"a":"b"})
         return render_template('superadmin/info.html',title="OBpanel")
     except TemplateNotFound:
         abort(404)

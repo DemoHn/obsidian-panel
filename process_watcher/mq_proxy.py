@@ -61,25 +61,15 @@ class MessageQueueProxy(object):
                         handler(flag, values)
 
     def send(self, event, dest, flag, values, uid=None, sid=None):
-        if dest == WS_TAG.CLIENT:
-            send_msg = {
-                "event": event,
-                "to": WS_TAG.CLIENT,
-                "flag": flag,
-                "props": values,
-                "_uid": uid,
-                "_sid": sid,
-                "_from": WS_TAG.MPW
-            }
-        else:
-            send_msg = {
-                "event": event,
-                "flag": flag,
-                "to": dest,
-                "props": values,
-                "_from": WS_TAG.MPW
-            }
-
+        send_msg = {
+            "event": event,
+            "to": dest,
+            "flag": flag,
+            "props": values,
+            "_uid": values.get("_uid"),
+            "_sid": values.get("_sid"),
+            "_from": WS_TAG.MPW
+        }
         self.redis.publish(self.channel, pickle.dumps(send_msg))
 
     def register_handler(self, event_name, handler):

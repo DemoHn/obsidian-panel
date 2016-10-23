@@ -7,7 +7,6 @@ from . import SERVER_STATE
 from .mq_proxy import MessageQueueProxy
 from .watchdog import Watchdog
 
-import inspect
 class WatcherEvents(object):
     '''
     This class handles control events from other side (app,websocket and so on).
@@ -26,7 +25,7 @@ class WatcherEvents(object):
             try:
                 # to filter python's internal method (magical method)
                 if method_name.find("__") != 0:
-                    method = methods_dict[method_name]
+                    method = getattr(self, method_name)
                     event_name = "process.%s" % method_name
                     self.proxy.register_handler(event_name, method)
             except:
@@ -172,7 +171,7 @@ class WatcherEvents(object):
         '''
         pass
 
-    def add_instance(self, flag, values):
+    def add_instance(self, flag, values, send_ack=True):
         '''
         DESCRIPTION: add instance. But not activate it immediately.
 
@@ -196,9 +195,10 @@ class WatcherEvents(object):
         self.watcher.register_instance(_inst_id, _port, _config)
         rtn_data["inst_id"] = _inst_id
 
-        # we only recv message from app
-        if sender == WS_TAG.APP:
-            self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
+        if send_ack:
+            # we only recv message from app
+            if sender == WS_TAG.APP:
+                self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
 
     def remove_instance(self, flag, values):
         '''
@@ -225,7 +225,7 @@ class WatcherEvents(object):
             self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
         pass
 
-    def start_instance(self, flag, values):
+    def start_instance(self, flag, values, send_ack=True):
         '''
         DESCRIPTION: start a instance.
 
@@ -242,20 +242,20 @@ class WatcherEvents(object):
         }
         sender = values.get("_from")
         inst_id = values.get("inst_id")
-
         self.watcher.start_instance(inst_id)
         rtn_data["inst_id"] = inst_id
 
-        if sender == WS_TAG.APP:
-            self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
-        elif sender == WS_TAG.CLIENT:
-            uid = values.get("_uid")
-            if uid == None:
-                return None
-            else:
-                self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
+        if send_ack:
+            if sender == WS_TAG.APP:
+                self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
+            elif sender == WS_TAG.CLIENT:
+                uid = values.get("_uid")
+                if uid == None:
+                    return None
+                else:
+                    self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
 
-    def stop_instance(self, flag, values):
+    def stop_instance(self, flag, values, send_ack=True):
         '''
         DESCRIPTION: stop a instance.
 
@@ -276,15 +276,23 @@ class WatcherEvents(object):
         self.watcher.stop_instance(inst_id)
         rtn_data["inst_id"] = inst_id
 
-        if sender == WS_TAG.APP:
-            self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
-        elif sender == WS_TAG.CLIENT:
-            uid = values.get("_uid")
-            if uid == None:
-                return None
-            else:
-                self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
-        pass
+        if send_ack:
+            if sender == WS_TAG.APP:
+                self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
+            elif sender == WS_TAG.CLIENT:
+                uid = values.get("_uid")
+                if uid == None:
+                    return None
+                else:
+                    self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
+
+    def _test(self, flag, values):
+        print("test data : %s" % values)
+
+    def add_and_start(self, flag, values):
+        self.add_instance(flag, values,send_ack=False)
+        self.start_instance(flag, values,send_ack=False)
+
 
 class EventSender(object):
     '''

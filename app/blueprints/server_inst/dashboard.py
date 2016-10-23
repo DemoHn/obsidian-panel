@@ -90,7 +90,7 @@ def get_instance_status(uid, priv):
         }
 
         # search proc_pool to get some information
-        # TODO active insta
+        # TODO active instance
         #active_inst = watcher.get_instance(inst_id)
         active_inst = None
 

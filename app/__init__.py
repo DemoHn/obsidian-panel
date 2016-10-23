@@ -2,7 +2,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
 from app.controller.global_config import GlobalConfig
-from app.mq_proxy import MessageQueueProxy
 
 app = Flask(__name__)
 

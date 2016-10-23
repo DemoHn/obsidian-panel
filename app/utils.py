@@ -23,6 +23,7 @@ class PRIVILEGES:
 class WS_TAG:
     MPW = "MPW"
     CLIENT = "CLIENT"
+    CLIENT_CONTROL = "CLIENT_CONTROL"
     CLIENT_BYE = "CLIENT_BYE"
     APP = "APP"
     FTM = "FTM"

@@ -126,7 +126,7 @@ Dashboard.prototype.fetch_status = function (callback) {
 
 Dashboard.prototype.start_inst = function (callback) {
     var self = this;
-    $.post("/server_inst/dashboard/start_inst",{"inst_id": self.inst_id}, function (data) {
+    /*$.post("/server_inst/dashboard/start_inst",{"inst_id": self.inst_id}, function (data) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
@@ -135,7 +135,17 @@ Dashboard.prototype.start_inst = function (callback) {
         }catch(e){
             callback(null);
         }
-    })
+    })*/
+    start_instance_msg = {
+        "event" : "instance.start",
+
+        "to" : "CLIENT_CONTROL",
+        "flag" : self._generate_flag(32),
+        "props":{
+            "inst_id" : self.inst_id
+        }
+    };
+    self.socket.emit("message", start_instance_msg)
 };
 
 Dashboard.prototype.stop_inst = function (callback) {
@@ -152,21 +162,20 @@ Dashboard.prototype.stop_inst = function (callback) {
     })
 };
 
+Dashboard.prototype._generate_flag = function (num) {
+    var series = "0123456789abcdefghijklmnopqrstuvwxyzZ";
+    var str = "";
+    for(var i=0;i<num;i++){
+        str += series[Math.floor(Math.random() * 36)]
+    }
+    return str;
+};
+
 Dashboard.prototype._add_socket_listener = function (socket) {
     var self = this;
     var dvm  = self.dashboard_vm;
     socket.on("connect", function () {
-        var pub_model = {
-            "event":"process.get_instance_status",
-            "to":"MPW",
-            "props": {
-                "inst_id": 1,
-                "A":"B"
-            }
-        };
-        console.log(pub_model);
-        self.socket.emit("message", pub_model);
-        // enable the button
+        // enable start button
         self.dashboard_vm.start_btn_disable = false;
     });
 

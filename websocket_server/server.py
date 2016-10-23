@@ -10,6 +10,7 @@ import threading
 import pickle
 
 from .mq_proxy import MessageQueueProxy
+from .controller.controller_of_instance import ControllerOfInstance
 
 eventlet.monkey_patch()
 
@@ -157,6 +158,8 @@ def emit_message(sid, data):
         mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
 
 def start_websocket_server():
+    # register listeners
+    ControllerOfInstance()
     #init
     WSConnections.getInstance()
     # add listen thread

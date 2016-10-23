@@ -31,7 +31,7 @@ class MessageQueueProxy(object):
         # subscribe socketio to recv data from websocket server
         self.pubsub.subscribe(self.channel)
 
-        self.handlers = []
+        self.handlers = {}
 
         t = threading.Thread(target=self._listen)
         t.start()
@@ -52,7 +52,6 @@ class MessageQueueProxy(object):
                 event_name = msg_json.get("event")
                 values = msg_json.get("props")
                 flag = self.get_flag(msg_json.get("flag"))
-
                 if dest == WS_TAG.APP and event_name != None and values != None:
                     _uid = msg_json.get("_uid")
                     _sid = msg_json.get("_sid")
