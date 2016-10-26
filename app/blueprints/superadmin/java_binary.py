@@ -125,13 +125,14 @@ def get_download_list(uid, priv):
 @super_admin_only
 def add_download_task(uid, priv):
     '''
-    when accessing this route, a new JDK starts downloading in the background.
-    Due to the limitation of current technology, we only allow one file to download at the
-    same time.
-    request params: [POST]
-    :major: <major version of java>
-    :minor: <minor version of java>
-    '''
+        when accessing this route, a new JDK starts downloading in the background.
+        Due to the limitation of current technology, we only allow one file to download at the
+        same time.
+        request params: [POST]
+        :major: <major version of java>
+        :minor: <minor version of java>
+        '''
+
     def _add_java_task(link, download_dir):
         '''
         add task of downloading java, with hooks.
@@ -168,10 +169,10 @@ def add_download_task(uid, priv):
             try:
                 # save the version info into the database
                 version_data = JavaBinary(
-                    major_version = major_ver,
-                    minor_version = minor_ver,
-                    bin_directory = bin_dir,
-                    install_time  = datetime.now()
+                    major_version=major_ver,
+                    minor_version=minor_ver,
+                    bin_directory=bin_dir,
+                    install_time=datetime.now()
                 )
                 db.session.add(version_data)
                 db.session.commit()
@@ -194,7 +195,7 @@ def add_download_task(uid, priv):
             _utils.send_dw_signal("_download_finish", hash, False)
 
         dp = DownloaderPool.getInstance()
-        inst, hash = dp.newTask(link, download_dir= download_dir)
+        inst, hash = dp.newTask(link, download_dir=download_dir)
         # add cookies to download java directly
         inst.disableSSLCert()
         inst.setHeaders({
@@ -205,7 +206,7 @@ def add_download_task(uid, priv):
         inst.set_force_singlethread(True)
         # global config
         gc = GlobalConfig.getInstance()
-        bin_dir   = gc.get("lib_bin_dir")
+        bin_dir = gc.get("lib_bin_dir")
 
         # add hook
         inst.addDownloadFinishHook(_send_finish_event)

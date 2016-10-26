@@ -7,13 +7,7 @@ from app.utils import WS_TAG
 
 class MessageQueueProxy(object):
     instance = None
-    '''
-    What is a .. Message Queue Proxy?
-    A message queue proxy is responsible for receiving message from message queue
-    and send message to it.
-    Because we use a standalone websocket server, we use message queue to delegate
-    websocket server to send websocket message, instead of sending message directly.
-    '''
+
     @staticmethod
     def getInstance():
         if MessageQueueProxy.instance == None:
@@ -111,7 +105,8 @@ class MessageQueueProxy(object):
         }
         self.redis.publish(self.channel, pickle.dumps(send_msg))
 
-    def register_handler(self, event_name, handler):
-        if inspect.ismethod(handler) or inspect.isfunction(handler):
-            self.handlers[event_name] = handler
+
+def register_handler(self, event_name, handler):
+    if inspect.ismethod(handler) or inspect.isfunction(handler):
+        self.handlers[event_name] = handler
 

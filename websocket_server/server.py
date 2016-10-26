@@ -1,7 +1,7 @@
 from app import db
 from app.model import Users, UserToken
 
-from app.utils import PRIVILEGES
+from app.utils import PRIVILEGES, WS_TAG
 import socketio
 import eventlet
 import json
@@ -17,7 +17,6 @@ eventlet.monkey_patch()
 mgr = socketio.RedisManager("redis://")
 sio = socketio.Server(client_manager=mgr)
 
-WS_TAG = "CLIENT"
 class WSConnections(object):
     instance = None
 
@@ -149,7 +148,7 @@ def emit_message(sid, data):
         "flag" : data.get("flag"),
         "_uid" : ws.find_uid(sid),
         "_sid" : sid,
-        "_from" : WS_TAG
+        "_from" : WS_TAG.CLIENT
     }
 
     # only root user could operate it
