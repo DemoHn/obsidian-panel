@@ -3,7 +3,6 @@ import logging
 import os
 from app import app as _app
 from app import socketio#, ftp_manager
-from app.mq_proxy import MessageQueueProxy
 from app.mq_events import AppEvents
 from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
@@ -45,11 +44,6 @@ logger = init_logger(debug=True)
 # init directories
 init_directory()
 init_database(logger=logger)
-
-# set proxy
-proxy = MessageQueueProxy.getInstance()
-# register events to proxy
-AppEvents()
 
 if __name__ == "__main__":
     socketio.run(_app,debug=True, log_output=False)

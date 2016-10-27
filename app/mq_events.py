@@ -1,5 +1,4 @@
 
-from app.mq_proxy import MessageQueueProxy
 import inspect
 import os
 class AppEvents(object):
@@ -16,7 +15,7 @@ class AppEvents(object):
     # BROADCAST it to every process of the App!
     # Thus, try to avoid send message to App!
     def __init__(self):
-        self.proxy = MessageQueueProxy.getInstance()
+        self.proxy = None#MessageQueueProxy.getInstance()
 
         methods_dict = AppEvents.__dict__
         # register all methods into proxy

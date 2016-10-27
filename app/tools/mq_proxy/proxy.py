@@ -58,7 +58,6 @@ class MessageQueueProxy(metaclass=Singleton):
                 if dest == self.ws_tag and event_name != None and values != None:
                     if self.handlers.get(event_name) != None:
                         handler = self.handlers.get(event_name)
-                        print(handler)
                         try:
                             handler(flag, values)
                         except:

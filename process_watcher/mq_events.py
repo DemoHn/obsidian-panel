@@ -289,7 +289,7 @@ class WatcherEvents(MessageEventHandler):
                     self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
 
     def _test(self, flag, values):
-        print("test data : %s" % values)
+        print("[MPW] Roger. flag =%s, values= %s, info = %s" % (flag, values, self.pool.get(flag)))
 
     def add_and_start(self, flag, values):
         self.add_instance(flag, values,send_ack=False)
