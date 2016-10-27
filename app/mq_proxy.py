@@ -7,7 +7,7 @@ import pickle
 import inspect
 import uuid
 
-from app.utils import WS_TAG
+from app.tools.mq_proxy import WS_TAG
 class MessageQueueProxy(object):
     instance = None
     '''

@@ -20,4 +20,4 @@ class Controller(object):
 
                 if inspect.isfunction(method) or inspect.ismethod(method):
                     event_name = "%s.%s" % (self.prefix, method_name)
-                    self.proxy.register_handler(event_name, method)
+                    #self.proxy.register_handler(event_name, method)

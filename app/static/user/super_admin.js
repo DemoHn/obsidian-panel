@@ -94,8 +94,7 @@ var JavaBinary = function () {
     
     this.socket.on("connect",function () {
         var pub_model = {
-            "event":"process.get_active_instances",
-            "to":"MPW",
+            "event":"process._test",
             "flag" : self._generate_flag(16),
             "props": {
                 "data": "dat",

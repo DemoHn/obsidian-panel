@@ -3,7 +3,7 @@ import json
 import pickle
 import inspect
 import uuid
-from app.utils import WS_TAG
+from app.tools.mq_proxy import WS_TAG
 
 class MessageQueueProxy(object):
     instance = None
@@ -80,7 +80,7 @@ class MessageQueueProxy(object):
 
                         mgr.redis.publish(self.channel, pickle.dumps(send_msg))
 
-                elif dest == WS_TAG.CLIENT_CONTROL and event_name != None and values != None:
+                elif dest == WS_TAG.CONTROL and event_name != None and values != None:
                     _uid = msg_json.get("_uid")
                     _sid = msg_json.get("_sid")
                     _from = msg_json.get("_from")
@@ -101,7 +101,7 @@ class MessageQueueProxy(object):
             "props": values,
             "_uid": values.get("_uid"),
             "_sid": values.get("_sid"),
-            "_from": WS_TAG.CLIENT_CONTROL
+            "_from": WS_TAG.CONTROL
         }
         self.redis.publish(self.channel, pickle.dumps(send_msg))
 

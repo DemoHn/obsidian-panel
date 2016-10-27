@@ -1,7 +1,7 @@
 __author__ = "Nigshoxiz"
 
 from app import db
-from app.utils import WS_TAG
+from app.tools.mq_proxy import WS_TAG
 from app.model import JavaBinary
 from app.controller.global_config import GlobalConfig
 from websocket_server.controller.controller import Controller

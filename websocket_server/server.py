@@ -1,16 +1,14 @@
 from app import db
 from app.model import Users, UserToken
 
-from app.utils import PRIVILEGES, WS_TAG
+from app.utils import PRIVILEGES
+from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
 import socketio
 import eventlet
 import json
 import re
 import threading
 import pickle
-
-from .mq_proxy import MessageQueueProxy
-from .controller.controller_of_instance import ControllerOfInstance
 
 eventlet.monkey_patch()
 
@@ -140,31 +138,36 @@ class WSConnections(object):
 
 @sio.on('message', namespace="/")
 def emit_message(sid, data):
+    proxy = MessageQueueProxy(WS_TAG.CONTROL)
+
     ws = WSConnections.getInstance()
-    _send_data_model = {
-        "to" : data.get("to"),
-        "props": data.get("props"),
-        "event": data.get("event"),
-        "flag" : data.get("flag"),
-        "_uid" : ws.find_uid(sid),
-        "_sid" : sid,
-        "_from" : WS_TAG.CLIENT
-    }
+
+    _flag  = data.get("flag")
+    _event = data.get("event")
+    _props = data.get("props")
 
     # only root user could operate it
     avail = ws.sid_available(sid, permission=PRIVILEGES.ROOT_USER)
+
     if avail == True:
-        mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
+        proxy.send(_flag, _event, _props, WS_TAG.CONTROL,
+                   uid = ws.find_uid(sid),
+                   sid = sid,
+                   _src= WS_TAG.CLIENT)
+
+    #    mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
 
 def start_websocket_server():
     # register listeners
-    ControllerOfInstance()
+    #ControllerOfInstance()
     #init
     WSConnections.getInstance()
     # add listen thread
-    proxy = MessageQueueProxy.getInstance()
-    t = threading.Thread(target=proxy.listen)
-    t.start()
+    #proxy = MessageQueueProxy.getInstance()
+    #t = threading.Thread(target=proxy.listen)
+    #t.start()
+    proxy = MessageQueueProxy(WS_TAG.CONTROL)
+    proxy.listen(background=True)
 
     app = socketio.Middleware(sio)
     # deploy as an eventlet WSGI server

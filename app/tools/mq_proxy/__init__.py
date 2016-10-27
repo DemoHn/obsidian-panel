@@ -1,5 +1,6 @@
 __author__ = "Nigshoxiz"
 
+import redis
 class Singleton(type):
     _instances = {}
 
@@ -24,7 +25,10 @@ class MessageUserStatusPool(metaclass=Singleton):
     VALUE: [<uid>,<sid>,<src>,<dest>]
     '''
     def __init__(self):
-        self.pool = {}
+        '''
+        we use redis database to handle data
+        '''
+        self.redis = redis.Redis()
 
     def get(self, flag):
         '''
@@ -33,10 +37,11 @@ class MessageUserStatusPool(metaclass=Singleton):
         '''
         if flag == None:
             return (None, None, None, None)
-        _obj = self.pool.get(flag)
-        if _obj == None:
+        _data = self.redis.get(flag)
+        if _data == None:
             return (None, None, None, None)
 
+        _obj = _data.decode().split(",")
         uid = _obj[0]
         sid = _obj[1]
         src = _obj[2]
@@ -47,18 +52,18 @@ class MessageUserStatusPool(metaclass=Singleton):
         if flag == None:
             return False
 
-        if self.pool.get(flag) != None:
+        if self.redis.get(flag) != None:
             return True
         else:
             return False
 
+    def _set(self, flag, uid, sid, src, dest):
+        arr = [uid, sid, src, dest]
+        arr_str = ",".join(arr)
+        self.redis.set(flag, arr_str.encode())
+
     def put(self, flag, uid, sid, src, dest):
-        arr = []
-        arr[0] = uid
-        arr[1] = sid
-        arr[2] = src
-        arr[3] = dest
-        self.pool[flag] = arr
+        self._set(flag, uid, sid, src, dest)
 
     def update(self, flag,
                uid = None,
@@ -69,18 +74,22 @@ class MessageUserStatusPool(metaclass=Singleton):
         update storage data
         :return:
         '''
-        _obj = self.pool.get(flag)
-        if _obj == None:
-            return None
+        _uid, _sid, _src, _dest = self.get(flag)
 
-        if uid != None:
-            _obj[0] = uid
-        if sid != None:
-            _obj[1] = sid
-        if src != None:
-            _obj[2] = src
-        if dest != None:
-            _obj[3] = dest
+        if uid == None:
+            uid = _uid
+        if sid == None:
+            sid = _sid
+        if src == None:
+            src = _src
+        if dest == None:
+            dest = _dest
+
+        self._set(flag, uid, sid, src, dest)
 
     def delete(self, flag):
-        del self.pool[flag]
+        self.redis.delete(flag)
+
+from .proxy import MessageQueueProxy
+from .event_handler import MessageEventHandler
+

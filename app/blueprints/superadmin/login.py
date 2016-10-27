@@ -80,7 +80,7 @@ def logout():
 @super_admin_only
 def main_page(uid, priv):
     try:
-        if priv == utils.PRIV_ROOT:
+        if priv == PRIVILEGES.ROOT_USER:
             #return render_template("superadmin/index.html")
             # TEST
             return render_template("server_inst/new_inst.html")

@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 import redis
 import pickle
 import inspect
-
+import threading
 from uuid import uuid4
 from . import Singleton, WS_TAG, MessageUserStatusPool
 from .event_handler import MessageEventHandler
@@ -64,8 +64,8 @@ class MessageQueueProxy(metaclass=Singleton):
             self.handlers[event_name] = handler
 
     def register(self, cls):
-        if not isinstance(cls, MessageEventHandler):
-            return None
+        if not issubclass(cls, MessageEventHandler):
+            raise Exception("Not a child class of MessageEventHandler!")
 
         methods_dict = cls.__dict__
         # register all methods into proxy
@@ -73,14 +73,14 @@ class MessageQueueProxy(metaclass=Singleton):
             try:
                 # to filter python's internal method (magical method)
                 if method_name.find("__") != 0:
-                    method = getattr(self, method_name)
+                    method = getattr(cls, method_name)
                     event_name = "%s.%s" % (cls.__prefix__, method_name)
                     self._register_handler(event_name, method)
             except:
                 continue
         pass
 
-    def send(self, flag, event, values, dest, uid=None, sid=None):
+    def send(self, flag, event, values, dest, uid=None, sid=None, _src=None):
         '''
 
         :param flag: just flag
@@ -90,7 +90,6 @@ class MessageQueueProxy(metaclass=Singleton):
          WS_TAG.CLIENT | WS_TAG.MPW and so on
         :return:
         '''
-
         if flag == None:
             flag = self._get_flag(flag)
 
@@ -100,10 +99,21 @@ class MessageQueueProxy(metaclass=Singleton):
             "flag"  : flag
         }
 
-        _src = self.ws_tag
+        if _src == None:
+            _src = self.ws_tag
+
         _dest = dest
         if self.pool.exists(flag):
             self.pool.update(flag, src=_src, dest=_dest)
         else:
             self.pool.put(flag, uid, sid, _src, _dest)
+        print(self.pool.get(flag))
         self.redis.publish(self.channel, pickle.dumps(send_msg))
+
+    def listen(self, background=True):
+        if background:
+            t = threading.Thread(target=self._listen)
+            t.setDaemon(True)
+            t.start()
+        else:
+            self._listen()

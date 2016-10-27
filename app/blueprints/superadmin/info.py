@@ -11,9 +11,6 @@ from app.model import ServerCORE
 from . import super_admin_page, logger
 from .check_login import super_admin_only, ajax_super_admin_only
 
-from app.utils import WS_TAG
-from app.mq_proxy import MessageQueueProxy
-
 rtn = returnModel("string")
 
 # render page

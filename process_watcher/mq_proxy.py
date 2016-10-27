@@ -3,7 +3,7 @@ import json
 import pickle
 import inspect
 import uuid
-from app.utils import WS_TAG
+from app.tools.mq_proxy import WS_TAG
 class MessageQueueProxy(object):
     instance = None
     '''
@@ -48,6 +48,7 @@ class MessageQueueProxy(object):
                 flag = self.get_flag(msg_json.get("flag"))
 
                 if dest == WS_TAG.MPW and event_name != None and values != None:
+
                     _uid = msg_json.get("_uid")
                     _sid = msg_json.get("_sid")
                     _from = msg_json.get("_from")

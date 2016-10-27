@@ -1,4 +1,4 @@
-from app.utils import WS_TAG
+
 from app.mq_proxy import MessageQueueProxy
 import inspect
 import os

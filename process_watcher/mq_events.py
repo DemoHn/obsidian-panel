@@ -1,22 +1,22 @@
 from app import db
-from app.utils import WS_TAG
 from app.model import ServerInstance
 from app.controller.global_config import GlobalConfig
+from app.tools.mq_proxy import WS_TAG, MessageEventHandler
 
 from . import SERVER_STATE
 from .mq_proxy import MessageQueueProxy
 from .watchdog import Watchdog
 
-class WatcherEvents(object):
+class WatcherEvents(MessageEventHandler):
     '''
     This class handles control events from other side (app,websocket and so on).
     Of course, since the watcher is an independent process, we use message queue
     to control it.
     DON'T FORGET SEND AN 'ACK' message after finishing!
     '''
-
+    __prefix__ = "process"
     def __init__(self):
-        self.watcher = Watchdog.getWDInstance()
+        '''
         self.proxy   = MessageQueueProxy.getInstance()
 
         methods_dict = WatcherEvents.__dict__
@@ -30,6 +30,9 @@ class WatcherEvents(object):
                     self.proxy.register_handler(event_name, method)
             except:
                 continue
+        '''
+        self.watcher = Watchdog.getWDInstance()
+        MessageEventHandler.__init__(self)
 
     def get_instance_status(self, flag, values):
         '''

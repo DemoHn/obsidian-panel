@@ -91,6 +91,7 @@ def start_websocket_server():
     start_websocket_server()
 
 def start_process_watcher():
+    '''
     from process_watcher.watchdog import Watchdog
     from process_watcher.mq_events import EventSender, WatcherEvents
     from process_watcher.mq_proxy import MessageQueueProxy
@@ -101,6 +102,9 @@ def start_process_watcher():
     proxy = MessageQueueProxy.getInstance()
     WatcherEvents()
     proxy.listen()
+    '''
+    from process_watcher import start_process_watcher
+    start_process_watcher()
 
 launch_branch_name = sys.argv[2]
 
