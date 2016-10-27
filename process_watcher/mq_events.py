@@ -4,7 +4,6 @@ from app.controller.global_config import GlobalConfig
 from app.tools.mq_proxy import WS_TAG, MessageEventHandler
 
 from . import SERVER_STATE
-from .mq_proxy import MessageQueueProxy
 from .watchdog import Watchdog
 
 class WatcherEvents(MessageEventHandler):
@@ -93,8 +92,8 @@ class WatcherEvents(MessageEventHandler):
                 rtn_data["inst"].append(_model)
 
         # if the message is sent from browser
-        if sender == WS_TAG.CLIENT:
-            self.proxy.send(EVENT_NAME, sender,flag, rtn_data, uid=uid)
+        #if sender == WS_TAG.CLIENT:
+        #    self.proxy.send(EVENT_NAME, sender,flag, rtn_data, uid=uid)
 
     def get_active_instances(self, flag, values):
         '''

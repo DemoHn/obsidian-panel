@@ -150,6 +150,8 @@ def emit_message(sid, data):
     avail = ws.sid_available(sid, permission=PRIVILEGES.ROOT_USER)
 
     if avail == True:
+        # from CLIENT -> CONTROL
+        #
         proxy.send(_flag, _event, _props, WS_TAG.CONTROL,
                    uid = ws.find_uid(sid),
                    sid = sid,
@@ -158,6 +160,7 @@ def emit_message(sid, data):
     #    mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
 
 def start_websocket_server():
+    from .controller import ProcessEventHandler
     # register listeners
     #ControllerOfInstance()
     #init
@@ -166,7 +169,9 @@ def start_websocket_server():
     #proxy = MessageQueueProxy.getInstance()
     #t = threading.Thread(target=proxy.listen)
     #t.start()
+
     proxy = MessageQueueProxy(WS_TAG.CONTROL)
+    proxy.register(ProcessEventHandler)
     proxy.listen(background=True)
 
     app = socketio.Middleware(sio)

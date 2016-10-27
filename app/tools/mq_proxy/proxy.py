@@ -7,7 +7,8 @@ import threading
 from uuid import uuid4
 from . import Singleton, WS_TAG, MessageUserStatusPool
 from .event_handler import MessageEventHandler
-
+import logging
+import traceback
 class MessageQueueProxy(metaclass=Singleton):
     '''
     What is a .. Message Queue Proxy?
@@ -57,13 +58,18 @@ class MessageQueueProxy(metaclass=Singleton):
                 if dest == self.ws_tag and event_name != None and values != None:
                     if self.handlers.get(event_name) != None:
                         handler = self.handlers.get(event_name)
-                        handler(flag, values)
+                        print(handler)
+                        try:
+                            handler(flag, values)
+                        except:
+                            logging.debug(traceback.format_exc())
 
     def _register_handler(self, event_name, handler):
         if inspect.ismethod(handler):
             self.handlers[event_name] = handler
 
     def register(self, cls):
+        _instance = cls()
         if not issubclass(cls, MessageEventHandler):
             raise Exception("Not a child class of MessageEventHandler!")
 
@@ -73,7 +79,7 @@ class MessageQueueProxy(metaclass=Singleton):
             try:
                 # to filter python's internal method (magical method)
                 if method_name.find("__") != 0:
-                    method = getattr(cls, method_name)
+                    method = getattr(_instance, method_name)
                     event_name = "%s.%s" % (cls.__prefix__, method_name)
                     self._register_handler(event_name, method)
             except:
@@ -107,7 +113,6 @@ class MessageQueueProxy(metaclass=Singleton):
             self.pool.update(flag, src=_src, dest=_dest)
         else:
             self.pool.put(flag, uid, sid, _src, _dest)
-        print(self.pool.get(flag))
         self.redis.publish(self.channel, pickle.dumps(send_msg))
 
     def listen(self, background=True):
