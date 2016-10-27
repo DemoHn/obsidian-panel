@@ -126,15 +126,18 @@ class WSConnections(object):
                 break
         return _uid
 
-    def send_data(self, event, data, uid):
+    def send_data(self, event, data, uid, sid = None):
         '''
         send websocket data to all session that belongs to the user
         '''
-        user_key = "user_%s" % uid
-        sessions = self.connections.get(user_key)
-        if sessions != None:
-            for sid in sessions:
-                sio.emit(event, data, room=sid, namespace="/")
+        if sid != None:
+            sio.emit(event, data, room=sid, namespace="/")
+        else:
+            user_key = "user_%s" % uid
+            sessions = self.connections.get(user_key)
+            if sessions != None:
+                for sid in sessions:
+                    sio.emit(event, data, room=sid, namespace="/")
 
 @sio.on('message', namespace="/")
 def emit_message(sid, data):

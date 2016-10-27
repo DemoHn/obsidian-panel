@@ -1,11 +1,12 @@
 __author__ = "Nigshoxiz"
 
+from websocket_server.server import WSConnections
 from app import db
 from app.tools.mq_proxy import WS_TAG
 from app.model import JavaBinary
 from app.controller.global_config import GlobalConfig
-from websocket_server.controller.controller import Controller
 from app.tools.mc_downloader import DownloaderPool, sourceJAVA
+from app.tools.mq_proxy import MessageEventHandler, WS_TAG, MessageQueueProxy
 
 
 from datetime import datetime
@@ -35,14 +36,12 @@ class _utils:
 
         download_queue[hash] = _model
 
-class ControllerOfDownloader(Controller):
+class DownloaderEventHandler(MessageEventHandler):
 
-    prefix = "downloader"
-
-    download_queue = {}
-
+    __prefix__ = "downloader"
     def __init__(self):
-        Controller.__init__(self, prefix=ControllerOfDownloader.prefix)
+        self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
+        MessageEventHandler.__init__(self)
 
     def add_download_java_task(self, flag, values):
         '''
@@ -53,17 +52,17 @@ class ControllerOfDownloader(Controller):
             :major: <major version of java>
             :minor: <minor version of java>
             '''
-
+        uid, sid, src, dest = self.pool.get(flag)
         def _send_dw_signal(event_name, hash, result):
+            ws = WSConnections.getInstance()
             v = {
                 "hash": hash,
-                "result": result,
-                "_uid": values.get("_uid"),
-                "_sid": values.get("_sid")
+                "result": result
             }
+            ws.send_data("message", v, sid=sid)
 
-            event = "%s.%s" % (ControllerOfDownloader.prefix, event_name)
-            self.proxy.send(event, WS_TAG.CLIENT, flag, v)
+            #event = "%s.%s" % (ControllerOfDownloader.prefix, event_name)
+            #self.proxy.send(event, WS_TAG.CLIENT, flag, v)
 
         def _add_java_task(link, download_dir):
             '''

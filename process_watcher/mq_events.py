@@ -30,6 +30,7 @@ class WatcherEvents(MessageEventHandler):
             except:
                 continue
         '''
+        # TODO proxy
         self.watcher = Watchdog.getWDInstance()
         MessageEventHandler.__init__(self)
 
