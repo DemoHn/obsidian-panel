@@ -126,12 +126,14 @@ class WSConnections(object):
                 break
         return _uid
 
-    def send_data(self, event, data, uid, sid = None):
+    def send_data(self, event, data, uid = None, sid = None):
         '''
         send websocket data to all session that belongs to the user
         '''
         if sid != None:
             sio.emit(event, data, room=sid, namespace="/")
+        elif uid == None:
+            return None
         else:
             user_key = "user_%s" % uid
             sessions = self.connections.get(user_key)
@@ -163,7 +165,7 @@ def emit_message(sid, data):
     #    mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
 
 def start_websocket_server():
-    from .controller import ProcessEventHandler
+    from .controller import ProcessEventHandler, DownloaderEventHandler
     # register listeners
     #ControllerOfInstance()
     #init
@@ -175,6 +177,8 @@ def start_websocket_server():
 
     proxy = MessageQueueProxy(WS_TAG.CONTROL)
     proxy.register(ProcessEventHandler)
+    proxy.register(DownloaderEventHandler)
+
     proxy.listen(background=True)
 
     app = socketio.Middleware(sio)

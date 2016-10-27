@@ -101,7 +101,7 @@ var JavaBinary = function () {
                 "A":"B"
             }
         };
-        self.socket.emit("message", pub_model);
+       // self.socket.emit("message", pub_model);
     });
 
     this.socket.on("message", function (msg) {
@@ -199,7 +199,7 @@ JavaBinary.prototype._init_list = function (callback) {
 };
 
 JavaBinary.prototype._start_downloading = function (major, minor, callback) {
-    $.post("/super_admin/java_binary/download",{"major": major, "minor": minor}, function (data) {
+    /*$.post("/super_admin/java_binary/download",{"major": major, "minor": minor}, function (data) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
@@ -210,7 +210,18 @@ JavaBinary.prototype._start_downloading = function (major, minor, callback) {
         }catch(e){
             callback();
         }
-    })
+    })*/
+    var self = this;
+    var socket = self.socket;
+    var start_download_json = {
+            "event":"downloader.add_download_java_task",
+            "flag" : self._generate_flag(16),
+            "props": {
+                "major": major,
+                "minor" : minor
+            }
+        };
+    socket.emit("message", start_download_json);
 };
 
 JavaBinary.prototype._add_socket_listener = function (socket) {

@@ -56,9 +56,11 @@ class DownloaderEventHandler(MessageEventHandler):
         def _send_dw_signal(event_name, hash, result):
             ws = WSConnections.getInstance()
             v = {
+                "event" : event_name,
                 "hash": hash,
                 "result": result
             }
+            print("[Downloader] info =%s", v)
             ws.send_data("message", v, sid=sid)
 
             #event = "%s.%s" % (ControllerOfDownloader.prefix, event_name)
