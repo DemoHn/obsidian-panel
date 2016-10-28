@@ -321,5 +321,4 @@ class DownloaderEventHandler(MessageEventHandler):
             }
 
             dw_list.append(_model)
-        print(dw_list)
         send_dw_signal("_init_download_list", dw_list)

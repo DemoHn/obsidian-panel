@@ -196,8 +196,10 @@ JavaBinary.prototype._start_downloading = function (major, minor, _index) {
 
 JavaBinary.prototype._init_download_list_listener = function (socket) {
     var self = this;
+    var DOWNLOADING = 2;
 
     socket.on("message", function (msg) {
+        console.log(msg);
         if(msg.event == "_init_download_list"){
             var data = msg.result;
             for(var item in data){
@@ -206,16 +208,27 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
                     "progress" : data[item]["dw"]["progress"],
                     "_interval_flag" : 0
                 };
+                dw_hash = data[item]["dw"]["current_hash"];
+                if(_status_model["progress"] == DOWNLOADING) {
+                    _status_model._interval_flag = setInterval(function () {
+                        var event_json = {
+                            "event": "downloader.request_task_progress",
+                            "flag": self._generate_flag(20),
+                            "props": {
+                                "hash": dw_hash
+                            }
+                        };
+                        self.socket.emit("message", event_json);
+                    }, 1000);
+                }
 
                 self.list_vm.versions.push({
                     "minor" : data[item].minor,
                     "major" : data[item].major,
                     "link"  : data[item].link,
-                    "dw_hash" : "",
+                    "dw_hash" : dw_hash,
                     "btn_status" : _status_model
                 });
-
-                
             }
         }
     })
