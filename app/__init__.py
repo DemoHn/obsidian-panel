@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
 from app.controller.global_config import GlobalConfig
+
 app = Flask(__name__)
 
 # shut up, please. I don't wanna see your useless notice again !!
@@ -21,13 +22,7 @@ eventlet.monkey_patch()
 # init socketio
 socketio = SocketIO(app, message_queue='redis://')
 
-# run process watcher
-# in addtion, MPW is 'Minecraft Process Watcher'
-from mpw.watchdog import Watchdog
-watcher = Watchdog.getWDInstance()
-
-#from ftm import FTPManager
-#ftp_manager = FTPManager(2121)
+#socketio = MessageQueueProxy.getInstance()
 
 # import blueprints
 # to event circular importing, this `import` statement should be put

@@ -11,6 +11,7 @@ import hashlib
 import traceback
 import logging
 import json
+
 class MD5Authorizer(DummyAuthorizer):
     def validate_authentication(self, username, password, handler):
         hash = hashlib.md5(password.encode('utf-8') + salt).hexdigest()

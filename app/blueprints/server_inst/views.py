@@ -5,7 +5,7 @@ from jinja2 import TemplateNotFound
 from . import server_inst_page
 from app.blueprints.superadmin.check_login import check_login
 
-import app.utils as utils
+from app.utils import PRIVILEGES
 #import libs
 import string, random
 import logging
@@ -24,7 +24,7 @@ def logout():
 @check_login
 def view(uid, priv):
     try:
-        if priv <= utils.PRIV_INST_OWNER:
+        if priv <= PRIVILEGES.INST_OWNER:
             return render_template("server_inst/index.html")
         else:
             abort(403)

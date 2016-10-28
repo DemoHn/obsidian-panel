@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TEST</title>
+    <!-- Material Design fonts -->
+    <!--jquery-->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/static/css/ionicons.min.css">
+    <!--adminLTE skin-->
+    <link rel="stylesheet" href="/static/css/skins/skin-blue.min.css">
+
+    <link rel="stylesheet" href="/static/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="/static/css/super_admin.style.css">
+
+    <script src="/static/js/adminLTE.min.js"></script>
+    <script src="/static/js/slimscroll.min.js"></script>
+    <script src="/static/js/socketio.min.js"></script>
+    <script src="/static/js/vue.min.js"></script>
+
+    <script src="/static/user/super_admin.js"></script>
+<script>
+    var socket = io.connect("http://localhost:5001");
+    socket.on("connect", function () {
+        socket.emit("hello",{hello:"world"});
+        console.log("TEST SOCKET");
+    })
+</script>
+
+</head>
+<body>
+
+</body>
+</html>

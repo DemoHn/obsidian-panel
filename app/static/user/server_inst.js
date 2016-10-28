@@ -15,6 +15,13 @@ $(document).ready(function(){
     new _map[path_item]();
 });
 
+function getCurrentHost(){
+    var http = location.protocol;
+    var slashes = http.concat("//");
+    var host = slashes.concat(window.location.hostname);
+    return host;
+}
+
 /*
 * Server Core Page Management
 * */
@@ -26,7 +33,7 @@ var Dashboard = function () {
     // of course if you fetch it from URL,
     // that's also fine
     this.inst_id = $("#instID").val();
-    this.socket = io.connect("/channel_inst");
+    this.socket = io.connect(getCurrentHost()+":5001");
 
     this.status_dict = {
         "0" : "未运行",
@@ -119,7 +126,7 @@ Dashboard.prototype.fetch_status = function (callback) {
 
 Dashboard.prototype.start_inst = function (callback) {
     var self = this;
-    $.post("/server_inst/dashboard/start_inst",{"inst_id": self.inst_id}, function (data) {
+    /*$.post("/server_inst/dashboard/start_inst",{"inst_id": self.inst_id}, function (data) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
@@ -128,7 +135,17 @@ Dashboard.prototype.start_inst = function (callback) {
         }catch(e){
             callback(null);
         }
-    })
+    })*/
+    start_instance_msg = {
+        "event" : "instance.start",
+
+        "to" : "CLIENT_CONTROL",
+        "flag" : self._generate_flag(32),
+        "props":{
+            "inst_id" : self.inst_id
+        }
+    };
+    self.socket.emit("message", start_instance_msg)
 };
 
 Dashboard.prototype.stop_inst = function (callback) {
@@ -145,14 +162,26 @@ Dashboard.prototype.stop_inst = function (callback) {
     })
 };
 
+Dashboard.prototype._generate_flag = function (num) {
+    var series = "0123456789abcdefghijklmnopqrstuvwxyzZ";
+    var str = "";
+    for(var i=0;i<num;i++){
+        str += series[Math.floor(Math.random() * 36)]
+    }
+    return str;
+};
+
 Dashboard.prototype._add_socket_listener = function (socket) {
     var self = this;
     var dvm  = self.dashboard_vm;
     socket.on("connect", function () {
-        // enable the button
+        // enable start button
         self.dashboard_vm.start_btn_disable = false;
     });
 
+    socket.on("message", function (msg) {
+        console.log(msg);
+    });
     socket.on("inst_event", function (msg) {
         if(msg.event == "status_change"){
 
@@ -191,7 +220,7 @@ var Console = function () {
         readOnly : true
     });
     
-    var socket = io.connect('/channel_inst');
+    var socket = io.connect(getCurrentHost()+":5001");
     socket.on("connect",function () {
         // on connect, server will emit an `ack` even
 

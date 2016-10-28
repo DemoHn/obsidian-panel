@@ -15,7 +15,6 @@ POLL_ERR = 0x08
 POLL_HUP = 0x10
 POLL_NVAL = 0x20
 
-
 class MCServerInstance():
     def __init__(self, port, watcher=None):
         if watcher == None:

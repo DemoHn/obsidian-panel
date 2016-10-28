@@ -16,6 +16,13 @@ $(document).ready(function(){
     new _map[path_item]();
 });
 
+function getCurrentHost(){
+    var http = location.protocol;
+    var slashes = http.concat("//");
+    var host = slashes.concat(window.location.hostname);
+    return host;
+}
+
 /*
 * Server Core Page Management
 * */
@@ -83,7 +90,14 @@ var JavaBinary = function () {
         FAIL = 5,
         EXTRACT_FAIL = 6;
 
-    this.socket = io.connect("/dw");
+    this.socket = io.connect(getCurrentHost()+":5001");
+    
+    this.socket.on("connect",function () {
+
+       // self.socket.emit("message", pub_model);
+    });
+
+    this.flag_index_map = {};
     this.list_vm = new Vue({
         el:"#java_list",
         data:{
@@ -104,22 +118,7 @@ var JavaBinary = function () {
                         btn_status.status = DOWNLOADING;
                         var _major = self.list_vm.versions[index].major;
                         var _minor = self.list_vm.versions[index].minor;
-                        self._start_downloading(_major, _minor, function (dw_hash) {
-                            self.list_vm.versions[index].dw_hash = dw_hash;
-                            if(dw_hash != null){
-                                var _flag = setInterval(function () {
-                                    var event_json = {
-                                        "hash" : dw_hash,
-                                        "event" : "_request_progress",
-                                        "value" : true
-                                    };
-                                    self.socket.emit("download_event", event_json);
-                                },1000);
-                                
-                                btn_status._interval_flag = _flag;
-                            }
-                        });
-
+                        self._start_downloading(_major, _minor, index);
                         self._add_socket_listener(self.socket, index);
                         break;
                     default:
@@ -152,11 +151,29 @@ var JavaBinary = function () {
     })
 };
 
+JavaBinary.prototype._generate_flag = function (num) {
+    var series = "0123456789abcdefghijklmnopqrstuvwxyzZ";
+    var str = "";
+    for(var i=0;i<num;i++){
+        str += series[Math.floor(Math.random() * 36)]
+    }
+    return str;
+};
 JavaBinary.prototype._init_list = function (callback) {
+    var self = this;
+    var socket = self.socket;
+    var flag = self._generate_flag(16);
+
+    var start_download_json = {
+            "event":"downloader.get_active_tasks",
+            "flag" : flag
+        };
+    
     $.get("/super_admin/java_binary/get_list", function (data) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
+//                socket.emit("message", start_download_json);
                 callback(dt.info);
             }else{
                 callback();
@@ -165,10 +182,11 @@ JavaBinary.prototype._init_list = function (callback) {
             callback();
         }
     })
+
 };
 
-JavaBinary.prototype._start_downloading = function (major, minor, callback) {
-    $.post("/super_admin/java_binary/download",{"major": major, "minor": minor}, function (data) {
+JavaBinary.prototype._start_downloading = function (major, minor, _index) {
+    /*$.post("/super_admin/java_binary/download",{"major": major, "minor": minor}, function (data) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
@@ -179,7 +197,21 @@ JavaBinary.prototype._start_downloading = function (major, minor, callback) {
         }catch(e){
             callback();
         }
-    })
+    })*/
+    var self = this;
+    var socket = self.socket;
+    var flag = self._generate_flag(16);
+    var start_download_json = {
+            "event":"downloader.add_download_java_task",
+            "flag" : flag,
+            "props": {
+                "major": major,
+                "minor" : minor
+            }
+        };
+
+    self.flag_index_map[flag] = _index;
+    socket.emit("message", start_download_json);
 };
 
 JavaBinary.prototype._add_socket_listener = function (socket) {
@@ -202,16 +234,37 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
         return null;
     }
 
-    socket.on("download_event", function (msg) {
-        if(msg.event == "_get_progress"){
+    socket.on("message", function (msg){
+        msg["value"] = msg["result"];
+        console.log(msg);
+        if(msg.event == "_get_progress") {
             _hash = msg["hash"];
             _total = msg["value"][1];
             _dw = msg["value"][0];
 
             _index = _find_index_by_hash(_hash);
 
-            if(_total !== null && _dw !== null && _total > 0){
+            if (_total !== null && _dw !== null && _total > 0) {
                 self.list_vm.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
+            }
+        }else if(msg.event == "_download_start"){
+            dw_hash = msg["hash"];
+            _index = self.flag_index_map[msg.flag];
+            var btn_status = self.list_vm.versions[_index].btn_status;
+            self.list_vm.versions[_index].dw_hash = dw_hash;
+
+            if(dw_hash != null){
+                btn_status._interval_flag = setInterval(function () {
+                    var event_json = {
+                        "event" : "downloader.request_task_progress",
+                        "flag" : self._generate_flag(20),
+                        "props" : {
+                            "hash" : dw_hash
+                        }
+                    };
+
+                    self.socket.emit("message", event_json);
+                },1000);
             }
         }else if(msg.event == "_download_finish"){
             _hash = msg["hash"];
@@ -236,6 +289,8 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
             }else{
                 self.list_vm.versions[_index]["btn_status"]["status"] = EXTRACT_FAIL;
             }
+        }else if(msg.event == "_active_tasks"){
+
         }
     });
 };

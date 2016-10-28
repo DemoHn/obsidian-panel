@@ -12,7 +12,7 @@ from app import db
 #import libs
 import string, random
 
-import app.utils as utils
+from app.utils import PRIVILEGES
 @super_admin_page.route("/login", methods=["GET"])
 def get_login_page():
     try:
@@ -44,10 +44,10 @@ def login():
             tk.insert(username)
 
             # redirect different page as account types differ
-            if _user.privilege == utils.PRIV_ROOT:
+            if _user.privilege == PRIVILEGES.ROOT_USER:
                 # make response with cookie
                 resp = make_response(redirect("/super_admin/"))
-            elif _user.privilege == utils.PRIV_INST_OWNER:
+            elif _user.privilege == PRIVILEGES.INST_OWNER:
                 resp = make_response(redirect("/server_inst/"))
             else:
                 resp = make_response()
@@ -55,7 +55,10 @@ def login():
             if remember_me == "on":
                 resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
             else:
-                session['session_token'] = _token_str
+                # session
+                resp.set_cookie("session_token", _token_str, expires=0)
+                #session['session_token'] = _token_str
+
             return resp
             #return render_template("superadmin/index.html")
         else:
@@ -77,7 +80,7 @@ def logout():
 @super_admin_only
 def main_page(uid, priv):
     try:
-        if priv == utils.PRIV_ROOT:
+        if priv == PRIVILEGES.ROOT_USER:
             #return render_template("superadmin/index.html")
             # TEST
             return render_template("server_inst/new_inst.html")

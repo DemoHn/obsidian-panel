@@ -3,15 +3,14 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect
 from jinja2 import TemplateNotFound
 
-from app import db, socketio, watcher
-from app.controller.user_inst import InstanceController
+from app import db, socketio
 from app.utils import returnModel
 
 from app.model import ServerInstance
-from app.blueprints.superadmin.check_login import check_login, ajax_check_login
+from app.blueprints.superadmin.check_login import check_login
 
 from . import server_inst_page, logger
-from mpw import SERVER_STATE
+from process_watcher import SERVER_STATE
 
 import traceback
 import os, json
@@ -90,7 +89,9 @@ def get_instance_status(uid, priv):
         }
 
         # search proc_pool to get some information
-        active_inst = watcher.get_instance(inst_id)
+        # TODO active instance
+        #active_inst = watcher.get_instance(inst_id)
+        active_inst = None
 
         # if active_inst is None, that means there's no active process
         # running in the server, thus status must be 'HALT'
@@ -98,8 +99,9 @@ def get_instance_status(uid, priv):
             _status_model["status"] = SERVER_STATE.HALT
         else:
             _status_model["status"] = active_inst.get_status()
-            _status_model["current_player"] = watcher.just_get(inst_id).get("current_player")
-            _status_model["current_RAM"] = watcher.just_get(inst_id).get("RAM")
+            # TODO
+            _status_model["current_player"] = 0 #watcher.just_get(inst_id).get("current_player")
+            _status_model["current_RAM"] = 0 #watcher.just_get(inst_id).get("RAM")
         return rtn.success(_status_model)
     except:
         logger.error(traceback.format_exc())
@@ -125,7 +127,7 @@ def start_inst(uid, priv):
     try:
 
         # then start the instance!
-        InstanceController.start(inst_id)
+        #InstanceController.start(inst_id)
         return rtn.success(inst_id)
     except:
         logger.error(traceback.format_exc())
@@ -151,7 +153,7 @@ def stop_inst(uid, priv):
 
     try:
         # then start the instance!
-        InstanceController.stop(inst_id)
+        #InstanceController.stop(inst_id)
         return rtn.success(inst_id)
     except:
         logger.error(traceback.format_exc())

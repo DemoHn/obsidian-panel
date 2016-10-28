@@ -6,7 +6,7 @@ from app import db
 from functools import wraps
 from app.utils import returnModel
 from app.controller.global_config import GlobalConfig
-import app.utils as utils
+from app.utils import PRIVILEGES
 # check if user is login
 
 ###########################################
@@ -115,7 +115,7 @@ def super_admin_only(fn):
                 priv = user.ob_user.privilege
                 uid = user.uid
 
-                if priv == utils.PRIV_ROOT:
+                if priv == PRIVILEGES.ROOT_USER:
                     return fn(uid, priv, *args, **kwargs)
                 else:
                     return redirect('/super_admin/login')
@@ -142,7 +142,7 @@ def ws_super_admin_only(fn):
             priv = user.ob_user.privilege
             uid = user.uid
 
-            if priv == utils.PRIV_ROOT:
+            if priv == PRIVILEGES.ROOT_USER:
                 return fn(msg, uid, priv, *args, **kwargs)
             else:
                 return None
@@ -171,7 +171,7 @@ def ajax_super_admin_only(fn):
                 priv = user.ob_user.privilege
                 uid = user.uid
 
-                if priv == utils.PRIV_ROOT:
+                if priv == PRIVILEGES.ROOT_USER:
                     return fn(uid, priv, *args, **kwargs)
                 else:
                     return rtn.error(403)

@@ -13,9 +13,9 @@ def index():
     else:
         return redirect("/server_inst/dashboard")
 
-@app.route("/draft")
+@app.route("/__test")
 def __draft():
-    return render_template("_draft.html")
+    return render_template("__test.html")
 
 # TODO socketio
 @socketio.on('test_ws')

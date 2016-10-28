@@ -18,15 +18,6 @@ import tarfile
 import traceback
 from datetime import datetime
 
-# global variables
-# item model:
-# <hash>: {
-#    "link" : **,
-#    "progress" : **,
-
-# }
-download_queue = {}
-
 rtn = returnModel("string")
 
 # some dirty but useful functions' collection
@@ -38,25 +29,6 @@ class _utils:
     FINISH = 4
     FAIL = 5
     EXTRACT_FAIL= 6
-
-    @staticmethod
-    def queue_add(hash, dw_link):
-        _model = {
-            "link" : dw_link,
-            "status" : _utils.DOWNLOADING,
-            "progress" : 0
-        }
-
-        download_queue[hash] = _model
-
-    @staticmethod
-    def send_dw_signal(name, hash, value):
-        _event_model = {
-            "event": name,
-            "hash": hash,
-            "value": value
-        }
-        socketio.emit("download_event", _event_model, namespace="/dw")
 
 # render page
 @super_admin_page.route('/java_binary', methods=['GET'])
@@ -70,21 +42,10 @@ def render_java_binary_page(uid, priv):
 @super_admin_page.route("/java_binary/get_list", methods=["GET"])
 @super_admin_only
 def get_download_list(uid, priv):
+
     source = sourceJAVA()
     _list = source.get_download_list()
-    '''
-    list model :
-    {
-        "major": **,
-        "minor": **,
-        "link" : **,
-        "dw" : {
-            "progress" : **,
-            "status" : **,
-            "current_hash" : ""
-        }
-    }
-    '''
+
     dw_list = []
     for item in _list:
 
@@ -94,12 +55,12 @@ def get_download_list(uid, priv):
             "current_hash": ""
         }
         # get status from cache (to return correct data even if the web page refreshed)
-        for _key in download_queue:
-            q = download_queue.get(_key)
-            if q.get("link") == item.get("link"):
-                _dw["progress"] = q.get("progress")
-                _dw["status"] = q.get("status")
-                _dw["current_hash"] = _key
+        #for _key in download_queue:
+        #    q = download_queue.get(_key)
+        #    if q.get("link") == item.get("link"):
+        #        _dw["progress"] = q.get("progress")
+        #        _dw["status"] = q.get("status")
+        #        _dw["current_hash"] = _key
 
         # and fetch from database if there are some versions already installed.
         res = db.session.query(JavaBinary).filter(
@@ -125,13 +86,14 @@ def get_download_list(uid, priv):
 @super_admin_only
 def add_download_task(uid, priv):
     '''
-    when accessing this route, a new JDK starts downloading in the background.
-    Due to the limitation of current technology, we only allow one file to download at the
-    same time.
-    request params: [POST]
-    :major: <major version of java>
-    :minor: <minor version of java>
-    '''
+        when accessing this route, a new JDK starts downloading in the background.
+        Due to the limitation of current technology, we only allow one file to download at the
+        same time.
+        request params: [POST]
+        :major: <major version of java>
+        :minor: <minor version of java>
+        '''
+
     def _add_java_task(link, download_dir):
         '''
         add task of downloading java, with hooks.
@@ -168,10 +130,10 @@ def add_download_task(uid, priv):
             try:
                 # save the version info into the database
                 version_data = JavaBinary(
-                    major_version = major_ver,
-                    minor_version = minor_ver,
-                    bin_directory = bin_dir,
-                    install_time  = datetime.now()
+                    major_version=major_ver,
+                    minor_version=minor_ver,
+                    bin_directory=bin_dir,
+                    install_time=datetime.now()
                 )
                 db.session.add(version_data)
                 db.session.commit()
@@ -194,7 +156,7 @@ def add_download_task(uid, priv):
             _utils.send_dw_signal("_download_finish", hash, False)
 
         dp = DownloaderPool.getInstance()
-        inst, hash = dp.newTask(link, download_dir= download_dir)
+        inst, hash = dp.newTask(link, download_dir=download_dir)
         # add cookies to download java directly
         inst.disableSSLCert()
         inst.setHeaders({
@@ -205,7 +167,7 @@ def add_download_task(uid, priv):
         inst.set_force_singlethread(True)
         # global config
         gc = GlobalConfig.getInstance()
-        bin_dir   = gc.get("lib_bin_dir")
+        bin_dir = gc.get("lib_bin_dir")
 
         # add hook
         inst.addDownloadFinishHook(_send_finish_event)
@@ -264,7 +226,7 @@ def handle_download_event(msg, uid, priv):
 
             # update data on download_queue
             if _filesize > 0 and \
-                _dw != None and _filesize != None:
+                            _dw != None and _filesize != None:
                 download_queue[hash]["progress"] = _dw / _filesize
 
             _utils.send_dw_signal("_get_progress", hash, (_dw, _filesize))
