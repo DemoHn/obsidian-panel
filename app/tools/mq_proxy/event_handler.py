@@ -1,5 +1,6 @@
 from .status_pool import MessageUserStatusPool
-class MessageEventHandler(object):
+from . import Singleton
+class MessageEventHandler(metaclass=Singleton):
     __prefix__ = None
 
     def __init__(self):

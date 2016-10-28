@@ -14,11 +14,7 @@ import logging
 import tarfile
 import traceback
 
-# some dirty but useful functions' collection
-
-download_queue = {}
 class _utils:
-
     WAIT = 1
     DOWNLOADING = 2
     EXTRACTING = 3
@@ -26,21 +22,51 @@ class _utils:
     FAIL = 5
     EXTRACT_FAIL= 6
 
-    @staticmethod
-    def queue_add(hash, dw_link):
+class DownloadingTasks(object):
+
+    def __init__(self):
+        self.tasks = {}
+        pass
+
+    def add(self, hash, dw_link):
         _model = {
-            "link" : dw_link,
-            "status" : _utils.DOWNLOADING,
-            "progress" : 0
+            "link": dw_link,
+            "status": _utils.DOWNLOADING,
+            "progress": 0
         }
 
-        download_queue[hash] = _model
+        self.tasks[hash] = _model
+
+    def delete(self, hash):
+        if self.tasks.get(hash) != None:
+            del self.tasks[hash]
+
+    def update(self, hash, status = None, progress = None):
+        if self.tasks.get(hash) != None:
+            _model = self.tasks.get(hash)
+            if status != None:
+                _model["status"] = status
+            if progress != None:
+                _model["progress"] = progress
+
+    def get(self, hash):
+        if self.tasks.get(hash) != None:
+            return self.tasks.get(hash)
+        else:
+            return None
+
+    def get_all(self):
+        return self.tasks
+
 
 class DownloaderEventHandler(MessageEventHandler):
 
     __prefix__ = "downloader"
     def __init__(self):
+
         self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
+        self.tasks_pool = DownloadingTasks()
+
         MessageEventHandler.__init__(self)
 
     def add_download_java_task(self, flag, values):
@@ -53,14 +79,15 @@ class DownloaderEventHandler(MessageEventHandler):
             :minor: <minor version of java>
             '''
         uid, sid, src, dest = self.pool.get(flag)
+
         def _send_dw_signal(event_name, hash, result):
             ws = WSConnections.getInstance()
             v = {
-                "event" : event_name,
+                "event": event_name,
                 "hash": hash,
-                "result": result
+                "result": result,
+                "flag" : flag
             }
-            print("[Downloader] info =%s", v)
             ws.send_data("message", v, sid=sid)
 
             #event = "%s.%s" % (ControllerOfDownloader.prefix, event_name)
@@ -81,7 +108,8 @@ class DownloaderEventHandler(MessageEventHandler):
                 logging.debug("Start Extracting File...")
 
                 # send extract_start event
-                download_queue[hash]["status"] = _utils.EXTRACTING
+                self.tasks_pool.update(hash, status=_utils.EXTRACTING)
+                #download_queue[hash]["status"] = _utils.EXTRACTING
                 _send_dw_signal("_extract_start", hash, True)
 
                 # open archive
@@ -90,7 +118,8 @@ class DownloaderEventHandler(MessageEventHandler):
                     archive.extractall(path=bin_dir)
                 except:
                     archive.close()
-                    download_queue[hash]["status"] = _utils.EXTRACT_FAIL
+                    self.tasks_pool.update(hash, status=_utils.EXTRACT_FAIL)
+                    #download_queue[hash]["status"] = _utils.EXTRACT_FAIL
                     # send extract_finish event (when extract failed)
                     _send_dw_signal("_extract_finish", hash, False)
                     return None
@@ -111,19 +140,23 @@ class DownloaderEventHandler(MessageEventHandler):
                 except:
                     # writing database error
                     logging.error(traceback.format_exc())
-                    download_queue[hash]["status"] = _utils.FAIL
+                    self.tasks_pool.update(hash, status=_utils.FAIL)
+                    #download_queue[hash]["status"] = _utils.FAIL
                     _send_dw_signal("_download_finish", hash, False)
 
-                download_queue[hash]["status"] = _utils.FINISH
+                self.tasks_pool.update(hash, status=_utils.FINISH)
+                #download_queue[hash]["status"] = _utils.FINISH
                 _send_dw_signal("_extract_finish", hash, True)
 
             def _send_finish_event(download_result, filename):
                 # send finish event
-                download_queue[hash]["status"] = _utils.FINISH
+                self.tasks_pool.update(hash, status=_utils.FINISH)
+                #download_queue[hash]["status"] = _utils.FINISH
                 _send_dw_signal("_download_finish", hash, True)
 
             def _network_error(e):
-                download_queue[hash]["status"] = _utils.FAIL
+                self.tasks_pool.update(hash, status=_utils.FINISH)
+                #download_queue[hash]["status"] = _utils.FAIL
                 _send_dw_signal("_download_finish", hash, False)
 
             dp = DownloaderPool.getInstance()
@@ -160,11 +193,59 @@ class DownloaderEventHandler(MessageEventHandler):
             if link != None:
                 # create new task and download
                 inst, hash = _add_java_task(link, files_dir)
-                _utils.queue_add(hash, link)
-                download_queue[hash]["status"] = _utils.DOWNLOADING
 
+                self.tasks_pool.add(hash, link)
+                #_utils.queue_add(hash, link)
+                #download_queue[hash]["status"] = _utils.DOWNLOADING
                 _send_dw_signal("_download_start", hash, None)
             else:
                 _send_dw_signal("_download_start", None, None)
         except:
             logging.error(traceback.format_exc())
+
+    def request_task_progress(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+        hash = values.get('hash')
+
+        def send_dw_signal(event_name, hash, result):
+            ws = WSConnections.getInstance()
+            v = {
+                "event": event_name,
+                "hash": hash,
+                "result": result,
+                "flag" : flag
+            }
+            ws.send_data("message", v, sid=sid)
+
+        # fetch and update data
+        dp = DownloaderPool.getInstance()
+        _t = dp.get(hash)
+        if _t != None:
+            inst = _t.dl
+            _dw, _filesize = inst.getProgress()
+
+            # update data on download_queue
+            if _filesize > 0 and \
+                            _dw != None and _filesize != None:
+            #    download_queue[hash]["progress"] = _dw / _filesize
+            #_utils.send_dw_signal("_get_progress", hash, (_dw, _filesize))
+                self.tasks_pool.update(hash, progress= _dw / _filesize)
+                send_dw_signal("_get_progress", hash, (_dw, _filesize))
+
+    def get_active_tasks(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+
+        def send_dw_signal(event_name, result):
+            ws = WSConnections.getInstance()
+            v = {
+                "event": event_name,
+                "result": result,
+                "flag" : flag
+            }
+
+            ws.send_data("message",v ,sid=sid)
+
+        active_tasks = self.tasks_pool.get_all()
+        send_dw_signal("_active_tasks", active_taskss)
+
+
