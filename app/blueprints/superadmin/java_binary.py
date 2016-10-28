@@ -42,7 +42,6 @@ def render_java_binary_page(uid, priv):
 @super_admin_page.route("/java_binary/get_list", methods=["GET"])
 @super_admin_only
 def get_download_list(uid, priv):
-
     source = sourceJAVA()
     _list = source.get_download_list()
 
@@ -55,7 +54,7 @@ def get_download_list(uid, priv):
             "current_hash": ""
         }
         # get status from cache (to return correct data even if the web page refreshed)
-        #for _key in download_queue:
+        # for _key in download_queue:
         #    q = download_queue.get(_key)
         #    if q.get("link") == item.get("link"):
         #        _dw["progress"] = q.get("progress")
@@ -75,7 +74,7 @@ def get_download_list(uid, priv):
             "major": item.get("major"),
             "minor": item.get("minor"),
             "link": item.get("link"),
-            "dw" : _dw
+            "dw": _dw
         }
 
         dw_list.append(_model)

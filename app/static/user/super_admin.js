@@ -91,11 +91,10 @@ var JavaBinary = function () {
         EXTRACT_FAIL = 6;
 
     this.socket = io.connect(getCurrentHost()+":5001");
-    
     this.socket.on("connect",function () {
-
        // self.socket.emit("message", pub_model);
     });
+    self._init_download_list_listener(self.socket);
 
     this.flag_index_map = {};
     this.list_vm = new Vue({
@@ -128,27 +127,7 @@ var JavaBinary = function () {
         }
     });
 
-    self._init_list(function (data) {
-        if(data != null){
-            // update data
-            //add button status
-            for(var item in data){
-                var _status_model = {
-                    "status":data[item]["dw"]["status"],
-                    "progress" : data[item]["dw"]["progress"],
-                    "_interval_flag" : 0
-                };
-
-                self.list_vm.versions.push({
-                    "minor" : data[item].minor,
-                    "major" : data[item].major,
-                    "link"  : data[item].link,
-                    "dw_hash" : "",
-                    "btn_status" : _status_model
-                });
-            }
-        }
-    })
+    self._init_list();
 };
 
 JavaBinary.prototype._generate_flag = function (num) {
@@ -164,16 +143,18 @@ JavaBinary.prototype._init_list = function (callback) {
     var socket = self.socket;
     var flag = self._generate_flag(16);
 
-    var start_download_json = {
-            "event":"downloader.get_active_tasks",
-            "flag" : flag
-        };
-    
+    var msg_json = {
+        "event":"downloader.init_download_list",
+        "flag" : flag,
+        "props":{}
+    };
+    socket.emit("message", msg_json);
+    /*
     $.get("/super_admin/java_binary/get_list", function (data) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
-//                socket.emit("message", start_download_json);
+
                 callback(dt.info);
             }else{
                 callback();
@@ -181,8 +162,7 @@ JavaBinary.prototype._init_list = function (callback) {
         }catch(e){
             callback();
         }
-    })
-
+    })*/
 };
 
 JavaBinary.prototype._start_downloading = function (major, minor, _index) {
@@ -214,6 +194,33 @@ JavaBinary.prototype._start_downloading = function (major, minor, _index) {
     socket.emit("message", start_download_json);
 };
 
+JavaBinary.prototype._init_download_list_listener = function (socket) {
+    var self = this;
+
+    socket.on("message", function (msg) {
+        if(msg.event == "_init_download_list"){
+            var data = msg.result;
+            for(var item in data){
+                var _status_model = {
+                    "status":data[item]["dw"]["status"],
+                    "progress" : data[item]["dw"]["progress"],
+                    "_interval_flag" : 0
+                };
+
+                self.list_vm.versions.push({
+                    "minor" : data[item].minor,
+                    "major" : data[item].major,
+                    "link"  : data[item].link,
+                    "dw_hash" : "",
+                    "btn_status" : _status_model
+                });
+
+                
+            }
+        }
+    })
+};
+
 JavaBinary.prototype._add_socket_listener = function (socket) {
     var self = this;
 
@@ -235,8 +242,8 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
     }
 
     socket.on("message", function (msg){
+
         msg["value"] = msg["result"];
-        console.log(msg);
         if(msg.event == "_get_progress") {
             _hash = msg["hash"];
             _total = msg["value"][1];
@@ -253,19 +260,19 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
             var btn_status = self.list_vm.versions[_index].btn_status;
             self.list_vm.versions[_index].dw_hash = dw_hash;
 
-            if(dw_hash != null){
+            if(dw_hash != null) {
                 btn_status._interval_flag = setInterval(function () {
                     var event_json = {
-                        "event" : "downloader.request_task_progress",
-                        "flag" : self._generate_flag(20),
-                        "props" : {
-                            "hash" : dw_hash
+                        "event": "downloader.request_task_progress",
+                        "flag": self._generate_flag(20),
+                        "props": {
+                            "hash": dw_hash
                         }
                     };
-
                     self.socket.emit("message", event_json);
-                },1000);
+                }, 1000);
             }
+
         }else if(msg.event == "_download_finish"){
             _hash = msg["hash"];
             _result = msg["value"];
@@ -289,8 +296,6 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
             }else{
                 self.list_vm.versions[_index]["btn_status"]["status"] = EXTRACT_FAIL;
             }
-        }else if(msg.event == "_active_tasks"){
-
         }
     });
 };

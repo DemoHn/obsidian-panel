@@ -246,6 +246,80 @@ class DownloaderEventHandler(MessageEventHandler):
             ws.send_data("message",v ,sid=sid)
 
         active_tasks = self.tasks_pool.get_all()
-        send_dw_signal("_active_tasks", active_taskss)
+        send_dw_signal("_active_tasks", active_tasks)
 
+    def init_download_list(self, flag, values):
+        '''
+        init a list of all java versions.
+        dw_list model:
+        {
+            "major" : ***,
+            "minor" : ***,
+            "link" : ***,
+            "dw" : {
+                "progress",
+                "status,
+                "current_hash",
+            }
+        }
+        :param flag:
+        :param values:
+        :return:
+        '''
+        uid, sid, src, dest = self.pool.get(flag)
 
+        def send_dw_signal(event_name, result):
+            ws = WSConnections.getInstance()
+            v = {
+                "event": event_name,
+                "result": result,
+                "flag" : flag
+            }
+            ws.send_data("message",v ,sid=sid)
+
+        source = sourceJAVA()
+        _list = source.get_download_list()
+
+        dw_list = []
+        for item in _list:
+            _dw = {
+                "progress": 0.0,
+                "status": _utils.WAIT,
+                "current_hash": ""
+            }
+            # get status from cache (to return correct data even if the web page refreshed)
+            # for _key in download_queue:
+            #    q = download_queue.get(_key)
+            #    if q.get("link") == item.get("link"):
+            #        _dw["progress"] = q.get("progress")
+            #        _dw["status"] = q.get("status")
+            #        _dw["current_hash"] = _key
+
+            # fetch active download tasks
+            _tasks = self.tasks_pool.get_all()
+            for task in _tasks:
+                if _tasks[task]["link"] == item.get("link"):
+                    _dw["progress"] = _tasks[task]["progress"]
+                    _dw["status"] = _tasks[task]["status"]
+                    _dw["current_hash"] = task
+                    break
+
+            # and fetch from database if there are some versions already installed.
+            res = db.session.query(JavaBinary).filter(
+                JavaBinary.major_version == str(item.get("major")),
+                JavaBinary.minor_version == str(item.get("minor"))
+            ).first()
+            # that means, this java version has record on the database
+            if res != None:
+                _dw["status"] = _utils.FINISH
+
+            _model = {
+                "major": item.get("major"),
+                "minor": item.get("minor"),
+                "link": item.get("link"),
+                "dw": _dw
+            }
+
+            dw_list.append(_model)
+        print(dw_list)
+        send_dw_signal("_init_download_list", dw_list)
