@@ -58,10 +58,10 @@ var Dashboard = function () {
         },
         methods:{
             "start_inst" : function (e) {
-                self.start_inst(function (i_id) {/* nothing */ })
+                self.start_inst();
             },
             "stop_inst" : function (e) {
-                self.stop_inst(function (i_id) {/* nothing */ })
+                self.stop_inst();
             }
         }
     });
@@ -124,7 +124,7 @@ Dashboard.prototype.fetch_status = function (callback) {
     })
 };
 
-Dashboard.prototype.start_inst = function (callback) {
+Dashboard.prototype.start_inst = function () {
     var self = this;
     /*$.post("/server_inst/dashboard/start_inst",{"inst_id": self.inst_id}, function (data) {
         try{
@@ -137,9 +137,7 @@ Dashboard.prototype.start_inst = function (callback) {
         }
     })*/
     start_instance_msg = {
-        "event" : "instance.start",
-
-        "to" : "CLIENT_CONTROL",
+        "event" : "process.start",
         "flag" : self._generate_flag(32),
         "props":{
             "inst_id" : self.inst_id
@@ -149,7 +147,7 @@ Dashboard.prototype.start_inst = function (callback) {
 };
 
 Dashboard.prototype.stop_inst = function (callback) {
-    var self = this;
+    /*var self = this;
     $.post("/server_inst/dashboard/stop_inst",{"inst_id": self.inst_id}, function (data) {
         try{
             var dt = JSON.parse(data);
@@ -159,7 +157,7 @@ Dashboard.prototype.stop_inst = function (callback) {
         }catch(e){
             callback(null);
         }
-    })
+    })*/
 };
 
 Dashboard.prototype._generate_flag = function (num) {

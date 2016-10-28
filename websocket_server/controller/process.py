@@ -22,7 +22,8 @@ class ProcessEventHandler(MessageEventHandler):
         # _inst_running_sig = signals.signal("inst")
         # hook functions
         inst_id = values.get("inst_id")
-        uid = values.get("_uid")
+
+        uid, sid, src, dest = self.pool.get(flag)
 
         _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE)
         item = _q.filter(ServerInstance.inst_id == inst_id).first()
@@ -40,7 +41,7 @@ class ProcessEventHandler(MessageEventHandler):
                 "min_RAM": math.floor(int(item.max_RAM) / 2),
                 "proc_cwd": item.inst_dir
             }
-
+            print(mc_w_config)
             _port = int(item.listening_port)
 
             watcher_event = "process.add_and_start"
