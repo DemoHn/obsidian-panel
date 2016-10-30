@@ -161,4 +161,3 @@ class sourceJAVA(object):
                 if item["major"] == major and item["minor"] == minor:
                     return item.get("bin")
             return None
-

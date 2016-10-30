@@ -56,7 +56,6 @@ var ServerCorePage = function () {
 
                 self._file_data.submit().done(function (data) {
                     //TODO
-                    console.log(data);
                     window.alert("Upload succeed!");
                 });
             }
@@ -113,6 +112,13 @@ var JavaBinary = function () {
                 
                 switch(btn_status.status){
                     case FAIL:
+                    case EXTRACT_FAIL:
+                        // clear and restart
+                        btn_status.status = DOWNLOADING;
+                        var _major = self.list_vm.versions[index].major;
+                        var _minor = self.list_vm.versions[index].minor;
+                        self._start_downloading(_major, _minor, index);
+                        break;
                     case WAIT:
                         btn_status.status = DOWNLOADING;
                         var _major = self.list_vm.versions[index].major;
@@ -199,7 +205,6 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
     var DOWNLOADING = 2;
 
     socket.on("message", function (msg) {
-        console.log(msg);
         if(msg.event == "_init_download_list"){
             var data = msg.result;
             for(var item in data){
@@ -209,7 +214,7 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
                     "_interval_flag" : 0
                 };
                 dw_hash = data[item]["dw"]["current_hash"];
-                if(_status_model["progress"] == DOWNLOADING) {
+                if(_status_model["status"] == DOWNLOADING) {
                     _status_model._interval_flag = setInterval(function () {
                         var event_json = {
                             "event": "downloader.request_task_progress",
@@ -340,7 +345,6 @@ Settings.prototype.set_password = function (ori_passwd, new_passwd, callback) {
     }, function (data) {
         try{
             var dt = JSON.parse(data);
-            console.log(dt);
             if(dt.status == "success"){
                 callback(true);
             }

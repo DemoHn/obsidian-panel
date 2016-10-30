@@ -251,6 +251,10 @@ class DownloaderEventHandler(MessageEventHandler):
         active_tasks = self.tasks_pool.get_all()
         send_dw_signal("_active_tasks", active_tasks)
 
+    def clear_failed_tasks(self, flag, values):
+        # TODO
+        pass
+
     def init_download_list(self, flag, values):
         '''
         init a list of all java versions.

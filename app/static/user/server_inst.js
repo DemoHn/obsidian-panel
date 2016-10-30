@@ -178,11 +178,7 @@ Dashboard.prototype._add_socket_listener = function (socket) {
     });
 
     socket.on("message", function (msg) {
-        console.log(msg);
-    });
-    socket.on("inst_event", function (msg) {
         if(msg.event == "status_change"){
-
             if(msg.value == 1){ // starting
                 dvm.work_status = self.status_dict["1"];
                 dvm.start_btn = false;
@@ -222,7 +218,7 @@ var Console = function () {
     socket.on("connect",function () {
         // on connect, server will emit an `ack` even
 
-        socket.on("inst_event",function (msg) {
+        socket.on("message",function (msg) {
             if(msg.event == "log_update") {
                 _log = msg.value;
                 editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
@@ -231,7 +227,24 @@ var Console = function () {
     });
 
     $("#input").click(function () {
-        socket.emit("command_input", {"command":$("#in").val()});
+        var msg = {
+            "event":"process.send_command",
+            "flag" : self._generate_flag(16),
+            "props":{
+                "inst_id" : 1,
+                "command" : $("#in").val()
+            }
+        }
+        socket.emit("message", msg);
         //console.log($("#in").val())
     })
+};
+
+Console.prototype._generate_flag = function (num) {
+    var series = "0123456789abcdefghijklmnopqrstuvwxyzZ";
+    var str = "";
+    for(var i=0;i<num;i++){
+        str += series[Math.floor(Math.random() * 36)]
+    }
+    return str;
 };

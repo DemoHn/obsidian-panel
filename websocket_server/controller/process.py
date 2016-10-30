@@ -2,6 +2,7 @@ from app import db
 from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy
 from app.model import ServerInstance, JavaBinary, ServerCORE
 
+from websocket_server.server import WSConnections
 import os
 import math
 
@@ -41,7 +42,6 @@ class ProcessEventHandler(MessageEventHandler):
                 "min_RAM": math.floor(int(item.max_RAM) / 2),
                 "proc_cwd": item.inst_dir
             }
-            print(mc_w_config)
             _port = int(item.listening_port)
 
             watcher_event = "process.add_and_start"
@@ -56,6 +56,30 @@ class ProcessEventHandler(MessageEventHandler):
     def stop(self, flag, values):
         pass
 
+    def send_command(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+
+        inst_id = values.get("inst_id")
+        command = values.get("command")
+
+        _values = {
+            "inst_id" : inst_id,
+            "command" : command
+        }
+        self.proxy.send(flag, "process.send_command", _values, WS_TAG.MPW)
+
     def broadcast(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+        _event = values.get("event")
+
+        _values = {
+            "event" : _event,
+            "inst_id" : values.get("inst_id"),
+            "value" : values.get("val")
+        }
+
+        if _event == None:
+            return None
         # broadcast data to multiple clients
-        pass
+        ws = WSConnections.getInstance()
+        ws.send_data("message", _values, uid = uid)

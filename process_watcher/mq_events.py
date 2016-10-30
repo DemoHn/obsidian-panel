@@ -1,7 +1,7 @@
 from app import db
 from app.model import ServerInstance
 from app.controller.global_config import GlobalConfig
-from app.tools.mq_proxy import WS_TAG, MessageEventHandler
+from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy
 
 from . import SERVER_STATE
 from .watchdog import Watchdog
@@ -296,6 +296,13 @@ class WatcherEvents(MessageEventHandler):
         self.add_instance(flag, values,send_ack=False)
         self.start_instance(flag, values,send_ack=False)
 
+    def send_command(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+        inst_id = values.get("inst_id")
+        command = values.get("command")
+        if inst_id == None:
+            return None
+        self.watcher.send_command(inst_id, command)
 
 class EventSender(object):
     '''
@@ -308,6 +315,11 @@ class EventSender(object):
     def __init__(self, watcher_obj):
         self.add_hook_func = watcher_obj.add_hook
         self.watcher_obj   = watcher_obj
+
+        # KEY : <inst_id>
+        # VALUE : <uid>
+        self._inst_uid_cache = {}
+
         _names = ("inst_starting", "inst_running",
                   "log_update",
                   "connection_lost", "inst_terminate",
@@ -316,16 +328,13 @@ class EventSender(object):
 
         gc = GlobalConfig.getInstance()
 
-        if gc.getInitFlag() == True:
-            # add hook function
-            for item in _names:
-                _method = getattr(self, "on_%s" % item)
-                self.add_hook_func(item, _method)
+        # add hook function
+        for item in _names:
+            _method = getattr(self, "on_%s" % item)
+            self.add_hook_func(item, _method)
 
-            self.proxy = MessageQueueProxy.getInstance()
-            # KEY : <inst_id>
-            # VALUE : <uid>
-            self._inst_uid_cache = {}
+        # add inst_id -> uid cache from database
+        if gc.get("init_super_admin") == True:
             # refresh cache the first time
             self._get_uid_from_inst_id(0)
 
@@ -344,16 +353,18 @@ class EventSender(object):
 
     # event name : inst_event
     def send(self, inst_id, event_name, value):
+        proxy = MessageQueueProxy(WS_TAG.MPW)
         event_prefix = "process"
-        event_type   = "notification"
+        event_type   = "broadcast"
 
-        event_name   = "%s.%s.%s" % (event_prefix, event_name, event_type)
+        _name   = "%s.%s" % (event_prefix, event_type)
         values = {
             "inst_id" : inst_id,
+            "event" : event_name,
             "val" : value
         }
         uid = self._get_uid_from_inst_id(inst_id)
-        self.proxy.send(event_name, WS_TAG.CLIENT, values, uid = uid)
+        proxy.send(None, _name, values, WS_TAG.CONTROL, uid = uid)
 
     # event listeners
     def on_inst_starting(self, inst_id, p):

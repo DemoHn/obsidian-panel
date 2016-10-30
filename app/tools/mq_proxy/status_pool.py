@@ -15,6 +15,11 @@ class MessageUserStatusPool(metaclass=Singleton):
         self.redis = redis.Redis()
 
     def get(self, flag):
+        def _empty_to_None(val):
+            if val == '' or val == None:
+                return None
+            else:
+                return val
         '''
         :param flag: message flag
         :return: (uid, sid, src, dest)
@@ -26,10 +31,11 @@ class MessageUserStatusPool(metaclass=Singleton):
             return (None, None, None, None)
 
         _obj = _data.decode().split(",")
-        uid = _obj[0]
-        sid = _obj[1]
-        src = _obj[2]
-        dest = _obj[3]
+        uid = _empty_to_None(_obj[0])
+        sid = _empty_to_None(_obj[1])
+        src = _empty_to_None(_obj[2])
+        dest = _empty_to_None(_obj[3])
+
         return (uid, sid, src, dest)
 
     def exists(self, flag):
@@ -42,7 +48,16 @@ class MessageUserStatusPool(metaclass=Singleton):
             return False
 
     def _set(self, flag, uid, sid, src, dest):
-        arr = [uid, sid, src, dest]
+        if uid == None:
+            uid = ''
+        if sid == None:
+            sid = ''
+        if src == None:
+            src = ''
+        if dest == None:
+            dest = ''
+
+        arr = [str(uid), str(sid), str(src), str(dest)]
         arr_str = ",".join(arr)
         self.redis.set(flag, arr_str.encode())
 
