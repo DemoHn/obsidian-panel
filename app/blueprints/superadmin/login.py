@@ -8,7 +8,7 @@ from .check_login import super_admin_only
 
 from app.model import Users, UserToken
 from app import db
-
+import traceback
 #import libs
 import string, random
 
@@ -56,7 +56,7 @@ def login():
                 resp.set_cookie('session_token',_token_str,max_age=24*10*3600)
             else:
                 # session
-                resp.set_cookie("session_token", _token_str, expires=0)
+                resp.set_cookie("session_token", _token_str, expires=None)
                 #session['session_token'] = _token_str
 
             return resp
@@ -65,6 +65,10 @@ def login():
             return render_template("superadmin/login.html", login_error="login_error")
     except TemplateNotFound:
         abort(404)
+    except:
+        traceback.print_exc()
+        abort(500)
+
 
 @super_admin_page.route("/logout", methods=["GET"])
 def logout():

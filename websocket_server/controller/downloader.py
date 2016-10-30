@@ -13,6 +13,7 @@ from datetime import datetime
 import logging
 import tarfile
 import traceback
+import os
 
 class _utils:
     WAIT = 1
@@ -93,7 +94,7 @@ class DownloaderEventHandler(MessageEventHandler):
             #event = "%s.%s" % (ControllerOfDownloader.prefix, event_name)
             #self.proxy.send(event, WS_TAG.CLIENT, flag, v)
 
-        def _add_java_task(link, download_dir):
+        def _add_java_task(link, download_dir, binary_dir):
             '''
             add task of downloading java, with hooks.
             :return: (<instance>, <download_hash>)
@@ -115,7 +116,7 @@ class DownloaderEventHandler(MessageEventHandler):
                 # open archive
                 archive = tarfile.open(filename)
                 try:
-                    archive.extractall(path=bin_dir)
+                    archive.extractall(path=root_dir)
                 except:
                     archive.close()
                     self.tasks_pool.update(hash, status=_utils.EXTRACT_FAIL)
@@ -124,7 +125,7 @@ class DownloaderEventHandler(MessageEventHandler):
                     _send_dw_signal("_extract_finish", hash, False)
                     return None
 
-                logging.debug("extract dir: %s, finish!" % bin_dir)
+                logging.debug("extract dir: %s, finish!" % root_dir)
                 archive.close()
 
                 try:
@@ -132,7 +133,7 @@ class DownloaderEventHandler(MessageEventHandler):
                     version_data = JavaBinary(
                         major_version=major_ver,
                         minor_version=minor_ver,
-                        bin_directory=bin_dir,
+                        bin_directory=os.path.join(root_dir, binary_dir),
                         install_time=datetime.now()
                     )
                     db.session.add(version_data)
@@ -171,7 +172,7 @@ class DownloaderEventHandler(MessageEventHandler):
             inst.set_force_singlethread(True)
             # global config
             gc = GlobalConfig.getInstance()
-            bin_dir = gc.get("lib_bin_dir")
+            root_dir = gc.get("lib_bin_dir")
 
             # add hook
             inst.addDownloadFinishHook(_send_finish_event)
@@ -180,6 +181,7 @@ class DownloaderEventHandler(MessageEventHandler):
             dp.start(hash)
 
             return inst, hash
+
         try:
             gc = GlobalConfig.getInstance()
             files_dir = gc.get("files_dir")
@@ -189,10 +191,11 @@ class DownloaderEventHandler(MessageEventHandler):
 
             source = sourceJAVA()
             link = source.get_download_link(major_ver, minor_ver)
+            binary_dir = source.get_binary_directory(major_ver, minor_ver)
 
             if link != None:
                 # create new task and download
-                inst, hash = _add_java_task(link, files_dir)
+                inst, hash = _add_java_task(link, files_dir, binary_dir)
 
                 self.tasks_pool.add(hash, link)
                 #_utils.queue_add(hash, link)

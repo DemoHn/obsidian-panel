@@ -13,6 +13,7 @@ class sourceJAVA(object):
         self.versions = [
             {
                 'priority':5,'major': "8", "minor": "102",
+                'bin': "jdk1.8.0_102/bin/java",
                 "arch": {
                     "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-i586.tar.gz",
@@ -25,6 +26,7 @@ class sourceJAVA(object):
                 }
             },{
                 'priority':4, 'major': "8", "minor": "101",
+                'bin': "jdk1.8.0_101/bin/java",
                 "arch": {
                     "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-i586.tar.gz",
@@ -36,6 +38,7 @@ class sourceJAVA(object):
                 }
             },{
                 'priority':3, 'major': "7", "minor": "80",
+                'bin': "jdk1.7.0_80/bin/java",
                 "arch": {
                     "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-linux-i586.tar.gz",
@@ -48,6 +51,7 @@ class sourceJAVA(object):
                 }
             },{
                 'priority':2, 'major': "7", "minor": "79",
+                'bin': "jdk1.7.0_79/bin/java",
                 "arch": {
                     "x86": {
                         "linux": "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz",
@@ -88,6 +92,7 @@ class sourceJAVA(object):
         {
            "major" : <Java major version>,
            "minor" : <java minor version>,
+           "bin" : <binary file location>,
            "arch" : {
                "x86" : {
                    "linux" : <linux x86 link>,
@@ -140,3 +145,20 @@ class sourceJAVA(object):
                 if item["major"] == major and item["minor"] == minor:
                     return item.get("arch").get(_arch).get(_OS)
             return None
+
+    def get_binary_directory(self, major, minor, priority=0):
+        priority = int(priority)
+        major    = str(major)
+        minor    = str(minor)
+        print("WTF")
+        if priority > 0:
+            for item in self.versions:
+                if item["priority"] == priority:
+                    return item.get("bin")
+            return None
+        else:
+            for item in self.versions:
+                if item["major"] == major and item["minor"] == minor:
+                    return item.get("bin")
+            return None
+
