@@ -5,5 +5,9 @@ class MessageEventHandler(metaclass=Singleton):
 
     def __init__(self):
         self.pool = MessageUserStatusPool()
+        self.proxy = None
         if self.__class__.__prefix__ == None:
-            raise Exception("Prefix not set!")
+            raise NotImplementedError("Prefix not set!")
+
+    def _set_proxy(self, proxy):
+        self.proxy = proxy

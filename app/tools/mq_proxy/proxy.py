@@ -9,6 +9,7 @@ from . import Singleton, WS_TAG, MessageUserStatusPool
 from .event_handler import MessageEventHandler
 import logging
 import traceback
+
 class MessageQueueProxy(metaclass=Singleton):
     '''
     What is a .. Message Queue Proxy?
@@ -70,14 +71,16 @@ class MessageQueueProxy(metaclass=Singleton):
     def register(self, cls):
         _instance = cls()
         if not issubclass(cls, MessageEventHandler):
-            raise Exception("Not a child class of MessageEventHandler!")
+            raise ValueError("Not a child class of MessageEventHandler!")
 
         methods_dict = cls.__dict__
+        # register proxy (which is MessageQueueProxy itself, of course)
+        _instance._set_proxy(self)
         # register all methods into proxy
         for method_name in methods_dict:
             try:
                 # to filter python's internal method (magical method)
-                if method_name.find("__") != 0:
+                if method_name.find("__") != 0 and method_name.find("_"+cls.__name__) != 0:
                     method = getattr(_instance, method_name)
                     event_name = "%s.%s" % (cls.__prefix__, method_name)
                     self._register_handler(event_name, method)
@@ -121,3 +124,6 @@ class MessageQueueProxy(metaclass=Singleton):
             t.start()
         else:
             self._listen()
+
+    def terminate(self):
+        self.pub_sub.unsubscribe()

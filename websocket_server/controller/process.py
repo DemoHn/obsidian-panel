@@ -12,7 +12,7 @@ class ProcessEventHandler(MessageEventHandler):
     def __init__(self):
         # denote message proxy for sending message
         # Don't worry, it's a singleton class
-        self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
+        #self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
         MessageEventHandler.__init__(self)
 
     def _test(self, flag, values):

@@ -65,7 +65,7 @@ class DownloaderEventHandler(MessageEventHandler):
     __prefix__ = "downloader"
     def __init__(self):
 
-        self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
+        #self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
         self.tasks_pool = DownloadingTasks()
 
         MessageEventHandler.__init__(self)
