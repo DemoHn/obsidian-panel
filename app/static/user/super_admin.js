@@ -247,7 +247,6 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
                 });
             }
         }else if(msg.event == "_get_progress"){
-            console.log(msg);
             msg["value"] = msg["result"];
             _hash = msg["hash"];
             _total = msg["value"][1];
