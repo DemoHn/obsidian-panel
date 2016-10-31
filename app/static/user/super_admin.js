@@ -91,9 +91,10 @@ var JavaBinary = function () {
 
     this.socket = io.connect(getCurrentHost()+":5001");
     this.socket.on("connect",function () {
+        self._init_download_list_listener(self.socket);
        // self.socket.emit("message", pub_model);
     });
-    self._init_download_list_listener(self.socket);
+
 
     this.flag_index_map = {};
     this.list_vm = new Vue({
@@ -204,6 +205,16 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
     var self = this;
     var DOWNLOADING = 2;
 
+    function _find_index_by_hash(_hash){
+        var list = self.list_vm.versions;
+        for(var i=0;i<list.length;i++){
+            if(list[i]["dw_hash"] == _hash){
+                return i;
+            }
+        }
+        return null;
+    }
+
     socket.on("message", function (msg) {
         if(msg.event == "_init_download_list"){
             var data = msg.result;
@@ -235,6 +246,18 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
                     "btn_status" : _status_model
                 });
             }
+        }else if(msg.event == "_get_progress"){
+            console.log(msg);
+            msg["value"] = msg["result"];
+            _hash = msg["hash"];
+            _total = msg["value"][1];
+            _dw = msg["value"][0];
+
+            _index = _find_index_by_hash(_hash);
+
+            if (_total !== null && _dw !== null && _total > 0) {
+                self.list_vm.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
+            }
         }
     })
 };
@@ -262,17 +285,7 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
     socket.on("message", function (msg){
 
         msg["value"] = msg["result"];
-        if(msg.event == "_get_progress") {
-            _hash = msg["hash"];
-            _total = msg["value"][1];
-            _dw = msg["value"][0];
-
-            _index = _find_index_by_hash(_hash);
-
-            if (_total !== null && _dw !== null && _total > 0) {
-                self.list_vm.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
-            }
-        }else if(msg.event == "_download_start"){
+        if(msg.event == "_download_start"){
             dw_hash = msg["hash"];
             _index = self.flag_index_map[msg.flag];
             var btn_status = self.list_vm.versions[_index].btn_status;

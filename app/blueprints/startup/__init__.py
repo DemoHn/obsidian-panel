@@ -313,4 +313,7 @@ def test_mysql_connection():
 # make sure use circusd!
 def _restart_process():
     client = SystemProcessClient()
-    client.send_restart_cmd("web")
+    client.send_restart_cmd("process_watcher")
+    client.send_restart_cmd("websocket_server")
+    client.send_restart_cmd("ftp_manager")
+    client.send_restart_cmd("app")

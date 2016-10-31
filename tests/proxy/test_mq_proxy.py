@@ -14,9 +14,8 @@ class MessageQueueProxyTest(AsyncTestCase):
             if flag == "hello_world":
                 self.assertDictEqual(_assert_values, values)
         except:
-            traceback.print_exc()
+            print("\n"+traceback.format_exc())
             self.stop()
-            return None
 
         self.stop()
     def __init__(self, *args, **kwargs):
@@ -57,7 +56,6 @@ class MessageQueueProxyTest(AsyncTestCase):
         self.process.terminate()
         self.sender.terminate()
 
-
     def test_send(self):
         self.sender.send("hello_world", "test.echo", {"a": "b"}, WS_TAG._TEST_RECV)
         self.wait()
@@ -65,6 +63,3 @@ class MessageQueueProxyTest(AsyncTestCase):
         #self._done = Event()
         #self.sender.send("hello_world", "test.echo", {"b": "c"}, WS_TAG._TEST_RECV)
         #self.wait()
-
-
-
