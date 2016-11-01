@@ -7,6 +7,11 @@ span.control-btn{
     display: inline-block;
     line-height: 2.4em;
 }
+
+/*box title*/
+.box-header .box-title{
+    font-size: 16px !important;
+}
 /*hide logo on mobile device*/
 @media (max-width: 767px) {
     header.main-header a.logo{

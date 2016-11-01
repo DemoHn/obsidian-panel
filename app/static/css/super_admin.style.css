@@ -20,6 +20,10 @@ i.red-multiple{
 i.red-multiple:before{
     content: "*"
 }
+/*box title*/
+.box-header .box-title{
+    font-size: 16px !important;
+}
 
 /*hide logo on mobile device*/
 @media (max-width: 767px) {
