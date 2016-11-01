@@ -8,3 +8,18 @@ span.control-btn{
 [v-cloak]{
     display: none;
 }
+
+/*hide logo on mobile device*/
+@media (max-width: 767px) {
+    header.main-header a.logo{
+        display: none;
+    }
+
+    .fixed div.content-wrapper{
+        padding-top:50px !important;
+    }
+
+    .main-sidebar, .left-side{
+        padding-top:50px !important;
+    }
+}
