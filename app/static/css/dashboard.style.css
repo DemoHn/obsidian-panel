@@ -21,11 +21,12 @@ section.mobile-header-bar{
     display: none;
 }
 
-section.content inst-sel-bar{
-    display: none;
-}
 /*including max-width: 767px :-)*/
 @media (max-width: 1200px){
+    section.content div.inst-sel-bar{
+        display: none;
+    }
+
     button.corner{
         position: fixed;
         bottom:30px;
@@ -97,7 +98,7 @@ section.content inst-sel-bar{
         box-sizing: border-box;
         border-top:1px solid lightgray;
         box-shadow: 1px 1px 3px #ccc;
-
+        z-index: 10;
         -webkit-transition: height 300ms;
         -moz-transition: height 300ms;
         -ms-transition: height 300ms;
@@ -112,13 +113,15 @@ section.content inst-sel-bar{
     }
 
     div.inst-sel-bar{
-        width:200px;
+        width:240px;
         height:100%;
         float:left;
+        display: block;
     }
 
     div.inst-content{
         float:left;
-        padding-left:200px;
+        padding-left:240px;
+        width:100%;
     }
 }
