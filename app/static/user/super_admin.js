@@ -95,7 +95,6 @@ var JavaBinary = function () {
        // self.socket.emit("message", pub_model);
     });
 
-
     this.flag_index_map = {};
     this.list_vm = new Vue({
         el:"#java_list",
@@ -125,7 +124,6 @@ var JavaBinary = function () {
                         var _major = self.list_vm.versions[index].major;
                         var _minor = self.list_vm.versions[index].minor;
                         self._start_downloading(_major, _minor, index);
-                        self._add_socket_listener(self.socket, index);
                         break;
                     default:
                         break;
@@ -218,26 +216,14 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
     socket.on("message", function (msg) {
         if(msg.event == "_init_download_list"){
             var data = msg.result;
+
             for(var item in data){
                 var _status_model = {
                     "status":data[item]["dw"]["status"],
-                    "progress" : data[item]["dw"]["progress"],
+                    "progress" : data[item]["dw"]["progress"] * 100,
                     "_interval_flag" : 0
                 };
                 dw_hash = data[item]["dw"]["current_hash"];
-                if(_status_model["status"] == DOWNLOADING) {
-                    _status_model._interval_flag = setInterval(function () {
-                        var event_json = {
-                            "event": "downloader.request_task_progress",
-                            "flag": self._generate_flag(20),
-                            "props": {
-                                "hash": dw_hash
-                            }
-                        };
-                        self.socket.emit("message", event_json);
-                    }, 1000);
-                }
-
                 self.list_vm.versions.push({
                     "minor" : data[item].minor,
                     "major" : data[item].major,
@@ -246,45 +232,19 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
                     "btn_status" : _status_model
                 });
             }
+
         }else if(msg.event == "_get_progress"){
+
             msg["value"] = msg["result"];
             _hash = msg["hash"];
             _total = msg["value"][1];
             _dw = msg["value"][0];
 
             _index = _find_index_by_hash(_hash);
-
             if (_total !== null && _dw !== null && _total > 0) {
                 self.list_vm.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
             }
-        }
-    })
-};
-
-JavaBinary.prototype._add_socket_listener = function (socket) {
-    var self = this;
-
-    var WAIT = 1,
-        DOWNLOADING = 2,
-        EXTRACTING = 3,
-        FINISH = 4,
-        FAIL = 5,
-        EXTRACT_FAIL = 6;
-
-    function _find_index_by_hash(_hash){
-        var list = self.list_vm.versions;
-        for(var i=0;i<list.length;i++){
-            if(list[i]["dw_hash"] == _hash){
-                return i;
-            }
-        }
-        return null;
-    }
-
-    socket.on("message", function (msg){
-
-        msg["value"] = msg["result"];
-        if(msg.event == "_download_start"){
+        }else if(msg.event == "_download_start"){
             dw_hash = msg["hash"];
             _index = self.flag_index_map[msg.flag];
             var btn_status = self.list_vm.versions[_index].btn_status;
@@ -329,6 +289,8 @@ JavaBinary.prototype._add_socket_listener = function (socket) {
         }
     });
 };
+
+
 
 /*Settings*/
 var Settings = function () {

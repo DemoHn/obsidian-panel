@@ -150,7 +150,6 @@ class sourceJAVA(object):
         priority = int(priority)
         major    = str(major)
         minor    = str(minor)
-        print("WTF")
         if priority > 0:
             for item in self.versions:
                 if item["priority"] == priority:
