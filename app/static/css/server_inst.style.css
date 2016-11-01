@@ -1,14 +1,12 @@
 /*Author: Nigshoxiz 2016.9.19*/
+[v-cloak]{
+    display: none;
+}
 
 span.control-btn{
     display: inline-block;
     line-height: 2.4em;
 }
-
-[v-cloak]{
-    display: none;
-}
-
 /*hide logo on mobile device*/
 @media (max-width: 767px) {
     header.main-header a.logo{

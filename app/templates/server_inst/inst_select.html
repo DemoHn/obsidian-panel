@@ -1,55 +1,67 @@
 {% extends "server_inst/_layout.html" %}
 {% block content %}
-    <section class="content-header">
-        <br>
-        <h1>选择</h1>
-        <div>
-            <span class="instruction">
-                选择要管理的 Minecraft 服务。
-            </span>
-        </div>
+
+    <section class="mobile-header-bar">
+        <span class="left-arrow"><i class="ion-ios-arrow-left"></i></span>
+        <span class="select_menu">
+            <span class="text">Hello 为什么</span><i class="ion-arrow-down-b"></i>
+                <div class="dropdown">
+                Hello <br>
+                Hello
+                </div>
+
+        </span>
+        <span class="right-arrow"><i class="ion-ios-arrow-right"></i>
+        </span>
     </section>
 
     <section class="content">
-        <div class="row">
-            <div class="col-xs-4">
-                <div class="box box-info">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">实例列表</h3>
+        <div class="inst-sel-bar">
+            Hello world
+        </div>
 
-                        <div class="box-tools pull-right">
-                            <button class="btn btn-box-tool" type="button" data-widget="collapse">
-                                <i class="fa fa-minus"></i>
-                            </button>
+        <div class="inst-content">
+             <div class="row">
+                <div class="col-xs-4">
+                    <div class="box box-info">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">实例列表</h3>
+
+                            <div class="box-tools pull-right">
+                                <button class="btn btn-box-tool" type="button" data-widget="collapse">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="box-body">
-                        <div class="table-responsive">
-                            <table class="table no-margin text-center" id="java_list">
-                                <thead>
-                                    <tr>
-                                        <th>名称</th>
-                                        <th>用户数</th>
-                                        <th>状态</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                {% for item in user_list %}
-                                    <tr>
-                                        <td>{{ item.inst_name }}</td>
-                                        <td>{{ item.current_user }} / {{ item.total_user }}</td>
-                                        <td>{{ item.status }}</td>
-                                        <td><a class="btn btn-primary btn-sm" href="/server_inst/dashboard/{{ item.inst_id }}">管理</a></td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="box-body">
+                            <div class="table-responsive">
+                                <table class="table no-margin text-center" id="java_list">
+                                    <thead>
+                                        <tr>
+                                            <th>名称</th>
+                                            <th>用户数</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for item in user_list %}
+                                        <tr>
+                                            <td>{{ item.inst_name }}</td>
+                                            <td>{{ item.current_user }} / {{ item.total_user }}</td>
+                                            <td>{{ item.status }}</td>
+                                            <td><a class="btn btn-primary btn-sm" href="/server_inst/dashboard/{{ item.inst_id }}">管理</a></td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </section>
 {% endblock %}
 <!--import jquery upload file js lib -->

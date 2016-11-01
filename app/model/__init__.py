@@ -4,3 +4,5 @@ from .ob_java_bin import JavaBinary
 from .ob_server_core import ServerCORE
 from .ob_server_instance import ServerInstance
 from .ob_ftp_account import FTPAccount
+from .ob_background_task import BackgroundTask
+from .ob_task_log import TaskLog
