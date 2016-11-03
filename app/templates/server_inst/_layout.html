@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OBpanel</title>
+    <title>{% block title %}{% endblock %}</title>
     <!-- Material Design fonts -->
     <!--jquery-->
     <script src="/static/js/jquery.min.js"></script>
@@ -26,6 +26,7 @@
 
     <script src="/static/user/server_inst.js"></script>
     <!--for mobile browser-->
+    {% block script %}{% endblock %}
     <meta content="width=device-width, initial-scale=0.9, maximum-scale=0.9, user-scalable=no" name="viewport">
 <script>
   var AdminLTEOptions = {

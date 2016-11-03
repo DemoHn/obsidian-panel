@@ -1,6 +1,7 @@
 {% extends "server_inst/_layout.html" %}
+{% block title %}仪表盘{% endblock %}
+{% block script %}{% endblock %}
 {% block content %}
-
     <section class="mobile-header-bar">
         <span class="left-arrow"><i class="ion-ios-arrow-left"></i></span>
         <span class="select_menu">
@@ -25,15 +26,26 @@
             <!-- second row (with login users and graph (still under consideration))-->
             <div class="row">
                 <div class="col-md-6">
-                    <div class="box box-solid">
-                      <div class="box-header with-border">
-                        <i class="fa fa-warning"></i>
-                        <h3 class="box-title">Alerts 天杀的</h3>
-                      </div>
-                        <div class="box-body">
-                            He
-                        </div>
-                    </div>
+
+                    <ul class="progress"><li id="progress-status">
+                        <div class="pg-title">STATUS</div>
+                            <svg id="status-svg">
+
+                            </svg>
+
+                    </li><li id="progress-online-users">
+                        <div class="pg-title">ONLINE USERS</div>
+                            <svg id="online-users-svg" viewBox="-10 -10 220 220">
+                                <path d="" stroke="blue" stroke-width="15" stroke-dashoffset="0"></path>
+                            </svg>
+                    </li><li id="progress-RAM-usage">
+                        <div class="pg-title">RAM USAGE</div>
+                            <svg id="RAM-usage-svg">
+
+                            </svg>
+                        </li>
+                        <!--  Item  -->
+                    </ul>
                 </div>
 
                 <div class="col-md-6">
@@ -49,7 +61,41 @@
                 </div>
             </div>
         </div>
-
     </section>
+
+    <script src="/static/js/vivus.min.js"></script>
+    <script>
+    function myCallback() {
+        console.log("hello")
+    }
+
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+      var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
+    }
+
+    function describeArc(x, y, radius, startAngle, endAngle){
+
+        var end = polarToCartesian(x, y, radius, endAngle);
+        var start = polarToCartesian(x, y, radius, startAngle);
+
+        var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+        var d = [
+            "M", start.x, start.y,
+            "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
+        ].join(" ");
+
+        return d;
+    }
+
+    $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 210));
+    new Vivus('online-users-svg', {duration: 50}, myCallback);
+    </script>
 {% endblock %}
 <!--import jquery upload file js lib -->
+
