@@ -1,4 +1,11 @@
 {% extends "superadmin/_layout.html" %}
+{% block title %}文件备份{% endblock %}
+{% block script %}
+    <script src="/static/js/jq_f_up/jquery.ui.widget.js"></script>
+    <script src="/static/js/jq_f_up/jquery.iframe-transport.js"></script>
+    <script src="/static/js/jq_f_up/jquery.fileupload.js"></script>
+{% endblock %}
+
 {% block content %}
     <section class="content-header">
         <br>
@@ -45,7 +52,5 @@
 {% endblock %}
 <!--import jquery upload file js lib -->
 {% block footer %}
-    <script src="/static/js/jq_f_up/jquery.ui.widget.js"></script>
-    <script src="/static/js/jq_f_up/jquery.iframe-transport.js"></script>
-    <script src="/static/js/jq_f_up/jquery.fileupload.js"></script>
+
 {% endblock %}

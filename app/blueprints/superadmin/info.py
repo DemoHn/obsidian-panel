@@ -20,6 +20,6 @@ def render_info_page(uid, priv):
     try:
         #proxy = MessageQueueProxy.getInstance()
         #proxy.send("process._test", WS_TAG.MPW, "123456", {"a":"b"})
-        return render_template('superadmin/info.html',title="OBpanel")
+        return render_template('superadmin/info.html')
     except TemplateNotFound:
         abort(404)

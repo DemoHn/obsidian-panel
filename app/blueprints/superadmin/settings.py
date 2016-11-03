@@ -22,7 +22,7 @@ rtn = returnModel("string")
 @super_admin_only
 def render_settings_page(uid, priv):
     try:
-        return render_template('superadmin/settings.html',title="OBpanel")
+        return render_template('superadmin/settings.html')
     except TemplateNotFound:
         abort(404)
 
