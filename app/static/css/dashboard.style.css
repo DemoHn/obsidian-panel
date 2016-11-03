@@ -155,11 +155,40 @@ section.mobile-header-bar{
     font-weight: 100;
     width:33.33%;
     height: 100%;
+    vertical-align: top;
+}
+.progress .pg-main{
+    width: 10rem;
+    height: 10rem;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
 }
 
 .progress svg {
-    width: 10rem;
-    height: 10rem;
+    width: 100%;
+    height: 100%;
     fill:none;
 }
 
+div.central-number{
+    font-size:25px;
+    position: absolute;
+    line-height: 25px;
+    text-align: center;
+}
+/*online users*/
+div#online-num{
+    top:40px;
+    left:30px;
+}
+
+div#divider{
+    top:60px;
+    left:30px;
+}
+
+div#total-num{
+    top:70px;
+    left:30px;
+}
