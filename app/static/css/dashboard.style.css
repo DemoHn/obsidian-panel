@@ -172,23 +172,43 @@ section.mobile-header-bar{
 }
 
 div.central-number{
-    font-size:25px;
+    font-size:18px;
     position: absolute;
     line-height: 25px;
     text-align: center;
 }
 /*online users*/
 div#online-num{
-    top:40px;
-    left:30px;
+    top:27px;
+    left:34px;
 }
 
 div#divider{
-    top:60px;
-    left:30px;
+    top:36px;
+    left:36px;
+    font-size: 25px;
 }
 
 div#total-num{
-    top:70px;
-    left:30px;
+    top:54px;
+    left:47px;
+}
+
+div#RAM-percent{
+    position: absolute;
+    line-height: 25px;
+    top:35px;
+    left: 20px;
+    text-align: center;
+    font-size: 25px;
+    width:2em;
+}
+
+div#RAM-percent-mark{
+    position: absolute;
+    line-height: 25px;
+    top:42px;
+    left:60px;
+    font-size:13px;
+    text-align: center;
 }
