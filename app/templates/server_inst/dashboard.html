@@ -1,14 +1,22 @@
 {% extends "server_inst/_layout.html" %}
 {% block title %}仪表盘{% endblock %}
-{% block script %}{% endblock %}
+{% block script %}
+    <script src="/static/js/vivus.min.js"></script>
+    <script>
+    var CURRENT_INSTANCE = {{ current_instance }};
+    </script>
+{% endblock %}
 {% block content %}
     <section class="mobile-header-bar">
         <span class="left-arrow"><!--<i class="ion-ios-arrow-left"></i>--></span>
         <span class="select_menu">
-            <span class="text">Hello 为什么</span><i class="ion-arrow-down-b"></i>
+            <span class="text">{{ current_instance_name }}</span><i class="ion-arrow-down-b dropdown-mark"></i>
                 <div class="dropdown">
-                Hello <br>
-                Hello
+                    {% for inst_item in user_list %}
+                    <a href="{{ inst_item.link }}">{{ inst_item.inst_name }}</a>
+                    {% endfor %}
+
+                    <a href="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></a>
                 </div>
 
         </span>
@@ -17,15 +25,29 @@
     </section>
 
     <section class="content">
-    少年，新建一个实例吧？
-    </section>
-    <section class="content">
         <div class="inst-sel-bar">
             <div class="inst-sel">
                 <div style="margin-bottom:1rem;"><b>实例列表</b></div>
-                <a href="#2" class="selected">Hello World</a>
-                <a href="#3">Hello World你委好</a>
-
+                {% for inst_item in user_list %}
+                    <div>
+                        <span class="star">
+                            {% if inst_item.star %}
+                                <i class="ion-android-star"></i>
+                            {% else %}
+                                <i class="ion-android-star-outline"></i>
+                            {% endif %}
+                        </span>
+                        <a href="{{ inst_item.link }}" class="{% if inst_item.inst_id ==current_instance %}selected{% endif %}">{{ inst_item.inst_name }}</a>
+                    </div>
+                {% endfor %}
+            <!--new instance-->
+                <div>
+                    <span class="star"> </span>
+                    <a href="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></a>
+                </div>
+                <!--<a href="/server_inst/dashboard/2" class="selected">Hello World</a>
+                <a href="/server_inst/dashboard/3">Hello World你委好</a>-->
+                <hr>
                 <div style="margin-top:1.5rem;margin-bottom:1rem;"><b>控制掣</b></div>
                 <button class="btn btn-primary">停止</button>
                 <button class="btn btn-danger">重新启动</button>
@@ -69,7 +91,7 @@
                         </div>
 
                         <div class="pg-info">
-                            运行中...
+                            运行中
                         </div>
 
                     </li><li id="progress-online-users">
@@ -128,8 +150,6 @@
             </div>
         </div>
     </section>
-
-    <script src="/static/js/vivus.min.js"></script>
     <script>
     function myCallback() {
         console.log("hello")
@@ -198,6 +218,7 @@
         });
     });*/
     </script>
+    <button class="corner"><i class="ion-ios-play" style="margin-left:4px;/*to make it more 'in center'*/"></i></button>
 {% endblock %}
 <!--import jquery upload file js lib -->
 
