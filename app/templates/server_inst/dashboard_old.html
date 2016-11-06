@@ -1,0 +1,82 @@
+{% extends "server_inst/_layout.html" %}
+
+{% block content %}
+    <section class="content-header">
+        <br>
+        <h1>仪表盘</h1>
+        <div>
+            <span class="instruction">
+                控制当前运行的 Minecraft 服务。
+            </span>
+        </div>
+    </section>
+
+    <input type="hidden" name="inst_id" value={{ inst_id }} id="instID">
+    <section class="content" id="dash_board">
+        <div class="col-xs-3">
+            <div>
+                <div class="info-box"><span class="info-box-icon bg-aqua">
+                    <i class="ion ion-ios-gear-outline"></i>
+                </span>
+                    <div class="info-box-content" id="work_status">
+                        <span class="info-box-text">工作状态</span>
+                        <span class="info-box-number">${ work_status }</span>
+                        <span class="control-btn" id="control_btn">
+                            <button class="btn btn-xs btn-default"
+                                    v-if="start_btn"
+                                    :disabled="start_btn_disable"
+                                    @click="start_inst">
+
+                                <i class="ion ion-play"></i>
+                            </button>
+                            <button class="btn btn-xs btn-default"
+                                    v-if="!start_btn"
+                                    :disabled="stop_btn_disable"
+                                    @click="stop_inst">
+                                <i class="ion ion-pause"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="info-box"><span class="info-box-icon bg-green">
+                    <i class="ion ion-ios-people-outline"></i>
+                </span>
+                    <div class="info-box-content" id="online_ctrl">
+                        <span class="info-box-text">在线用户</span>
+                        <span class="info-box-number"> ${ current_player } / ${ total_player }</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="info-box"><span class="info-box-icon bg-yellow">
+                    <i class="ion ion-ios-list-outline"></i>
+                </span>
+                    <div class="info-box-content" id="memory_ctrl">
+                        <span class="info-box-text">内存消耗</span>
+                        <span class="info-box-number"> ${current_RAM} M / ${max_RAM} M</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="col-xs-4">
+        <div class="box box-info">
+            <div class="box-header with-border">
+                <h3 class="box-title">控制掣</h3>
+
+                <div class="box-tools pull-right">
+                    <button class="btn btn-box-tool" type="button" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body">
+
+            </div>
+        </div>
+    </div>
+    </section>
+{% endblock %}
+<!--import jquery upload file js lib -->

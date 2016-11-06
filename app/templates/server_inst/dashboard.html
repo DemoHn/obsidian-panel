@@ -1,82 +1,203 @@
 {% extends "server_inst/_layout.html" %}
-
+{% block title %}仪表盘{% endblock %}
+{% block script %}{% endblock %}
 {% block content %}
-    <section class="content-header">
-        <br>
-        <h1>仪表盘</h1>
-        <div>
-            <span class="instruction">
-                控制当前运行的 Minecraft 服务。
-            </span>
+    <section class="mobile-header-bar">
+        <span class="left-arrow"><!--<i class="ion-ios-arrow-left"></i>--></span>
+        <span class="select_menu">
+            <span class="text">Hello 为什么</span><i class="ion-arrow-down-b"></i>
+                <div class="dropdown">
+                Hello <br>
+                Hello
+                </div>
+
+        </span>
+        <span class="right-arrow"><!--<i class="ion-ios-arrow-right">--></i>
+        </span>
+    </section>
+
+    <section class="content">
+    少年，新建一个实例吧？
+    </section>
+    <section class="content">
+        <div class="inst-sel-bar">
+            <div class="inst-sel">
+                <div style="margin-bottom:1rem;"><b>实例列表</b></div>
+                <a href="#2" class="selected">Hello World</a>
+                <a href="#3">Hello World你委好</a>
+
+                <div style="margin-top:1.5rem;margin-bottom:1rem;"><b>控制掣</b></div>
+                <button class="btn btn-primary">停止</button>
+                <button class="btn btn-danger">重新启动</button>
+            </div>
+        </div>
+
+        <div class="inst-content">
+            <!-- first row (with instance status and instance info)-->
+            <!-- second row (with login users and graph (still under consideration))-->
+            <div class="row">
+                <div class="col-md-6">
+
+                    <ul class="progress"><li id="progress-status">
+                        <div class="pg-title" style="color: #27b427;">运行状态</div>
+                        <!--<div class="pg-main">
+                            <svg id="status-svg" viewBox="-10 -10 220 220">
+                                <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="blue"></path>
+                                <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="blue"></path>
+                            </svg>
+                        </div>-->
+                        <!--<div class="pg-main">
+                            <svg id="stop" viewBox="-10 -10 220 220">
+                                <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="blue"></path>
+                                <path d="M 50 100 L 150 100" stroke="blue" stroke-width="3"></path>
+                            </svg>
+                        </div>-->
+                        <div class="pg-main">
+                            <svg id="stop" viewBox="-10 -10 220 220">
+                                <circle r="85" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                                <circle r="15" cx="50" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                                <circle r="15" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                                <circle r="15" cx="150" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                            </svg>
+
+                            <svg id="stop-rev" viewBox="-10 -10 220 220">
+                                <circle r="85" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                <circle r="15" cx="50" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                <circle r="15" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                <circle r="15" cx="150" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                            </svg>
+                        </div>
+
+                        <div class="pg-info">
+                            运行中...
+                        </div>
+
+                    </li><li id="progress-online-users">
+                        <div class="pg-title" style="color: blue;">在线用户</div>
+                        <div class="pg-main">
+                            <svg id="online-users-svg" viewBox="-10 -10 220 220">
+                                <path d="" stroke="blue" stroke-width="15" stroke-dashoffset="0"></path>
+                            </svg>
+
+                            <div id="online-num" class="central-number">8</div>
+                            <div id="divider" class="central-number">／</div>
+                            <div id="total-num" class="central-number">20</div>
+                        </div>
+
+                        <div class="pg-info">
+                            <span class="hint-text">在线人数： </span><span class="em_2_text">8</span>
+                        </div>
+
+                        <div class="pg-info">
+                            <span class="hint-text">最大容量： </span><span class="em_2_text">20</span>
+                        </div>
+                    </li><li id="progress-RAM-usage">
+                        <div class="pg-title" style="color: #ff4f38;">RAM 消耗</div>
+                        <div class="pg-main">
+                            <svg id="RAM-usage-svg" viewBox="-10 -10 220 220">
+                                <path d="" stroke="#ff4f38" stroke-width="15" stroke-dashoffset="0"></path>
+                            </svg>
+
+                            <div id="RAM-percent">30</div>
+                            <div id="RAM-percent-mark">%</div>
+                        </div>
+
+                        <div class="pg-info">
+                            <span class="hint-text">已用内存： </span><span>1023.4 M</span>
+                        </div>
+
+                        <div class="pg-info">
+                            <span class="hint-text">最大内存： </span><span>2048.0 M</span>
+                        </div>
+                    </li>
+                        <!--  Item  -->
+                    </ul>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="box box-solid">
+                        <div class="box-header with-border">
+                            <i class="fa fa-warning"></i>
+                            <h3 class="box-title">Alerts2 杨神好</h3>
+                        </div>
+                        <div class="box-body">
+                            He2
+                        </div>
+                  </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <input type="hidden" name="inst_id" value={{ inst_id }} id="instID">
-    <section class="content" id="dash_board">
-        <div class="col-xs-3">
-            <div>
-                <div class="info-box"><span class="info-box-icon bg-aqua">
-                    <i class="ion ion-ios-gear-outline"></i>
-                </span>
-                    <div class="info-box-content" id="work_status">
-                        <span class="info-box-text">工作状态</span>
-                        <span class="info-box-number">${ work_status }</span>
-                        <span class="control-btn" id="control_btn">
-                            <button class="btn btn-xs btn-default"
-                                    v-if="start_btn"
-                                    :disabled="start_btn_disable"
-                                    @click="start_inst">
+    <script src="/static/js/vivus.min.js"></script>
+    <script>
+    function myCallback() {
+        console.log("hello")
+    }
 
-                                <i class="ion ion-play"></i>
-                            </button>
-                            <button class="btn btn-xs btn-default"
-                                    v-if="!start_btn"
-                                    :disabled="stop_btn_disable"
-                                    @click="stop_inst">
-                                <i class="ion ion-pause"></i>
-                            </button>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="info-box"><span class="info-box-icon bg-green">
-                    <i class="ion ion-ios-people-outline"></i>
-                </span>
-                    <div class="info-box-content" id="online_ctrl">
-                        <span class="info-box-text">在线用户</span>
-                        <span class="info-box-number"> ${ current_player } / ${ total_player }</span>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="info-box"><span class="info-box-icon bg-yellow">
-                    <i class="ion ion-ios-list-outline"></i>
-                </span>
-                    <div class="info-box-content" id="memory_ctrl">
-                        <span class="info-box-text">内存消耗</span>
-                        <span class="info-box-number"> ${current_RAM} M / ${max_RAM} M</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+      var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
 
-    <div class="col-xs-4">
-        <div class="box box-info">
-            <div class="box-header with-border">
-                <h3 class="box-title">控制掣</h3>
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
+    }
 
-                <div class="box-tools pull-right">
-                    <button class="btn btn-box-tool" type="button" data-widget="collapse">
-                        <i class="fa fa-minus"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="box-body">
+    function describeArc(x, y, radius, startAngle, endAngle){
 
-            </div>
-        </div>
-    </div>
-    </section>
+        var end = polarToCartesian(x, y, radius, endAngle);
+        var start = polarToCartesian(x, y, radius, startAngle);
+
+        var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+        var d = [
+            "M", start.x, start.y,
+            "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
+        ].join(" ");
+
+        return d;
+    }
+
+    var wa = {};
+    var re = {};
+    function trig_rev() {
+        setTimeout(function () {
+            tr.play();
+        },400)
+
+    }
+
+    function trig_wait() {
+        tr.reset();
+        wa.reset();
+        wa.play();
+    }
+
+    $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 210));
+    $("#RAM-usage-svg path").attr("d", describeArc(100,100, 85, 0, 210));
+
+    new Vivus('online-users-svg', {duration: 50}, myCallback);
+    new Vivus('RAM-usage-svg', {duration: 30}, myCallback);
+    //new Vivus('status-svg', {duration: 50}, myCallback);
+    //new Vivus('stop', {duration: 30 , type:"sync"}, rev);
+    var wa = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"}, trig_rev);
+    var tr = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"}, trig_wait);
+    trig_wait();
+    //v = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"});
+    //vv = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"});
+
+    /*v.reset();
+    vv.play(function () {
+        v.play(function () {
+            vv.reset();
+            v.reset();
+            vv.play(function () {
+                v.play();
+            });
+        });
+    });*/
+    </script>
 {% endblock %}
 <!--import jquery upload file js lib -->
+

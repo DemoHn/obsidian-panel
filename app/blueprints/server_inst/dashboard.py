@@ -38,7 +38,7 @@ def render_inst_selection_page(uid, priv):
                 }
                 user_list.append(_model)
 
-        return render_template("server_inst/inst_select.html",
+        return render_template("server_inst/dashboard.html",
                                title="Select",
                                user_list = user_list)
     except TemplateNotFound:
@@ -55,7 +55,7 @@ def render_dashboard_page(uid, priv, inst_id):
         if inst_data == None:
             abort(500)
         else:
-            return render_template("server_inst/dashboard.html",
+            return render_template("server_inst/dashboard_old.html",
                                    title="Dashboard",
                                    inst_id = inst_id)
     except TemplateNotFound:

@@ -121,28 +121,43 @@ section.mobile-header-bar{
         float:left;
         display: block;
         padding-left:20px;
+        position: relative;
+        z-index: 20;
     }
 
     div.inst-content{
         float:left;
         padding-left:220px;
         width:100%;
+        position:absolute;
+        z-index: 10;
     }
 
     div.inst-sel-bar div.inst-sel{
         width:100%;
         border-right:1px solid #ccc;
+        padding-bottom: 10px;
+        z-index: 20;
     }
 
     div.inst-sel a{
         display: block;
         width:100%;
-        line-height: 30px;
-        height:30px;
+        line-height: 35px;
+        height:35px;
         color: black;
-        font-size:1.6rem;
+        font-size:1.5rem;
         padding-left:1rem;
         margin: 0;
+    }
+
+    div.inst-sel a.selected{
+        color:white;
+        background-color: mediumpurple;
+    }
+
+    div.inst-sel a:hover{
+        text-decoration: underline;
     }
 }
 
@@ -207,6 +222,7 @@ div#online-num{
     top:28px;
     left:20px;
     width:2em;
+    color: blue;
 }
 
 div#divider{
@@ -219,6 +235,7 @@ div#total-num{
     top:50px;
     left:42px;
     width:2em;
+    color: blue;
 }
 
 div.pg-info span.hint-text{
@@ -233,6 +250,7 @@ div#RAM-percent{
     text-align: center;
     font-size: 25px;
     width:2em;
+    color: red;
 }
 
 div#RAM-percent-mark{
