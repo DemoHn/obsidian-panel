@@ -112,19 +112,37 @@ section.mobile-header-bar{
 @media (min-width: 1201px){
     section.content{
         position: relative;
+        margin-top: 18px;
     }
 
     div.inst-sel-bar{
-        width:240px;
-        height:100%;
+        width:220px;
+        height:0;
         float:left;
         display: block;
+        padding-left:20px;
     }
 
     div.inst-content{
         float:left;
-        padding-left:240px;
+        padding-left:220px;
         width:100%;
+    }
+
+    div.inst-sel-bar div.inst-sel{
+        width:100%;
+        border-right:1px solid #ccc;
+    }
+
+    div.inst-sel a{
+        display: block;
+        width:100%;
+        line-height: 30px;
+        height:30px;
+        color: black;
+        font-size:1.6rem;
+        padding-left:1rem;
+        margin: 0;
     }
 }
 
@@ -144,7 +162,7 @@ section.mobile-header-bar{
     display: inline-block;
     padding: 0;
     text-align: center;
-    height: 15rem;
+    height: 180px;
     width: 100%;
     background-color: transparent;
 }
@@ -163,6 +181,8 @@ section.mobile-header-bar{
     margin-left: auto;
     margin-right: auto;
     position: relative;
+    margin-top: 0.8rem;
+    margin-bottom: 0.8rem;
 }
 
 .progress svg {
@@ -177,23 +197,34 @@ div.central-number{
     line-height: 25px;
     text-align: center;
 }
+
+span.em_2_text{
+    width: 2em;
+    display: inline-block;
+}
 /*online users*/
 div#online-num{
-    top:27px;
-    left:34px;
+    top:28px;
+    left:20px;
+    width:2em;
 }
 
 div#divider{
-    top:36px;
-    left:36px;
+    top:37px;
+    left:37px;
     font-size: 25px;
 }
 
 div#total-num{
-    top:54px;
-    left:47px;
+    top:50px;
+    left:42px;
+    width:2em;
 }
 
+div.pg-info span.hint-text{
+    color:gray;
+    font-size: 13px;
+}
 div#RAM-percent{
     position: absolute;
     line-height: 25px;
@@ -211,4 +242,9 @@ div#RAM-percent-mark{
     left:60px;
     font-size:13px;
     text-align: center;
+}
+
+div.pg-main #stop-rev{
+    position: relative;
+    top: -105px;
 }

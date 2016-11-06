@@ -68,6 +68,7 @@ class DownloaderEventHandler(MessageEventHandler):
         #self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
         self.tasks_pool = DownloadingTasks()
         self.scheduler  = BackgroundScheduler()
+        self.sch_job = None
         MessageEventHandler.__init__(self)
 
     def add_download_java_task(self, flag, values):
@@ -160,14 +161,14 @@ class DownloaderEventHandler(MessageEventHandler):
                     self.tasks_pool.update(hash, status=_utils.FAIL)
                     #download_queue[hash]["status"] = _utils.FAIL
                     # delete scheduler
-                    if self.scheduler != None:
-                        self.scheduler.remove()
+                    if self.sch_job != None:
+                        self.sch_job.remove()
                     _send_dw_signal("_download_finish", hash, False)
 
                 self.tasks_pool.update(hash, status=_utils.FINISH)
                 #download_queue[hash]["status"] = _utils.FINISH
-                if self.scheduler != None:
-                    self.scheduler.remove()
+                if self.sch_job != None:
+                    self.sch_job.remove()
                 _send_dw_signal("_extract_finish", hash, True)
 
             def _send_finish_event(download_result, filename):
@@ -224,7 +225,7 @@ class DownloaderEventHandler(MessageEventHandler):
                 # start progress scheduler
                 self.scheduler.start()
 
-                self.scheduler.add_job(_schedule_get_progress, 'interval', seconds=1, args=[self, hash])
+                self.sch_job = self.scheduler.add_job(_schedule_get_progress, 'interval', seconds=1, args=[self, hash])
                 _send_dw_signal("_download_start", hash, None)
             else:
                 _send_dw_signal("_download_start", None, None)

@@ -3,7 +3,7 @@
 {% block script %}{% endblock %}
 {% block content %}
     <section class="mobile-header-bar">
-        <span class="left-arrow"><i class="ion-ios-arrow-left"></i></span>
+        <span class="left-arrow"><!--<i class="ion-ios-arrow-left"></i>--></span>
         <span class="select_menu">
             <span class="text">Hello 为什么</span><i class="ion-arrow-down-b"></i>
                 <div class="dropdown">
@@ -12,13 +12,17 @@
                 </div>
 
         </span>
-        <span class="right-arrow"><i class="ion-ios-arrow-right"></i>
+        <span class="right-arrow"><!--<i class="ion-ios-arrow-right">--></i>
         </span>
     </section>
 
     <section class="content">
         <div class="inst-sel-bar">
-            Hello world
+            <div class="inst-sel">
+                <div style="margin-bottom:1rem;"><b>实例列表</b></div>
+                <a href="#2">Hello World</a>
+                <a href="#3">Hello World你委好</a>
+            </div>
         </div>
 
         <div class="inst-content">
@@ -29,9 +33,37 @@
 
                     <ul class="progress"><li id="progress-status">
                         <div class="pg-title">STATUS</div>
-                            <svg id="status-svg">
-
+                        <!--<div class="pg-main">
+                            <svg id="status-svg" viewBox="-10 -10 220 220">
+                                <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="blue"></path>
+                                <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="blue"></path>
                             </svg>
+                        </div>-->
+                        <!--<div class="pg-main">
+                            <svg id="stop" viewBox="-10 -10 220 220">
+                                <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="blue"></path>
+                                <path d="M 50 100 L 150 100" stroke="blue" stroke-width="3"></path>
+                            </svg>
+                        </div>-->
+                        <div class="pg-main">
+                            <svg id="stop" viewBox="-10 -10 220 220">
+                                <circle r="85" cx="100" cy="100" stroke="blue" stroke-width="3"></circle>
+                                <circle r="15" cx="50" cy="100" stroke="blue" stroke-width="3"></circle>
+                                <circle r="15" cx="100" cy="100" stroke="blue" stroke-width="3"></circle>
+                                <circle r="15" cx="150" cy="100" stroke="blue" stroke-width="3"></circle>
+                            </svg>
+
+                            <svg id="stop-rev" viewBox="-10 -10 220 220">
+                                <circle r="85" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                <circle r="15" cx="50" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                <circle r="15" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                <circle r="15" cx="150" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                            </svg>
+                        </div>
+
+                        <div class="pg-info">
+                            运行中...
+                        </div>
 
                     </li><li id="progress-online-users">
                         <div class="pg-title">ONLINE USERS</div>
@@ -45,6 +77,13 @@
                             <div id="total-num" class="central-number">20</div>
                         </div>
 
+                        <div class="pg-info">
+                            <span class="hint-text">在线人数： </span><span class="em_2_text">8</span>
+                        </div>
+
+                        <div class="pg-info">
+                            <span class="hint-text">最大容量： </span><span class="em_2_text">20</span>
+                        </div>
                     </li><li id="progress-RAM-usage">
                         <div class="pg-title">RAM USAGE</div>
                         <div class="pg-main">
@@ -54,6 +93,14 @@
 
                             <div id="RAM-percent">30</div>
                             <div id="RAM-percent-mark">%</div>
+                        </div>
+
+                        <div class="pg-info">
+                            <span class="hint-text">已用内存： </span><span>1023.4 M</span>
+                        </div>
+
+                        <div class="pg-info">
+                            <span class="hint-text">最大内存： </span><span>2048.0 M</span>
                         </div>
                     </li>
                         <!--  Item  -->
@@ -105,10 +152,44 @@
         return d;
     }
 
+    var wa = {};
+    var re = {};
+    function trig_rev() {
+        setTimeout(function () {
+            tr.play();
+        },400)
+
+    }
+
+    function trig_wait() {
+        tr.reset();
+        wa.reset();
+        wa.play();
+    }
+
     $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 210));
     $("#RAM-usage-svg path").attr("d", describeArc(100,100, 85, 0, 210));
+
     new Vivus('online-users-svg', {duration: 50}, myCallback);
-    new Vivus('RAM-usage-svg', {duration: 50}, myCallback);
+    new Vivus('RAM-usage-svg', {duration: 30}, myCallback);
+    //new Vivus('status-svg', {duration: 50}, myCallback);
+    //new Vivus('stop', {duration: 30 , type:"sync"}, rev);
+    var wa = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"}, trig_rev);
+    var tr = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"}, trig_wait);
+    trig_wait();
+    //v = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"});
+    //vv = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"});
+
+    /*v.reset();
+    vv.play(function () {
+        v.play(function () {
+            vv.reset();
+            v.reset();
+            vv.play(function () {
+                v.play();
+            });
+        });
+    });*/
     </script>
 {% endblock %}
 <!--import jquery upload file js lib -->
