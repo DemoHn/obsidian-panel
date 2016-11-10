@@ -316,3 +316,51 @@ div.pg-main #stop-rev{
     position: relative;
     top: -105px;
 }
+
+/*instance info (general and game-specific) table style*/
+table#inst-info-table tr td{
+    padding-right: 1.5rem;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+table#inst-info-table tr td:nth-child(1),
+table#inst-info-table tr td:nth-child(3)
+{
+    text-align: right;
+    font-weight: bold;
+    width: 15%;
+}
+
+
+table#inst-info-table tr td:nth-child(2),
+table#inst-info-table tr td:nth-child(4)
+{
+    width: 35%;
+}
+
+table#inst-info-table tr td:nth-child(2){
+    border-right: 1px solid #dadada;
+}
+
+span#show-instance-logo{
+    display: inline-block;
+    width:68px;
+    height: 68px;
+    padding:2px;
+    border:1px solid #9f9f9f;
+    border-radius: 2px;
+    line-height: 68px;
+}
+
+span#show-instance-logo img{
+    display: block;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+span#motd{
+    display: inline-block;
+    max-width: 20rem;
+}
