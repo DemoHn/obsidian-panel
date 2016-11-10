@@ -145,7 +145,6 @@ def start_inst(uid, priv):
         logger.error(traceback.format_exc())
         return rtn.error(500)
 
-
 @server_inst_page.route("/dashboard/stop_inst", methods=["POST"])
 @check_login
 def stop_inst(uid, priv):

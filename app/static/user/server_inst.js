@@ -12,7 +12,9 @@ $(document).ready(function(){
     };
 
     // init
-    new _map[path_item]();
+    if(_map[path_item] != null){
+        new _map[path_item]();
+    }
 });
 
 function getCurrentHost(){
@@ -32,87 +34,117 @@ var Dashboard = function () {
     // get instID rendered by template
     // of course if you fetch it from URL,
     // that's also fine
-    this.inst_id = $("#instID").val();
-    this.socket = io.connect(getCurrentHost()+":5001");
+    /*CURRENT_INSTANCE is passed from template*/
+    this.inst_id = CURRENT_INSTANCE;
 
-    this.status_dict = {
-        "0" : "未运行",
-        "1" : "启动中",
-        "2" : "运行中"
-    };
+    this.work_status = null;
+    this.socket = io.connect(getCurrentHost()+":5001");
 
     this.dashboard_vm = new Vue({
         el:"#dash_board",
         data:{
             "work_status" : "-",
-            "current_player" : "-",
-            "total_player" : "-" ,
-            "current_RAM" : "-", 
-            "max_RAM" : "-",
-            "start_btn" : true,
-            "start_btn_disable" : true,
-            "stop_btn_disable" : true
-        },
-        computed:{
+            "current_player" : "--",
+            "total_player" : "--" ,
+            "current_RAM" : "--",
+            "max_RAM" : "--",
+            "RAM_percent" : "--"
+        }
+    });
 
+    this.select_menu_vm = new Vue({
+        el:"#select_menu",
+        data:{
+            "markRotate": false,
+            "dropdownExpand" : false
+        },
+        methods:{
+            "menu_toggle": function (e) {
+                this.markRotate = !this.markRotate;
+                this.dropdownExpand = !this.dropdownExpand;
+            }
+        }
+    });
+
+    this.inst_ctrl_vm  = new Vue({
+        "el":"#inst_ctrl",
+        data: {
+            "btn_status" : "start",
+            "btn_disable" : true
         },
         methods:{
             "start_inst" : function (e) {
+                console.log(e);
+                this.btn_status = "pause";
                 self.start_inst();
             },
             "stop_inst" : function (e) {
                 self.stop_inst();
+                this.btn_status = "start";
+            },
+            "restart_inst" : function (e) {
+                // TODO
+                //self.restart_inst();
             }
+        }
+    });
+
+    // watch changes and update something when work_status changed
+    this.dashboard_vm.$watch('work_status', function (newVal, oldVal) {
+        // update data
+        self.work_status = newVal;
+        self.UI_set_progress_animation(newVal);
+        // ctrl button status
+        if(newVal == 0){
+            self.inst_ctrl_vm.btn_disable = false;
+        } else if(newVal == 1){
+            self.inst_ctrl_vm.btn_disable = true;
+        }else if(newVal == 2){
+            self.inst_ctrl_vm.btn_disable = false;
         }
     });
 
     this._add_socket_listener(self.socket);
     //read status at the beginning
-    this.fetch_status(function (data) {
-        var dvm = self.dashboard_vm;
-        if(data != null){
-            if(dvm.status != -1)
-                switch(data.status){
-                    case 0:
-                        dvm.work_status = self.status_dict["0"];
-                        dvm.start_btn = true;
-                        dvm.start_btn_disable = false;
-                        break;
-                    case 1:
-                        dvm.work_status = self.status_dict["1"];
-                        //dvm.work_status = "启动中";
-                        dvm.start_btn = false;
-                        dvm.stop_btn_disable = true;
-                        break;
-                    case 2:
-                        dvm.work_status = self.status_dict["2"];
-                        //dvm.work_status = "运行中";
-                        dvm.start_btn = false;
-                        dvm.stop_btn_disable = false;
-                        break;
-                    default:
-                        break;
-                }
+    this.fetch_status();
+};
 
+Dashboard.prototype.updateDVM = function (data) {
+    var self = this;
+    var dvm = self.dashboard_vm;
+    if(data != null){
+        if(dvm.status != -1)
+            switch(data.status){
+                case 0:
+                    dvm.work_status = 0;
+                    break;
+                case 1:
+                    dvm.work_status = 1;
+                    break;
+                case 2:
+                    dvm.work_status = 2;
+                    break;
+                default:
+                    break;
+            }
 
-            if(data.current_player != -1)
-                dvm.current_player = data.current_player;
+        if(data.current_player != -1)
+            dvm.current_player = data.current_player;
 
-            if(data.max_player != -1)
-                dvm.total_player = data.max_player;
+        if(data.total_player != -1)
+            dvm.total_player = data.total_player;
 
-            if(data.max_RAM != -1)
-                dvm.max_RAM = data.max_RAM;
+        if(data.total_RAM != -1)
+            dvm.max_RAM = data.total_RAM;
 
-            if(data.current_RAM != -1)
-                dvm.current_RAM = data.current_RAM.toFixed(1);
-        }
-    });
+        if(data.RAM != -1)
+            dvm.current_RAM = data.RAM.toFixed(1);
+    }
 };
 
 Dashboard.prototype.fetch_status = function (callback) {
     var self = this;
-    $.post("/server_inst/dashboard/get_status",{"inst_id": self.inst_id}, function (data) {
+    /*$.post("/server_inst/dashboard/get_status",{"inst_id": self.inst_id}, function (data) {
         try{
             var dt = JSON.parse(data);
             if(dt.status == "success"){
@@ -121,7 +153,77 @@ Dashboard.prototype.fetch_status = function (callback) {
         }catch(e){
             callback(null);
         }
-    })
+    })*/
+    var get_instance_msg = {
+        "event" : "process.get_instance_status",
+        "flag" : self._generate_flag(32),
+        "props":{
+            "inst_id" : self.inst_id
+        }
+    };
+    self.socket.emit("message", get_instance_msg);
+    //callback(null);
+};
+
+Dashboard.prototype.UI_set_progress_animation = function (work_status) {
+
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+      var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
+    }
+
+    function describeArc(x, y, radius, startAngle, endAngle){
+
+        var end = polarToCartesian(x, y, radius, endAngle);
+        var start = polarToCartesian(x, y, radius, startAngle);
+
+        var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+        var d = [
+            "M", start.x, start.y,
+            "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
+        ].join(" ");
+
+        return d;
+    }
+
+    var wa;
+    var tr;
+    function trig_rev() {
+        setTimeout(function () {
+            tr.play();
+        },400)
+    }
+    function trig_wait() {
+        tr.reset();
+        wa.reset();
+        wa.play();
+    }
+
+    switch (work_status){
+        case 0:
+            new Vivus('svg-halt', {duration: 30 , type:"sync"});
+            break;
+        case 1:
+            wa = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"}, trig_rev);
+            tr = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"}, trig_wait);
+            trig_wait();
+            break;
+        case 2:
+            new Vivus('svg-running', {duration: 30 , type:"sync"});
+            break;
+    }
+  //  $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 210));
+   // $("#RAM-usage-svg path").attr("d", describeArc(100,100, 85, 0, 210));
+
+    new Vivus('online-users-svg', {duration: 50});
+   // new Vivus('RAM-usage-svg', {duration: 30});
+    //new Vivus('status-svg', {duration: 50}, myCallback);
+
 };
 
 Dashboard.prototype.start_inst = function () {
@@ -136,17 +238,18 @@ Dashboard.prototype.start_inst = function () {
             callback(null);
         }
     })*/
-    start_instance_msg = {
+    var start_instance_msg = {
         "event" : "process.start",
         "flag" : self._generate_flag(32),
         "props":{
             "inst_id" : self.inst_id
         }
     };
-    self.socket.emit("message", start_instance_msg)
+    self.socket.emit("message", start_instance_msg);
 };
 
-Dashboard.prototype.stop_inst = function (callback) {
+Dashboard.prototype.stop_inst = function () {
+    var self = this;
     /*var self = this;
     $.post("/server_inst/dashboard/stop_inst",{"inst_id": self.inst_id}, function (data) {
         try{
@@ -158,6 +261,14 @@ Dashboard.prototype.stop_inst = function (callback) {
             callback(null);
         }
     })*/
+    var stop_instance_msg = {
+        "event" : "process.stop",
+        "flag" : self._generate_flag(32),
+        "props":{
+            "inst_id" : self.inst_id
+        }
+    };
+    self.socket.emit("message", stop_instance_msg);
 };
 
 Dashboard.prototype._generate_flag = function (num) {
@@ -180,26 +291,34 @@ Dashboard.prototype._add_socket_listener = function (socket) {
     socket.on("message", function (msg) {
         if(msg.event == "status_change"){
             if(msg.value == 1){ // starting
-                dvm.work_status = self.status_dict["1"];
+                dvm.work_status = 1;
                 dvm.start_btn = false;
                 dvm.stop_btn_disable = true;
 
             }else if(msg.value == 2){ //running
-                dvm.work_status = self.status_dict["2"];
+                dvm.work_status = 2;
                 dvm.start_btn = false;
                 dvm.stop_btn_disable = false;
                 dvm.current_player = 0;
             }else{ // msg.value == 0, halt
-                dvm.work_status = self.status_dict["0"];
+                dvm.work_status = 0;
                 dvm.start_btn = true;
                 dvm.start_btn_disable = false;
                 dvm.current_player = "-";
                 dvm.current_RAM = "-";
+                dvm.RAM_percent = "--";
             }
         }else if(msg.event == "player_change"){
             dvm.current_player = msg.value;
         }else if(msg.event == "memory_change") {
             dvm.current_RAM = msg.value.toFixed(1);
+            //dvm.RAM_percent = msg.value /
+        }else if(msg.event == "process.get_instance_status"){
+            console.log(msg)
+            if(msg.status == "success"){
+                self.updateDVM(msg.val);
+            }
+            //console.log(msg);
         }
     })
 };

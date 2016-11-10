@@ -36,62 +36,84 @@ class WatcherEvents(MessageEventHandler):
 
     def get_instance_status(self, flag, values):
         '''
-        DESCRIPTION: get all instances of ONE user registered on the process pool.
+        DESCRIPTION: get instance info by instance id.
 
         EVENT NAME: process.get_instance_status
 
-        :param values: {'_uid': <user_id>}
+        :param values: {'inst_id': <user_id>}
         :return: {
             "status" : "success",
-            "inst": [{
+            "inst": {
                 "inst_id" : <inst_id>,
-                "port" : <port>,
                 "current_player" : <player num>,
+                "total_player" : <total player>,
                 "RAM": <allocated RAM>,
+                "total_RAM" : <total RAM>,
                 "status" : SERVER_STATE.HALT | RUNNING | STARTING
-            }]
+            }
         } OR
         {
             "status" : "error"
         }
         '''
 
+        uid, sid, src, dest = self.pool.get(flag)
+        EVENT_NAME = "process.response"
+
         def _get_status(inst_obj):
             return inst_obj.get_status()
 
         def _get_owner_uid(inst_id):
-            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == int(inst_id)).first()
             if _q  == None:
                 return None
             else:
                 return _q.owner_id
 
-        EVENT_NAME = "process.get_instance_status.callback"
+        inst_id = int(values.get("inst_id"))
+
+        if inst_id == None:
+            # drop it (no response)
+            return None
+
         rtn_data = {
             "status": "success",
-            "inst": []
+            "event" : "process.get_instance_status",
+            "inst_id" : inst_id,
+            "val": None
         }
-        uid = values.get("_uid")
-        sender = values.get("_from")
 
-        if uid == None:
-            #rtn_data["status"] = "error"
-            return None
-            #self.proxy.send(EVENT_NAME, "CLIENT", rtn_data, uid=1)
-        pool = self.watcher.proc_pool
-        for key in pool:
-            _obj = pool[key]
+        if _get_owner_uid(inst_id) == int(uid):
+
             _model = {
-                "inst_id": _obj["inst_id"],
-                "port": _obj["port"],
-                "current_player": _obj["current_player"],
-                "RAM": _obj["RAM"],
-                "status": _get_status(_obj["inst"])
+                "inst_id": inst_id,
+                "current_player": -1,
+                "total_player": None,
+                "RAM": -1,
+                "total_RAM": None,
+                "status": SERVER_STATE.HALT
             }
+            rtn_data["val"] = _model
 
-            if int(_get_owner_uid(_obj["inst_id"])) == int(uid):
-                rtn_data["inst"].append(_model)
+            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+            if _q != None:
+                _model["total_player"] = _q.max_user
+                _model["total_RAM"] = _q.max_RAM
+                if self.watcher.just_get(inst_id) != None:
+                    inst_obj = self.watcher.just_get(inst_id)
+                    _model["status"] = inst_obj.get("inst").get_status()
+                    _model["current_player"] = inst_obj.get("current_player")
+                    _model["RAM"] = inst_obj.get("RAM")
+                self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
+            else:
 
+                rtn_data["status"] = "error"
+                self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
+
+        else:
+
+            rtn_data["status"] = "error"
+            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
         # if the message is sent from browser
         #if sender == WS_TAG.CLIENT:
         #    self.proxy.send(EVENT_NAME, sender,flag, rtn_data, uid=uid)
@@ -132,6 +154,7 @@ class WatcherEvents(MessageEventHandler):
         EVENT_NAME = "process.get_active_status.callback"
         uid = values.get("_uid")
         sender = values.get("_from")
+
         rtn_data = {
             "status": "success",
             "inst": []

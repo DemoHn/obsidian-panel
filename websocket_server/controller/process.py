@@ -73,13 +73,43 @@ class ProcessEventHandler(MessageEventHandler):
         _event = values.get("event")
 
         _values = {
-            "event" : _event,
-            "inst_id" : values.get("inst_id"),
-            "value" : values.get("val")
+            "event": _event,
+            "inst_id": values.get("inst_id"),
+            "value": values.get("val")
         }
 
         if _event == None:
             return None
         # broadcast data to multiple clients
         ws = WSConnections.getInstance()
-        ws.send_data("message", _values, uid = uid)
+        ws.send_data("message", _values, uid=uid)
+
+    # for sending response from previous request
+    # the ONLY difference between `broadcast` and `response` is
+    # the former one broadcast data to every client that belongs to the
+    # user, but `response` method just send to the data back to
+    # the request session id.
+    def response(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+        _event = values.get("event")
+
+        _values = {
+            "event": _event,
+            "status" : values.get("status"),
+            "inst_id": values.get("inst_id"),
+            "val": values.get("val")
+        }
+
+        if _event == None:
+            return None
+        # broadcast data to multiple clients
+        ws = WSConnections.getInstance()
+        ws.send_data("message", _values, sid=sid)
+
+    def get_instance_status(self, flag, values):
+        inst_id = values.get("inst_id")
+
+        _values = {
+            "inst_id" : int(inst_id)
+        }
+        self.proxy.send(flag, "process.get_instance_status", _values, WS_TAG.MPW)

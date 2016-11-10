@@ -47,6 +47,10 @@ section.mobile-header-bar{
         font-size: 35px;
     }
 
+    button.corner[disabled]{
+        background-color: #be8aef; /*just change Lightness of `blueviolet`*/
+    }
+
     section.mobile-header-bar{
         height: 40px;
         background-color: ghostwhite;
@@ -83,6 +87,7 @@ section.mobile-header-bar{
         text-decoration: none;
         box-sizing: border-box;
         border-bottom: 2px solid darkgreen;
+        cursor: pointer;
     }
 
     span.select_menu span.text{
@@ -94,31 +99,47 @@ section.mobile-header-bar{
     span.select_menu div.dropdown{
         overflow-y:hidden;
         /*height:100px;*/
-        height:100px;
+        height:0;
         background-color: white;
         margin-top:1px;
         box-sizing: border-box;
         border-top:1px solid lightgray;
         box-shadow: 1px 1px 3px #ccc;
         z-index: 10;
-        -webkit-transition: height 300ms;
-        -moz-transition: height 300ms;
-        -ms-transition: height 300ms;
-        -o-transition: height 300ms;
-        transition: height 300ms;
+    }
+
+    span.select_menu div.dropdown.expand{
+        height: auto;
+    }
+
+    div.dropdown div.padding{
+        height: 10px;
     }
 
     i.dropdown-mark{
         position: absolute;
         right: 0;
+        -webkit-transition: all 300ms;
+        -moz-transition: all 300ms;
+        -ms-transition: all 300ms;
+        -o-transition: all 300ms;
+        transition: all 300ms;
+    }
+
+    i.dropdown-mark.transform{
+        -webkit-transform: rotate(180deg);
+        -moz-transform: rotate(180deg);
+        -ms-transform: rotate(180deg);
+        -o-transform: rotate(180deg);
+        transform: rotate(180deg);
     }
     div.dropdown a{
         display: block;
-        height: 30px;
+        height: 35px;
         padding-left: 2em;
         padding-right: 2em;
         color: black;
-        line-height: 30px;
+        line-height: 35px;
         width: 100%;
         text-align: center;
     }
@@ -148,7 +169,6 @@ section.mobile-header-bar{
         float:left;
         padding-left:220px;
         width:100%;
-        position:absolute;
         z-index: 10;
     }
 
@@ -216,7 +236,6 @@ span.new_inst_txt{
     display: inline-block;
     position: relative;
     text-align: center;
-    font-weight: 100;
     width:33.33%;
     height: 100%;
     vertical-align: top;

@@ -9,22 +9,25 @@
 {% block content %}
     <section class="mobile-header-bar">
         <span class="left-arrow"><!--<i class="ion-ios-arrow-left"></i>--></span>
-        <span class="select_menu">
-            <span class="text">{{ current_instance_name }}</span><i class="ion-arrow-down-b dropdown-mark"></i>
-                <div class="dropdown">
+        <span class="select_menu" id="select_menu" v-on:click="menu_toggle">
+            <span class="text">{{ current_instance_name }}</span><i class="ion-arrow-down-b dropdown-mark " v-bind:class="{transform: markRotate}"></i>
+                <div class="dropdown " v-bind:class="{expand: dropdownExpand}">
+                    <div class="padding"></div>
                     {% for inst_item in user_list %}
                     <a href="{{ inst_item.link }}">{{ inst_item.inst_name }}</a>
                     {% endfor %}
 
                     <a href="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></a>
+                    <div class="padding"></div>
                 </div>
 
         </span>
-        <span class="right-arrow"><!--<i class="ion-ios-arrow-right">--></i>
+        <span class="right-arrow"><!--<i class="ion-ios-arrow-right"></i>-->
         </span>
     </section>
 
     <section class="content">
+    <div id="inst_ctrl">
         <div class="inst-sel-bar">
             <div class="inst-sel">
                 <div style="margin-bottom:1rem;"><b>实例列表</b></div>
@@ -45,36 +48,46 @@
                     <span class="star"> </span>
                     <a href="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></a>
                 </div>
-                <!--<a href="/server_inst/dashboard/2" class="selected">Hello World</a>
-                <a href="/server_inst/dashboard/3">Hello World你委好</a>-->
                 <hr>
                 <div style="margin-top:1.5rem;margin-bottom:1rem;"><b>控制掣</b></div>
-                <button class="btn btn-primary">停止</button>
-                <button class="btn btn-danger">重新启动</button>
+                <button v-if="btn_status == 'pause'" class="btn btn-primary" :disabled="btn_disable" @click="stop_inst">停止</button>
+                <button v-if="btn_status == 'start'" class="btn btn-primary" :disabled="btn_disable" @click="start_inst">启动</button>
+                <button v-if="btn_status == 'pause'" class="btn btn-danger" :disabled="btn_disable" @click="restart_inst">重新启动</button>
             </div>
+
         </div>
+
+        <!--this button will vanish on desktop but exist on mobile device and pad-->
+        <button v-if="btn_status == 'start'" class="corner" :disabled="btn_disable" @click="start_inst" v-cloak>
+            <i class="ion-ios-play" style="margin-left:4px;/*to make it more 'in center'*/"></i>
+
+        </button>
+        <button v-if="btn_status == 'pause'" class="corner" :disabled="btn_disable" @click="stop_inst" v-cloak>
+            <i class="ion-ios-pause"></i>
+        </button>
+    </div>
 
         <div class="inst-content">
             <!-- first row (with instance status and instance info)-->
             <!-- second row (with login users and graph (still under consideration))-->
             <div class="row">
-                <div class="col-md-6">
-
+                <div class="col-md-6" id="dash_board">
                     <ul class="progress"><li id="progress-status">
                         <div class="pg-title" style="color: #27b427;">运行状态</div>
-                        <!--<div class="pg-main">
-                            <svg id="status-svg" viewBox="-10 -10 220 220">
-                                <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="blue"></path>
-                                <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="blue"></path>
+
+                        <div class="pg-main" v-if="work_status == 2" v-cloak>
+                            <svg id="svg-running" viewBox="-10 -10 220 220">
+                                <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="#27b427"></path>
+                                <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="#27b427"></path>
                             </svg>
-                        </div>-->
-                        <!--<div class="pg-main">
-                            <svg id="stop" viewBox="-10 -10 220 220">
-                                <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="blue"></path>
-                                <path d="M 50 100 L 150 100" stroke="blue" stroke-width="3"></path>
+                        </div>
+                        <div class="pg-main" v-if="work_status == 0" v-cloak>
+                            <svg id="svg-halt" viewBox="-10 -10 220 220">
+                                <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="#27b427"></path>
+                                <path d="M 50 100 L 150 100" stroke="#27b427" stroke-width="3"></path>
                             </svg>
-                        </div>-->
-                        <div class="pg-main">
+                        </div>
+                        <div class="pg-main" v-if="work_status == 1" v-cloak>
                             <svg id="stop" viewBox="-10 -10 220 220">
                                 <circle r="85" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
                                 <circle r="15" cx="50" cy="100" stroke="#27b427" stroke-width="3"></circle>
@@ -91,7 +104,10 @@
                         </div>
 
                         <div class="pg-info">
-                            运行中
+                            <!-- status text-->
+                            <span v-if="work_status == 0" v-cloak>未 启 动</span>
+                            <span v-if="work_status == 1" v-cloak>启 动 中</span>
+                            <span v-if="work_status == 2" v-cloak>运 行 中</span>
                         </div>
 
                     </li><li id="progress-online-users">
@@ -101,17 +117,17 @@
                                 <path d="" stroke="blue" stroke-width="15" stroke-dashoffset="0"></path>
                             </svg>
 
-                            <div id="online-num" class="central-number">8</div>
+                            <div id="online-num" class="central-number">${ current_player }</div>
                             <div id="divider" class="central-number">／</div>
-                            <div id="total-num" class="central-number">20</div>
+                            <div id="total-num" class="central-number">${ total_player }</div>
                         </div>
 
                         <div class="pg-info">
-                            <span class="hint-text">在线人数： </span><span class="em_2_text">8</span>
+                            <span class="hint-text">在线人数： </span><span class="em_2_text">${ current_player }</span>
                         </div>
 
                         <div class="pg-info">
-                            <span class="hint-text">最大容量： </span><span class="em_2_text">20</span>
+                            <span class="hint-text">最大容量： </span><span class="em_2_text">${ total_player }</span>
                         </div>
                     </li><li id="progress-RAM-usage">
                         <div class="pg-title" style="color: #ff4f38;">RAM 消耗</div>
@@ -120,16 +136,16 @@
                                 <path d="" stroke="#ff4f38" stroke-width="15" stroke-dashoffset="0"></path>
                             </svg>
 
-                            <div id="RAM-percent">30</div>
+                            <div id="RAM-percent">${ RAM_percent }</div>
                             <div id="RAM-percent-mark">%</div>
                         </div>
 
                         <div class="pg-info">
-                            <span class="hint-text">已用内存： </span><span>1023.4 M</span>
+                            <span class="hint-text">已用内存： </span><span>${ current_RAM }</span>&nbsp;<span>M</span>
                         </div>
 
                         <div class="pg-info">
-                            <span class="hint-text">最大内存： </span><span>2048.0 M</span>
+                            <span class="hint-text">最大内存： </span><span>${ max_RAM }</span>&nbsp;<span>M</span>
                         </div>
                     </li>
                         <!--  Item  -->
@@ -150,75 +166,6 @@
             </div>
         </div>
     </section>
-    <script>
-    function myCallback() {
-        console.log("hello")
-    }
-
-    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-      var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
-
-      return {
-        x: centerX + (radius * Math.cos(angleInRadians)),
-        y: centerY + (radius * Math.sin(angleInRadians))
-      };
-    }
-
-    function describeArc(x, y, radius, startAngle, endAngle){
-
-        var end = polarToCartesian(x, y, radius, endAngle);
-        var start = polarToCartesian(x, y, radius, startAngle);
-
-        var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
-        var d = [
-            "M", start.x, start.y,
-            "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
-        ].join(" ");
-
-        return d;
-    }
-
-    var wa = {};
-    var re = {};
-    function trig_rev() {
-        setTimeout(function () {
-            tr.play();
-        },400)
-
-    }
-
-    function trig_wait() {
-        tr.reset();
-        wa.reset();
-        wa.play();
-    }
-
-    $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 210));
-    $("#RAM-usage-svg path").attr("d", describeArc(100,100, 85, 0, 210));
-
-    new Vivus('online-users-svg', {duration: 50}, myCallback);
-    new Vivus('RAM-usage-svg', {duration: 30}, myCallback);
-    //new Vivus('status-svg', {duration: 50}, myCallback);
-    //new Vivus('stop', {duration: 30 , type:"sync"}, rev);
-    var wa = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"}, trig_rev);
-    var tr = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"}, trig_wait);
-    trig_wait();
-    //v = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"});
-    //vv = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"});
-
-    /*v.reset();
-    vv.play(function () {
-        v.play(function () {
-            vv.reset();
-            v.reset();
-            vv.play(function () {
-                v.play();
-            });
-        });
-    });*/
-    </script>
-    <button class="corner"><i class="ion-ios-play" style="margin-left:4px;/*to make it more 'in center'*/"></i></button>
 {% endblock %}
 <!--import jquery upload file js lib -->
 
