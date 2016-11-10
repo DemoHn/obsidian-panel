@@ -72,7 +72,8 @@ def render_dashboard_page_II(uid, priv, inst_id):
     except TemplateNotFound:
         abort(404)
 
-
+# !!! deprecated !!!
+"""
 # get instance status
 @server_inst_page.route("/dashboard/get_status", methods=["POST"])
 @check_login
@@ -118,7 +119,7 @@ def get_instance_status(uid, priv):
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
-
+"""
 
 @server_inst_page.route("/dashboard/start_inst", methods=["POST"])
 @check_login

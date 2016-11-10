@@ -54,7 +54,11 @@ class ProcessEventHandler(MessageEventHandler):
             self.proxy.send(flag, watcher_event, inst_values, WS_TAG.MPW)
 
     def stop(self, flag, values):
-        pass
+        watcher_event = "process.stop_instance"
+        inst_values = {
+            "inst_id" : values.get("inst_id")
+        }
+        self.proxy.send(flag, watcher_event, inst_values, WS_TAG.MPW)
 
     def send_command(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)

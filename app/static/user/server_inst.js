@@ -74,13 +74,13 @@ var Dashboard = function () {
         },
         methods:{
             "start_inst" : function (e) {
-                console.log(e);
-                this.btn_status = "pause";
+                self.inst_ctrl_vm.btn_disable = true;
                 self.start_inst();
             },
             "stop_inst" : function (e) {
+                self.inst_ctrl_vm.btn_disable = true;
                 self.stop_inst();
-                this.btn_status = "start";
+
             },
             "restart_inst" : function (e) {
                 // TODO
@@ -94,14 +94,23 @@ var Dashboard = function () {
         // update data
         self.work_status = newVal;
         self.UI_set_progress_animation(newVal);
+        var dvm = self.dashboard_vm;
         // ctrl button status
         if(newVal == 0){
             self.inst_ctrl_vm.btn_disable = false;
+            self.inst_ctrl_vm.btn_status = "start";
+            dvm.current_player = "-";
+            dvm.current_RAM = "-";
+            dvm.RAM_percent = "--";
         } else if(newVal == 1){
             self.inst_ctrl_vm.btn_disable = true;
         }else if(newVal == 2){
             self.inst_ctrl_vm.btn_disable = false;
+            self.inst_ctrl_vm.btn_status = "pause";
+            dvm.current_player = 0;
         }
+
+
     });
 
     this._add_socket_listener(self.socket);
@@ -110,26 +119,16 @@ var Dashboard = function () {
 };
 
 Dashboard.prototype.updateDVM = function (data) {
+
     var self = this;
     var dvm = self.dashboard_vm;
     if(data != null){
-        if(dvm.status != -1)
-            switch(data.status){
-                case 0:
-                    dvm.work_status = 0;
-                    break;
-                case 1:
-                    dvm.work_status = 1;
-                    break;
-                case 2:
-                    dvm.work_status = 2;
-                    break;
-                default:
-                    break;
-            }
-
-        if(data.current_player != -1)
+        dvm.work_status = data.status;
+        if(data.current_player != -1){
+            var ratio = data.current_player / data.total_player;
             dvm.current_player = data.current_player;
+            self.updateCircleLoop("online_player", ratio);
+        }
 
         if(data.total_player != -1)
             dvm.total_player = data.total_player;
@@ -137,8 +136,12 @@ Dashboard.prototype.updateDVM = function (data) {
         if(data.total_RAM != -1)
             dvm.max_RAM = data.total_RAM;
 
-        if(data.RAM != -1)
+        if(data.RAM != -1){
             dvm.current_RAM = data.RAM.toFixed(1);
+            var ratio = data.RAM / data.total_RAM;
+            dvm.RAM_percent = (ratio * 100).toFixed(0);
+            self.updateCircleLoop("RAM", ratio)
+        }
     }
 };
 
@@ -166,31 +169,6 @@ Dashboard.prototype.fetch_status = function (callback) {
 };
 
 Dashboard.prototype.UI_set_progress_animation = function (work_status) {
-
-    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-      var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
-
-      return {
-        x: centerX + (radius * Math.cos(angleInRadians)),
-        y: centerY + (radius * Math.sin(angleInRadians))
-      };
-    }
-
-    function describeArc(x, y, radius, startAngle, endAngle){
-
-        var end = polarToCartesian(x, y, radius, endAngle);
-        var start = polarToCartesian(x, y, radius, startAngle);
-
-        var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-
-        var d = [
-            "M", start.x, start.y,
-            "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
-        ].join(" ");
-
-        return d;
-    }
-
     var wa;
     var tr;
     function trig_rev() {
@@ -217,13 +195,42 @@ Dashboard.prototype.UI_set_progress_animation = function (work_status) {
             new Vivus('svg-running', {duration: 30 , type:"sync"});
             break;
     }
-  //  $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 210));
-   // $("#RAM-usage-svg path").attr("d", describeArc(100,100, 85, 0, 210));
 
     new Vivus('online-users-svg', {duration: 50});
    // new Vivus('RAM-usage-svg', {duration: 30});
     //new Vivus('status-svg', {duration: 50}, myCallback);
+};
 
+Dashboard.prototype.updateCircleLoop = function (type, ratio) {
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+      var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+      return {
+        x: centerX + (radius * Math.cos(angleInRadians)),
+        y: centerY + (radius * Math.sin(angleInRadians))
+      };
+    }
+
+    function describeArc(x, y, radius, startAngle, endAngle){
+
+        var end = polarToCartesian(x, y, radius, endAngle);
+        var start = polarToCartesian(x, y, radius, startAngle);
+
+        var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+        var d = [
+            "M", start.x, start.y,
+            "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y
+        ].join(" ");
+
+        return d;
+    }
+
+    if(type == 'online_player'){
+        $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 360*ratio));
+    }else if(type == "RAM"){
+        $("#RAM-usage-svg path").attr("d", describeArc(100,100, 85, 0, 360*ratio));
+    }
 };
 
 Dashboard.prototype.start_inst = function () {
@@ -289,32 +296,31 @@ Dashboard.prototype._add_socket_listener = function (socket) {
     });
 
     socket.on("message", function (msg) {
-        if(msg.event == "status_change"){
-            if(msg.value == 1){ // starting
-                dvm.work_status = 1;
-                dvm.start_btn = false;
-                dvm.stop_btn_disable = true;
-
-            }else if(msg.value == 2){ //running
-                dvm.work_status = 2;
-                dvm.start_btn = false;
-                dvm.stop_btn_disable = false;
-                dvm.current_player = 0;
-            }else{ // msg.value == 0, halt
-                dvm.work_status = 0;
-                dvm.start_btn = true;
-                dvm.start_btn_disable = false;
-                dvm.current_player = "-";
-                dvm.current_RAM = "-";
-                dvm.RAM_percent = "--";
+        if(msg.event == "status_change") {
+            if(parseInt(self.inst_id) == parseInt(msg.inst_id)){
+                // use watcher instead
+                if (msg.value == 1) { // starting
+                    dvm.work_status = 1;
+                } else if (msg.value == 2) { //running
+                    dvm.work_status = 2;
+                } else { // msg.value == 0, halt
+                    dvm.work_status = 0;
+                }
             }
         }else if(msg.event == "player_change"){
-            dvm.current_player = msg.value;
+            if(parseInt(self.inst_id) == parseInt(msg.inst_id)){
+                dvm.current_player = msg.value;
+                self.updateCircleLoop("online_player", ratio);
+            }
         }else if(msg.event == "memory_change") {
-            dvm.current_RAM = msg.value.toFixed(1);
+            if(parseInt(self.inst_id) == parseInt(msg.inst_id)){
+                dvm.current_RAM = msg.value.toFixed(1);
+                ratio = (msg.value / dvm.max_RAM);
+                dvm.RAM_percent = (ratio*100).toFixed(0);
+                self.updateCircleLoop("RAM", ratio);
+            }
             //dvm.RAM_percent = msg.value /
         }else if(msg.event == "process.get_instance_status"){
-            console.log(msg)
             if(msg.status == "success"){
                 self.updateDVM(msg.val);
             }

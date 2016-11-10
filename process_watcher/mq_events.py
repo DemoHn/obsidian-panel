@@ -73,7 +73,14 @@ class WatcherEvents(MessageEventHandler):
         inst_id = int(values.get("inst_id"))
 
         if inst_id == None:
-            # drop it (no response)
+            print("inst_ID_NONE")
+            rtn_data = {
+                "status" : "error",
+                "inst_id" : inst_id,
+                "val" : "INST_ID_NULL"
+            }
+            # send error msg
+            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
             return None
 
         rtn_data = {
@@ -84,7 +91,6 @@ class WatcherEvents(MessageEventHandler):
         }
 
         if _get_owner_uid(inst_id) == int(uid):
-
             _model = {
                 "inst_id": inst_id,
                 "current_player": -1,
@@ -96,90 +102,31 @@ class WatcherEvents(MessageEventHandler):
             rtn_data["val"] = _model
 
             _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+
             if _q != None:
                 _model["total_player"] = _q.max_user
                 _model["total_RAM"] = _q.max_RAM
+
                 if self.watcher.just_get(inst_id) != None:
-                    inst_obj = self.watcher.just_get(inst_id)
-                    _model["status"] = inst_obj.get("inst").get_status()
-                    _model["current_player"] = inst_obj.get("current_player")
-                    _model["RAM"] = inst_obj.get("RAM")
+                    _i_obj = self.watcher.just_get(inst_id)
+
+                    if _i_obj.get("inst") != None:
+                        _model["status"] = _i_obj.get("inst").get_status()
+
+                    _model["current_player"] = _i_obj.get("current_player")
+                    _model["RAM"] = _i_obj.get("RAM")
+
                 self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
             else:
-
                 rtn_data["status"] = "error"
                 self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
 
         else:
-
             rtn_data["status"] = "error"
             self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
         # if the message is sent from browser
         #if sender == WS_TAG.CLIENT:
         #    self.proxy.send(EVENT_NAME, sender,flag, rtn_data, uid=uid)
-
-    def get_active_instances(self, flag, values):
-        '''
-        DESCRIPTION: return all active instances (STARING | RUNNING)
-
-        EVENT NAME: process.get_active_instances
-
-        :param values: {'inst_id': <inst_id> }
-        :return:
-        {
-            "status" : "success",
-            "inst": {
-                "inst_id" : <inst_id>,
-                "port" : <port>,
-                "current_player" : <player num>,
-                "RAM": <allocated RAM>
-                # status must be r
-            }
-        }
-        OR
-        {
-            "status" : "error"
-        }
-        '''
-
-        def _get_status(inst_obj):
-            return inst_obj.get_status()
-
-        def _get_owner_uid(inst_id):
-            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
-            if _q  == None:
-                return None
-            else:
-                return _q.owner_id
-        EVENT_NAME = "process.get_active_status.callback"
-        uid = values.get("_uid")
-        sender = values.get("_from")
-
-        rtn_data = {
-            "status": "success",
-            "inst": []
-        }
-
-        if uid == None:
-            return None
-
-        pool = self.watcher.proc_pool
-        for key in pool:
-            _obj = pool[key]
-            _model = {
-                "inst_id": _obj["inst_id"],
-                "port": _obj["port"],
-                "current_player": _obj["current_player"],
-                "RAM": _obj["RAM"],
-                "status": _get_status(_obj["inst"])
-            }
-
-            if _get_status(_obj["inst"]) != SERVER_STATE.HALT and \
-                    _get_owner_uid(_obj["inst_id"]) == uid:
-                rtn_data["inst"].append(_model)
-
-        if sender == WS_TAG.CLIENT:
-            self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
 
     def get_instance_log(self, flag, values):
         # TODO
@@ -260,26 +207,23 @@ class WatcherEvents(MessageEventHandler):
         :param values: { "inst_id" : <inst_id> }
         :return:
         '''
-        EVENT_NAME = "process.start_instance.callback"
-
         rtn_data = {
             "status": "success",
             "inst_id": None
         }
-        sender = values.get("_from")
+
         inst_id = values.get("inst_id")
+
+        # prevent running the same instance multi times.
+        if self.watcher.get_instance(inst_id) != None:
+            _s = self.watcher.get_instance(inst_id).get_status()
+
+            if _s == SERVER_STATE.STARTING or _s == SERVER_STATE.RUNNING:
+                return None
+
         self.watcher.start_instance(inst_id)
         rtn_data["inst_id"] = inst_id
 
-        if send_ack:
-            if sender == WS_TAG.APP:
-                self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
-            elif sender == WS_TAG.CLIENT:
-                uid = values.get("_uid")
-                if uid == None:
-                    return None
-                else:
-                    self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
 
     def stop_instance(self, flag, values, send_ack=True):
         '''
@@ -290,27 +234,29 @@ class WatcherEvents(MessageEventHandler):
         :param values: { "inst_id" : <inst_id> }
         :return:
         '''
-        EVENT_NAME = "process.stop_instance.callback"
+        EVENT_NAME = "process.stop_instance"
+        uid, sid, src, dest = self.pool.get(flag)
 
+        inst_id = values.get("inst_id")
+
+        if inst_id == None:
+            return None
         rtn_data = {
             "status": "success",
-            "inst_id": None
+            "event" : EVENT_NAME,
+            "inst_id": inst_id
         }
-        sender = values.get("_from")
-        inst_id = values.get("inst_id")
+
+        if self.watcher.just_get(inst_id) == None:
+            rtn_data["status"] = "error"
+            self.proxy.send(flag, "process.response", rtn_data, WS_TAG.CONTROL)
 
         self.watcher.stop_instance(inst_id)
         rtn_data["inst_id"] = inst_id
 
         if send_ack:
-            if sender == WS_TAG.APP:
-                self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
-            elif sender == WS_TAG.CLIENT:
-                uid = values.get("_uid")
-                if uid == None:
-                    return None
-                else:
-                    self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
+            self.proxy.send(flag, "process.response", rtn_data, WS_TAG.CONTROL)
+            #self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
 
     def _test(self, flag, values):
         print("[MPW] Roger. flag =%s, values= %s, info = %s" % (flag, values, self.pool.get(flag)))
@@ -405,6 +351,7 @@ class EventSender(object):
         pass
 
     def on_inst_terminate(self, inst_id, p):
+        print(inst_id)
         self.send(inst_id, "status_change", SERVER_STATE.HALT)
 
     def on_inst_player_login(self, inst_id ,p):

@@ -5,7 +5,6 @@ from .event_loop import EventLoop
 from .instance import MCServerInstance
 from .mc_config import MCWrapperConfig
 from .mc_socket import MCSocket
-
 # scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -118,6 +117,9 @@ class Watchdog(object):
         # socket
         self.socket = MCSocket()
 
+        self._check_online_user_job = None
+        self._read_memory_job = None
+
     @staticmethod
     def getWDInstance():
         if Watchdog.instance == None:
@@ -170,6 +172,17 @@ class Watchdog(object):
             for _hook_item in _method:
                 if inspect.isfunction(_hook_item) or inspect.ismethod(_hook_item):
                     _hook_item(inst_id, args_tuple)
+
+    def _count_active_instances(self):
+        count = 0
+        for inst_key in self.proc_pool:
+            if self.proc_pool.get(inst_key) != None:
+                if self.proc_pool.get(inst_key).get("inst") != None:
+                    _s = self.proc_pool.get(inst_key).get('inst').get_status()
+                    if _s == SERVER_STATE.RUNNING or _s == SERVER_STATE.STARTING:
+                        count += 1
+
+        return count
 
     def _event_handler(self, events):
         '''
@@ -314,6 +327,8 @@ class Watchdog(object):
                         inst_obj = self.proc_pool.get(inst_key)
                         _inst = inst_obj["inst"]
 
+                        if _inst == None:
+                            return None
                         if fd == _inst._proc.stdout.fileno():
                             line = _inst._proc.stdout.readline()
                             log_str = line.decode('utf-8')
@@ -345,6 +360,11 @@ class Watchdog(object):
             inst_obj = self.proc_pool.get(inst_key)
             _inst = inst_obj["inst"]
 
+            if _inst == None:
+                inst_id = int(inst_key[5:])
+                self._run_hook("inst_terminate", inst_id, (None))
+                continue
+
             if fd == _inst._proc.stdout.fileno():
                 inst_id = int(inst_key[5:])
                 # remove this fd from event loop
@@ -355,12 +375,14 @@ class Watchdog(object):
                 # reset instance object dict
                 inst_obj["inst"] = None
                 inst_obj["current_player"] = 0
-                # remove socket background
-                if self._read_memory_job != None:
-                    self._read_memory_job.remove()
 
-                if self._check_online_user_job != None:
-                    self._check_online_user_job.remove()
+                if self._count_active_instances() <= 0:
+                    # remove socket background
+                    if self._read_memory_job != None:
+                        self._read_memory_job.remove()
+
+                    if self._check_online_user_job != None:
+                        self._check_online_user_job.remove()
 
                 # finally, run hook
                 self._run_hook("inst_terminate", inst_id, (None))
@@ -462,11 +484,15 @@ class Watchdog(object):
                 if pid != None:
                     self._run_hook("inst_starting", inst_id, (None))
 
-                    # and add bg job
-                    self._read_memory_job = \
-                        self.scheduler.add_job(self._schedule_read_memory, 'interval', seconds=6)
-                    self._check_online_user_job = \
-                        self.scheduler.add_job(self._schedule_check_online_user, 'interval', seconds=73)
+                    # why the condition is lower and equal than 1?
+                    # because while `start_process` is running, the counter
+                    # will add by 1
+                    if self._count_active_instances() <= 1:
+                        # and add background job
+                        self._read_memory_job = \
+                            self.scheduler.add_job(self._schedule_read_memory, 'interval', seconds=6)
+                        self._check_online_user_job = \
+                            self.scheduler.add_job(self._schedule_check_online_user, 'interval', seconds=73)
 
     def stop_instance(self, inst_id):
         _inst_key = "inst_" + str(inst_id)
