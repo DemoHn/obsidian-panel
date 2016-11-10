@@ -72,84 +72,88 @@
             <!-- second row (with login users and graph (still under consideration))-->
             <div class="row">
                 <div class="col-md-6" id="dash_board">
-                    <ul class="progress"><li id="progress-status">
-                        <div class="pg-title" style="color: #27b427;">运行状态</div>
+                    <div class="box box-solid">
+                        <div class="box-body">
+                            <ul class="progress"><li id="progress-status">
+                                <div class="pg-title" style="color: #27b427;">运行状态</div>
 
-                        <div class="pg-main" v-if="work_status == 2" v-cloak>
-                            <svg id="svg-running" viewBox="-10 -10 220 220">
-                                <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="#27b427"></path>
-                                <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="#27b427"></path>
-                            </svg>
-                        </div>
-                        <div class="pg-main" v-if="work_status == 0" v-cloak>
-                            <svg id="svg-halt" viewBox="-10 -10 220 220">
-                                <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="#27b427"></path>
-                                <path d="M 50 100 L 150 100" stroke="#27b427" stroke-width="3"></path>
-                            </svg>
-                        </div>
-                        <div class="pg-main" v-if="work_status == 1" v-cloak>
-                            <svg id="stop" viewBox="-10 -10 220 220">
-                                <circle r="85" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                                <circle r="15" cx="50" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                                <circle r="15" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                                <circle r="15" cx="150" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                            </svg>
+                                <div class="pg-main" v-if="work_status == 2" v-cloak>
+                                    <svg id="svg-running" viewBox="-10 -10 220 220">
+                                        <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="#27b427"></path>
+                                        <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="#27b427"></path>
+                                    </svg>
+                                </div>
+                                <div class="pg-main" v-if="work_status == 0" v-cloak>
+                                    <svg id="svg-halt" viewBox="-10 -10 220 220">
+                                        <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="#27b427"></path>
+                                        <path d="M 50 100 L 150 100" stroke="#27b427" stroke-width="3"></path>
+                                    </svg>
+                                </div>
+                                <div class="pg-main" v-if="work_status == 1" v-cloak>
+                                    <svg id="stop" viewBox="-10 -10 220 220">
+                                        <circle r="85" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                                        <circle r="15" cx="50" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                                        <circle r="15" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                                        <circle r="15" cx="150" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                                    </svg>
 
-                            <svg id="stop-rev" viewBox="-10 -10 220 220">
-                                <circle r="85" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
-                                <circle r="15" cx="50" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
-                                <circle r="15" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
-                                <circle r="15" cx="150" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
-                            </svg>
-                        </div>
+                                    <svg id="stop-rev" viewBox="-10 -10 220 220">
+                                        <circle r="85" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                        <circle r="15" cx="50" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                        <circle r="15" cx="100" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                        <circle r="15" cx="150" cy="100" stroke="#ecf0f5" stroke-width="6"></circle>
+                                    </svg>
+                                </div>
 
-                        <div class="pg-info">
-                            <!-- status text-->
-                            <span v-if="work_status == 0" v-cloak>未 启 动</span>
-                            <span v-if="work_status == 1" v-cloak>启 动 中</span>
-                            <span v-if="work_status == 2" v-cloak>运 行 中</span>
-                        </div>
+                                <div class="pg-info">
+                                    <!-- status text-->
+                                    <span v-if="work_status == 0" v-cloak>未 启 动</span>
+                                    <span v-if="work_status == 1" v-cloak>启 动 中</span>
+                                    <span v-if="work_status == 2" v-cloak>运 行 中</span>
+                                </div>
 
-                    </li><li id="progress-online-users">
-                        <div class="pg-title" style="color: blue;">在线用户</div>
-                        <div class="pg-main">
-                            <svg id="online-users-svg" viewBox="-10 -10 220 220">
-                                <path d="" stroke="blue" stroke-width="15" stroke-dashoffset="0"></path>
-                            </svg>
+                            </li><li id="progress-online-users">
+                                <div class="pg-title" style="color: blue;">在线用户</div>
+                                <div class="pg-main">
+                                    <svg id="online-users-svg" viewBox="-10 -10 220 220">
+                                        <path d="" stroke="blue" stroke-width="15" stroke-dashoffset="0"></path>
+                                    </svg>
 
-                            <div id="online-num" class="central-number">${ current_player }</div>
-                            <div id="divider" class="central-number">／</div>
-                            <div id="total-num" class="central-number">${ total_player }</div>
-                        </div>
+                                    <div id="online-num" class="central-number">${ current_player }</div>
+                                    <div id="divider" class="central-number">／</div>
+                                    <div id="total-num" class="central-number">${ total_player }</div>
+                                </div>
 
-                        <div class="pg-info">
-                            <span class="hint-text">在线人数： </span><span class="em_2_text">${ current_player }</span>
-                        </div>
+                                <div class="pg-info">
+                                    <span class="hint-text">在线人数： </span><span class="em_2_text">${ current_player }</span>
+                                </div>
 
-                        <div class="pg-info">
-                            <span class="hint-text">最大容量： </span><span class="em_2_text">${ total_player }</span>
-                        </div>
-                    </li><li id="progress-RAM-usage">
-                        <div class="pg-title" style="color: #ff4f38;">RAM 消耗</div>
-                        <div class="pg-main">
-                            <svg id="RAM-usage-svg" viewBox="-10 -10 220 220">
-                                <path d="" stroke="#ff4f38" stroke-width="15" stroke-dashoffset="0"></path>
-                            </svg>
+                                <div class="pg-info">
+                                    <span class="hint-text">最大容量： </span><span class="em_2_text">${ total_player }</span>
+                                </div>
+                            </li><li id="progress-RAM-usage">
+                                <div class="pg-title" style="color: #ff4f38;">RAM 消耗</div>
+                                <div class="pg-main">
+                                    <svg id="RAM-usage-svg" viewBox="-10 -10 220 220">
+                                        <path d="" stroke="#ff4f38" stroke-width="15" stroke-dashoffset="0"></path>
+                                    </svg>
 
-                            <div id="RAM-percent">${ RAM_percent }</div>
-                            <div id="RAM-percent-mark">%</div>
-                        </div>
+                                    <div id="RAM-percent">${ RAM_percent }</div>
+                                    <div id="RAM-percent-mark">%</div>
+                                </div>
 
-                        <div class="pg-info">
-                            <span class="hint-text">已用内存： </span><span>${ current_RAM }</span>&nbsp;<span>M</span>
-                        </div>
+                                <div class="pg-info">
+                                    <span class="hint-text">已用内存： </span><span>${ current_RAM }</span>&nbsp;<span>M</span>
+                                </div>
 
-                        <div class="pg-info">
-                            <span class="hint-text">最大内存： </span><span>${ max_RAM }</span>&nbsp;<span>M</span>
+                                <div class="pg-info">
+                                    <span class="hint-text">最大内存： </span><span>${ max_RAM }</span>&nbsp;<span>M</span>
+                                </div>
+                            </li>
+                                <!--  Item  -->
+                            </ul>
                         </div>
-                    </li>
-                        <!--  Item  -->
-                    </ul>
+                    </div>
                 </div>
 
                 <div class="col-md-6">
