@@ -1,22 +1,46 @@
 {% extends "server_inst/_layout.html" %}
 {% block title %}新的世界{% endblock %}
-{% block script %}{% endblock %}
+{% block script %}
+    <link rel="stylesheet" href="/static/css/new_inst.style.css">
+{% endblock %}
 {% block content %}
 
-    <section class="content-header">
-        <br>
-        <h1>新建 Minecraft 世界</h1>
-        <div>
-        </div>
+    <section class="mobile-header-bar">
+        <ul class="steps">
+            <li>
+                <span class="text">基本配置</span>
+                <div class="mark-line">
+                    <div class="small-arrow"></div>
+                </div>
+            </li><li><span class="text">世界属性</span></li><li><span class="text">杂项</span></li>
+        </ul>
     </section>
 
     <section class="content">
         <div class="row">
-            <div class="col-xs-8">
+
+            <div class="step-sel-bar">
+                <div class="step-sel">
+                    <div>
+                        <a href="#step_1" class="selected"> 基本配置</a>
+                    </div>
+                    <div>
+                        <a href="#step_2"> 世界属性</a>
+                    </div>
+                    <div>
+                        <a href="#step_3"> 杂项</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-content">
+
+            </div>
+            <div class="col-xs-8"><!--
                 <form action="/server_inst/new_inst" method="POST" class="form-horizontal">
                     <!--<span class="step_sign">1</span>
                     <span class="step_text">基本设置</span>-->
-                    <div class="form-group">
+                    <!--<div class="form-group">
                         <div class="col-xs-7">
                             <label for="inst_name" class="col-sm-2 control-label">名称 </label>
                             <div class="col-md-4 col-lg-4 col-sm-offset-0">
@@ -98,7 +122,7 @@
                         </div>
                     </div>
                 </form>
-            </div>
+           --></div>
         </div>
     </section>
 {% endblock %}

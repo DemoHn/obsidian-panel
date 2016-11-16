@@ -1,0 +1,136 @@
+/*hide logo on mobile device*/
+@media (max-width: 767px) {
+    header.main-header a.logo{
+        display: none;
+    }
+
+    .fixed div.content-wrapper{
+        padding-top:50px !important;
+    }
+
+    .main-sidebar, .left-side{
+        padding-top:50px !important;
+    }
+}
+
+/*on desktop*/
+section.mobile-header-bar{
+    display: none;
+}
+
+/*including max-width: 767px :-)*/
+@media (max-width: 1200px) {
+    section.content div.step-sel-bar {
+        display: none;
+    }
+
+    section.mobile-header-bar{
+        height: 50px;
+        background-color: transparent;
+        display: block;
+        text-align: center;
+    }
+
+    section.mobile-header-bar ul.steps{
+        display: block;
+        padding: 0;
+        margin:0;
+        list-style: none;
+        width:100%;
+        height: 3em;
+    }
+
+    section.mobile-header-bar ul.steps li{
+        width: 31%;
+        display: inline-block;
+        height:100%;
+        margin:0;
+        vertical-align: top;
+        padding-top: 8px;
+    }
+
+    ul.steps div.mark-line{
+        box-sizing: border-box;
+        width:100%;
+        margin:0;
+        background-color: darkblue;
+        height:3px;
+        position: relative;
+        text-align: center;
+    }
+
+    ul.steps div.small-arrow{
+        content: "";
+        vertical-align: top;
+        width:0;
+        height:0;
+        border-left: 9px solid transparent;
+        border-right: 9px solid transparent;
+        border-top: 9px solid darkblue;
+        box-sizing: border-box;
+        display: inline-block;
+    }
+
+    ul.steps span.text{
+        display: inline-block;
+        height:28px;
+        line-height:28px;
+        font-size: 15px;
+    }
+    section.content{
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+
+}
+@media (min-width: 1201px){
+    section.content{
+        position: relative;
+        margin-top: 18px;
+    }
+
+    div.step-sel-bar{
+        width:300px;
+        height:0;
+        float:left;
+        display: block;
+        padding-left:100px;
+        position: relative;
+        z-index: 20;
+    }
+
+    div.step-content{
+        float:left;
+        padding-left:300px;
+        width:100%;
+        z-index: 10;
+    }
+
+    div.step-sel-bar div.step-sel{
+        width:100%;
+        padding-bottom: 10px;
+        z-index: 20;
+    }
+
+    div.step-sel a{
+        display: inline-block;
+        width:170px;
+        line-height: 30px;
+        height:30px;
+        color: #757575;
+        font-size:1.5rem;
+        padding-left:1rem;
+        margin: 0;
+        margin-left: 0.5rem;
+        box-sizing: border-box;
+    }
+
+    div.step-sel a.selected{
+        border-left: 0.5rem solid mediumpurple;
+        margin-left:0;
+    }
+
+    div.step-sel a:hover{
+        text-decoration: underline;
+    }
+}
