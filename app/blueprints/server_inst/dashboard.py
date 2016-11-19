@@ -33,10 +33,10 @@ def render_dashboard_page(uid, priv, inst_id = None):
                 star_flag = False
                 for item in user_insts:
                     _model = {
-                        "inst_name" : item.inst_name,
-                        "star" : item.star,
-                        "inst_id" : item.inst_id,
-                        "link" : "/server_inst/dashboard/" + str(item.inst_id)
+                        "inst_name": item.inst_name,
+                        "star": item.star,
+                        "inst_id": item.inst_id,
+                        "link": "/server_inst/dashboard/" + str(item.inst_id)
                     }
                     user_insts_dict[item.inst_id] = _model
                     user_list.append(_model)
@@ -52,8 +52,8 @@ def render_dashboard_page(uid, priv, inst_id = None):
                     current_inst_name = user_insts_dict[inst_id]["inst_name"]
 
                 return render_template("server_inst/dashboard.html",
-                                       user_list = user_list,current_instance = current_inst_id,
-                                       current_instance_name = current_inst_name)
+                                       user_list=user_list, current_instance=current_inst_id,
+                                       current_instance_name=current_inst_name)
             else:
                 # there is no any instance for this user,
                 # thus it is better to create another one

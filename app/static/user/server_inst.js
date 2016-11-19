@@ -415,7 +415,22 @@ var Console = function () {
             }
         });
     });
+    
+    this.select_menu_vm = new Vue({
+        el:"#select_menu",
+        data:{
+            "markRotate": false,
+            "dropdownExpand" : false
+        },
+        methods:{
+            "menu_toggle": function (e) {
+                this.markRotate = !this.markRotate;
+                this.dropdownExpand = !this.dropdownExpand;
+            }
+        }
+    });
 
+    
     $("#input").click(function () {
         var msg = {
             "event":"process.send_command",
