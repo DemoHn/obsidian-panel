@@ -35,100 +35,156 @@
 
             <div class="step-content">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-10 col-lg-6 max-width-limit">
                         <div class="box box-solid">
-                            <div class="box-body"></div>
+                            <div class="box-body margin-s">
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>玩家上限</span>
+                                    <span class="input-element">
+                                        <input type="range">
+                                        <input type="number">
+                                    </span>
+                                </div>
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>内存上限</span>
+                                    <span class="input-element">
+                                        <input type="range">
+                                        <input type="number" style="width:18%">&nbsp;&nbsp;<span>G</span>
+                                    </span>
+                                </div>
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>服务器核心</span>
+                                    <span class="input-element">
+                                        <select name="core_file_id" id="file_select" class="form-control">
+                                            <option value="0">Bukkit</option>
+                                            <option value="1">Spigot</option>
+                                        </select>
+                                    </span>
+                                </div>
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>Java 版本</span>
+                                    <span class="input-element">
+                                        <select name="java_bin_id" id="file_select" class="form-control">
+                                            <option value="0">JAVA 7</option>
+                                            <option value="1">JAVA 8</option>
+                                        </select>
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>侦听端口</span>
+                                    <span class="input-element">
+                                        <input type="number" style="width: 40%;">
+                                    </span>
+                                </div>
+
+                                <div class="setting-item text-right">
+                                    <button class="btn btn-info">下一步</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- server.properties-->
+                <div class="row">
+                    <div class="col-md-10 col-lg-6 max-width-limit">
+                        <div class="box box-solid">
+                            <div class="box-body">
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>正版验证</span>
+                                    <span class="input-element">
+                                        <select name="online-mode" class="form-control">
+                                            <option value="1">开启</option>
+                                            <option value="0">关闭</option>
+                                        </select>
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">PVP模式</span>
+                                    <span class="input-element">
+                                        <select name="core_file_id" class="form-control">
+                                            <option value="1">开启</option>
+                                            <option value="1">关闭</option>
+                                        </select>
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">游戏难度</span>
+                                    <span class="input-element">
+                                        <select name="core_file_id" class="form-control">
+                                            <option value="0">0</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                        </select>
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">怪物生成</span>
+                                    <span class="input-element">
+                                        <select name="core_file_id" class="form-control">
+                                            <option value="1">开启</option>
+                                            <option value="0">关闭</option>
+                                        </select>
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">生成下界</span>
+                                    <span class="input-element">
+                                        <select name="core_file_id" class="form-control">
+                                            <option value="1">开启</option>
+                                            <option value="0">关闭</option>
+                                        </select>
+                                    </span>
+                                </div>
+
+                                <div class="setting-item">
+                                    其他配置可在serer.properties文件中修改。
+                                </div>
+                                <div class="setting-item text-right">
+                                    <button class="btn btn-default">上一步</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-info">下一步</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-10 col-lg-6 max-width-limit">
+                        <div class="box box-solid">
+                            <div class="box-body">
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>世界名称</span>
+                                    <span class="input-element">
+                                        <input type="text" class="form-control">
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">LOGO</span>
+                                    <span class="input-element">
+                                        ***
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">欢迎词</span>
+                                    <span class="input-element">
+                                        ***
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">FTP 账户</span>
+                                    <span class="input-element">
+                                        <input type="text" class="form-control">
+                                    </span>
+                                </div>
+
+                                <div class="setting-item"><span class="item-text">FTP 密码</span>
+                                    <span class="input-element">
+                                        <input type="password" class="form-control">
+                                    </span>
+                                </div>
+
+                                <div class="setting-item text-right">
+                                    <button class="btn btn-default">上一步</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-info">完成</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xs-8"><!--
-                <form action="/server_inst/new_inst" method="POST" class="form-horizontal">
-                    <!--<span class="step_sign">1</span>
-                    <span class="step_text">基本设置</span>-->
-                    <!--<div class="form-group">
-                        <div class="col-xs-7">
-                            <label for="inst_name" class="col-sm-2 control-label">名称 </label>
-                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" name="inst_name"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-xs-7">
-                            <label for="inst_max_RAM" class="col-sm-2 control-label">最大内存 </label>
-                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" name="max_RAM"/>
-                            </div>
-
-                            <div class="col-md-1 col-lg-1 col-sm-offset-0">M</div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-xs-7">
-                            <label for="inst_max_user" class="col-sm-2 control-label">用户上限 </label>
-                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" name="max_user"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr>
-                    <div class="form-group">
-                        <div class="col-xs-7">
-                            <label for="file_select" class="col-sm-2 control-label">服务器核心 </label>
-                            <div class="col-sm-4">
-                                <select name="core_file_id" id="file_select" class="form-control">
-                                    <option value="0">Bukkit</option>
-                                    <option value="1">Spigot</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-xs-7">
-                            <label for="file_select" class="col-sm-2 control-label">JAVA版本 </label>
-                            <div class="col-sm-4">
-                                <select name="java_bin_id" id="file_select" class="form-control">
-                                    <option value="0">JAVA 7</option>
-                                    <option value="1">JAVA 8</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-xs-7">
-                            <label for="inst_listening_port" class="col-sm-2 control-label">侦听端口 </label>
-                            <div class="col-md-4 col-lg-4 col-sm-offset-0">
-                                <input type="text" class="form-control" name="listening_port"/>
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
-
-                    <div class="form-group">
-                        <div class="col-xs-7">
-                            <label for="file_select" class="col-sm-2 control-label">正版验证 </label>
-                            <div class="col-sm-4">
-                                <select name="" id="file_select" class="form-control">
-                                    <option value="bukkit">开启</option>
-                                    <option value="spigot">关闭</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-xs-7">
-                            <button class="btn btn-primary pull-left" type="submit">创建</button>
-                        </div>
-                    </div>
-                </form>
-           --></div>
         </div>
     </section>
 {% endblock %}

@@ -19,7 +19,7 @@ section.mobile-header-bar{
 }
 
 /*including max-width: 767px :-)*/
-@media (max-width: 1200px) {
+@media (max-width: 767px) {
     section.content div.step-sel-bar {
         display: none;
     }
@@ -83,7 +83,7 @@ section.mobile-header-bar{
     }
 
 }
-@media (min-width: 1201px){
+@media (min-width: 768px){
     section.content{
         position: relative;
         margin-top: 18px;
@@ -94,14 +94,14 @@ section.mobile-header-bar{
         height:0;
         float:left;
         display: block;
-        padding-left:100px;
+        padding-left:75px;
         position: relative;
         z-index: 20;
     }
 
     div.step-content{
         float:left;
-        padding-left:300px;
+        padding-left:260px;
         width:100%;
         z-index: 10;
     }
@@ -133,4 +133,67 @@ section.mobile-header-bar{
     div.step-sel a:hover{
         text-decoration: underline;
     }
+}
+
+/*general settings style*/
+div.box-body div.setting-item{
+    width:100%;
+    height: 4.2em;
+    padding: 1em 2em 1em 0;
+}
+
+div.max-width-limit{
+    max-width: 560px;
+}
+div.margin-s{
+    padding-top:1em;
+    padding-bottom:1em;
+}
+div.setting-item span.item-text{
+    position:relative;
+    width: 30%;
+    float:left;
+    height:100%;
+    display: inline-block;
+    text-align: center;
+    line-height: 2em;
+}
+
+span.item-text i.red-star:after{
+    content: "*";
+    margin-right:0.4em;
+    vertical-align: middle;
+    color: red;
+}
+div.setting-item span.input-element{
+    position:relative;
+    width: 70%;
+    float:left;
+    height:100%;
+    vertical-align: text-top;
+    display: inline-block;
+}
+
+span.input-element input[type="range"]{
+    display: inline-block;
+    width: 60%;
+    line-height: 3em;
+    margin-right:4%;
+    vertical-align: middle;
+}
+
+span.input-element input[type="number"]{
+    display: inline-block;
+    width: 24%;
+    line-height: 1.5em;
+    vertical-align: middle;
+}
+
+span.input-element select{
+    width:60%;
+}
+
+span.input-element input[type="text"],
+span.input-element input[type="password"]{
+    width: 60%;
 }
