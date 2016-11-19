@@ -138,7 +138,7 @@ section.mobile-header-bar{
 /*general settings style*/
 div.box-body div.setting-item{
     width:100%;
-    height: 4.2em;
+    height: 4.5em;
     padding: 1em 2em 1em 0;
 }
 
@@ -157,6 +157,15 @@ div.setting-item span.item-text{
     display: inline-block;
     text-align: center;
     line-height: 2em;
+}
+
+span.input-element span.error-hint{
+    display: inline-block;
+    font-size: 0.9em;
+    height: 0.8em;
+    width:100%;
+    line-height: 0.8em;
+    color: red;
 }
 
 span.item-text i.red-star:after{
@@ -196,4 +205,9 @@ span.input-element select{
 span.input-element input[type="text"],
 span.input-element input[type="password"]{
     width: 60%;
+}
+
+span.des{
+    margin-left:3em;
+    color: #666666;
 }

@@ -3,15 +3,16 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect
 from jinja2 import TemplateNotFound
 
+from app import db
 from app.controller.user_inst import UserInstance
 from app.utils import returnModel
+from app.model import JavaBinary, ServerCORE
 
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login
 
 import traceback
-import os, json
-from datetime import datetime
+
 
 rtn = returnModel("string")
 
@@ -32,9 +33,26 @@ def new_Minecraft_instance(uid, priv):
     :return:
     '''
     try:
-        return render_template("server_inst/new_inst.html",title="New instance")
+        # get all versions of java
+        java_versions = {}
+        java_versions_obj = db.session.query(JavaBinary).all()
+        for item in java_versions_obj:
+            java_versions[item.id] = "1.%s.0_%s" % (item.major_version, item.minor_version)
+
+        # get all info of server core
+        server_cores = {}
+        server_cores_obj = db.session.query(ServerCORE).all()
+
+        for item in server_cores_obj:
+            if item.core_version != None and item.core_version != "":
+                server_cores[item.core_id] = "%s-%s-%s" % (item.core_type, item.core_version, item.minecraft_version)
+            else:
+                server_cores[item.core_id] = "%s-%s" % (item.core_type, item.minecraft_version)
+
+        return render_template("server_inst/new_inst.html",java_versions = java_versions, server_cores = server_cores)
     except TemplateNotFound:
         abort(404)
+
 
 @server_inst_page.route("/new_inst", methods=["POST"])
 @check_login

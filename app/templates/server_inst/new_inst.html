@@ -42,6 +42,7 @@
                                     <span class="input-element">
                                         <input type="range">
                                         <input type="number">
+                                        <span class="error-hint">呢位同学，你过三爆四了没？</span>
                                     </span>
                                 </div>
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>内存上限</span>
@@ -52,18 +53,23 @@
                                 </div>
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>服务器核心</span>
                                     <span class="input-element">
-                                        <select name="core_file_id" id="file_select" class="form-control">
-                                            <option value="0">Bukkit</option>
-                                            <option value="1">Spigot</option>
+                                        <select name="core_file_id" class="form-control">
+                                            {% for item in server_cores %}
+                                            <option value="{{ item }}">{{ server_cores[item] }}</option>
+                                            {% endfor %}
                                         </select>
+                                        
+                                        <a href="/super_admin/server_core">添加核心</a>
                                     </span>
                                 </div>
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>Java 版本</span>
                                     <span class="input-element">
-                                        <select name="java_bin_id" id="file_select" class="form-control">
-                                            <option value="0">JAVA 7</option>
-                                            <option value="1">JAVA 8</option>
+                                        <select name="java_bin_id" class="form-control">
+                                            {% for item in java_versions %}
+                                            <option value="{{ item }}">{{ java_versions[item] }}</option>
+                                            {% endfor %}
                                         </select>
+                                        <a href="/super_admin/java_binary">添加Java版本</a>
                                     </span>
                                 </div>
 
@@ -133,7 +139,7 @@
                                 </div>
 
                                 <div class="setting-item">
-                                    其他配置可在serer.properties文件中修改。
+                                    <span class="des">注： 其他配置可在 server.properties 文件中修改。</span>
                                 </div>
                                 <div class="setting-item text-right">
                                     <button class="btn btn-default">上一步</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-info">下一步</button>
