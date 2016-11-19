@@ -398,12 +398,9 @@ Dashboard.prototype._add_socket_listener = function (socket) {
 var Console = function () {
     var self = this;
     // init
-    var console_ta = document.getElementById("console");
-    var editor = CodeMirror.fromTextArea(console_ta, {
-        lineNumbers: true,
-        readOnly : true
-    });
-    
+
+    this.current_instance = CURRENT_INSTANCE;
+    this.editor = this.init_console();
     var socket = io.connect(getCurrentHost()+":5001");
     socket.on("connect",function () {
         // on connect, server will emit an `ack` even
@@ -411,7 +408,7 @@ var Console = function () {
         socket.on("message",function (msg) {
             if(msg.event == "log_update") {
                 _log = msg.value;
-                editor.replaceRange(_log, CodeMirror.Pos(editor.lastLine()));
+                self.editor.replaceRange(_log, CodeMirror.Pos(self.editor.lastLine()));
             }
         });
     });
@@ -436,7 +433,7 @@ var Console = function () {
             "event":"process.send_command",
             "flag" : self._generate_flag(16),
             "props":{
-                "inst_id" : 1,
+                "inst_id" : CURRENT_INSTANCE,
                 "command" : $("#in").val()
             }
         }
@@ -452,4 +449,13 @@ Console.prototype._generate_flag = function (num) {
         str += series[Math.floor(Math.random() * 36)]
     }
     return str;
+};
+
+Console.prototype.init_console = function () {
+    var console_ta = document.getElementById("console");
+    var editor = CodeMirror.fromTextArea(console_ta, {
+        lineNumbers: true,
+        readOnly : true
+    });
+    return editor;
 };

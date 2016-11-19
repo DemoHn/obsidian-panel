@@ -4,6 +4,11 @@
     <script src="/static/js/codemirror.js"></script>
     <link rel="stylesheet" href="/static/css/codemirror.css">
     <link rel="stylesheet" href="/static/css/dashboard.style.css">
+
+    <script>
+    var CURRENT_INSTANCE = {{ current_instance }};
+    </script>
+
 {% endblock %}
 {% block content %}
 
@@ -17,7 +22,6 @@
                 <a href="{{ inst_item.link }}">{{ inst_item.inst_name }}</a>
                 {% endfor %}
 
-                <a href="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></a>
                 <div class="padding"></div>
             </div>
 
@@ -26,41 +30,29 @@
     </span>
 </section>
     <section class="content">
-     <div id="inst_ctrl">
-        <div class="inst-sel-bar">
-            <div class="inst-sel">
-                <div style="margin-bottom:1rem;"><b>实例列表</b></div>
-                {% for inst_item in user_list %}
-                    <div>
-                        <span class="star">
-                            {% if inst_item.star %}
-                                <i class="ion-android-star"></i>
-                            {% else %}
-                                <i class="ion-android-star-outline"></i>
-                            {% endif %}
-                        </span>
-                        <a href="{{ inst_item.link }}" class="{% if inst_item.inst_id ==current_instance %}selected{% endif %}">{{ inst_item.inst_name }}</a>
-                    </div>
-                {% endfor %}
-            <!--new instance-->
-                <div>
-                    <span class="star"> </span>
-                    <a href="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></a>
+        <div id="inst_ctrl">
+            <div class="inst-sel-bar">
+                <div class="inst-sel">
+                    <div style="margin-bottom:1rem;"><b>实例列表</b></div>
+                    {% for inst_item in user_list %}
+                        <div>
+                            <span class="star">
+                                {% if inst_item.star %}
+                                    <i class="ion-android-star"></i>
+                                {% else %}
+                                    <i class="ion-android-star-outline"></i>
+                                {% endif %}
+                            </span>
+                            <a href="{{ inst_item.link }}" class="{% if inst_item.inst_id ==current_instance %}selected{% endif %}">{{ inst_item.inst_name }}</a>
+                        </div>
+                    {% endfor %}
+                <!--new instance-->
+                    <hr>
                 </div>
-                <hr>
             </div>
         </div>
 
-        <!--this button will vanish on desktop but exist on mobile device and pad-->
-        <button v-if="btn_status == 'start'" class="corner" :disabled="btn_disable" @click="start_inst" v-cloak>
-            <i class="ion-ios-play" style="margin-left:4px;/*to make it more 'in center'*/"></i>
-
-        </button>
-        <button v-if="btn_status == 'pause'" class="corner" :disabled="btn_disable" @click="stop_inst" v-cloak>
-            <i class="ion-ios-pause"></i>
-        </button>
-    </div>
-
+    <div class="inst-content">
         <div class="row">
             <div class="col-xs-8">
                 <textarea name="" id="console" cols="30" rows="10"></textarea>
@@ -69,6 +61,7 @@
                 <button class="btn-raised" id="input">输入</button>
             </div>
         </div>
+    </div>
     </section>
 {% endblock %}
 <!--import jquery upload file js lib -->

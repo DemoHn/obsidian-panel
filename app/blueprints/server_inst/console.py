@@ -29,7 +29,7 @@ def render_console_page(uid, priv, inst_id = None):
                         "inst_name": item.inst_name,
                         "star": item.star,
                         "inst_id": item.inst_id,
-                        "link": "/server_inst/dashboard/" + str(item.inst_id)
+                        "link": "/server_inst/console/" + str(item.inst_id)
                     }
                     user_insts_dict[item.inst_id] = _model
                     user_list.append(_model)
@@ -58,7 +58,7 @@ def render_console_page(uid, priv, inst_id = None):
 
 @server_inst_page.route("/console/<inst_id>", methods=["GET"])
 @check_login
-def render_dashboard_page_II(uid, priv, inst_id):
+def render_console_page_II(uid, priv, inst_id):
     try:
         return render_console_page(inst_id=int(inst_id))
     except TemplateNotFound:
