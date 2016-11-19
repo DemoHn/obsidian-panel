@@ -119,7 +119,6 @@ def get_instance_status(uid, priv):
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
-"""
 
 @server_inst_page.route("/dashboard/start_inst", methods=["POST"])
 @check_login
@@ -170,3 +169,4 @@ def stop_inst(uid, priv):
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
+"""

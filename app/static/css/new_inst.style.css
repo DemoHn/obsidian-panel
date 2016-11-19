@@ -76,12 +76,21 @@ section.mobile-header-bar{
         height:28px;
         line-height:28px;
         font-size: 15px;
+        color:#111111;
     }
     section.content{
         margin-left: 15px;
         margin-right: 15px;
     }
 
+    span.input-element select{
+        width:90%;
+    }
+
+    span.input-element input[type="text"],
+    span.input-element input[type="password"]{
+        width: 90%;
+    }
 }
 @media (min-width: 768px){
     section.content{
@@ -133,6 +142,15 @@ section.mobile-header-bar{
     div.step-sel a:hover{
         text-decoration: underline;
     }
+
+    span.input-element select{
+    width:60%;
+}
+
+span.input-element input[type="text"],
+span.input-element input[type="password"]{
+    width: 60%;
+}
 }
 
 /*general settings style*/
@@ -198,16 +216,14 @@ span.input-element input[type="number"]{
     vertical-align: middle;
 }
 
-span.input-element select{
-    width:60%;
-}
-
-span.input-element input[type="text"],
-span.input-element input[type="password"]{
-    width: 60%;
-}
-
 span.des{
-    margin-left:3em;
+    margin-left:2em;
     color: #666666;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s
+}
+.fade-enter, .fade-leave-active {
+  opacity: 0
 }

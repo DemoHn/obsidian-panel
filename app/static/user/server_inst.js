@@ -8,7 +8,8 @@ $(document).ready(function(){
 
     var _map = {
         'dashboard' : Dashboard,
-        'console' : Console
+        'console' : Console,
+        'new_inst' : NewInstance
     };
 
     // init
@@ -23,9 +24,73 @@ function getCurrentHost(){
     var host = slashes.concat(window.location.hostname);
     return host;
 }
+/*
+* NewInstance page management
+* */
+var NewInstance = function () {
+    var self = this;
+
+    this.mobile_header_vm = new Vue({
+        el:"#vue-steps",
+        data:{
+            index : 0
+        }
+    });
+
+    this.header_vm = new Vue({
+        el:"#vue-steps-desktop",
+        data :{
+            index : 0
+        }
+    });
+
+   this.step_content_vm = new Vue({
+        el:"#step-content",
+        data :{
+            index : 0,
+            /*basic config vm*/
+            "world_name" : "",
+            "range_players" : 1,
+            "number_players" : 10,
+            "range_RAM" : 1,
+            "number_RAM" : 1,
+            "basic_config_next_button" : false
+        },
+       computed:{
+            "number_RAM" : function (e) {
+                return Math.pow(2, this.range_RAM)
+            },
+           "number_players" : function (e) {
+               return this.range_players * 10
+           }
+        }
+    });
+
+
+    function hash_change() {
+        var hash = location.hash;
+        if(/([0-9]+)$/.test(hash) == true){
+            var _index = /([0-9]+)$/.exec(hash);
+
+            self.mobile_header_vm.index = parseInt(_index[0]) - 1;
+            self.header_vm.index        = parseInt(_index[0]) - 1;
+            self.step_content_vm.index  = parseInt(_index[0]) - 1;
+        }else{
+            self.mobile_header_vm._index = 0;
+            self.header_vm.index = 0;
+            self.step_content_vm.index = 0;
+        }
+    }
+
+    $(window).on("hashchange", function () {
+        hash_change();
+    });
+
+    hash_change();
+};
 
 /*
-* Server Core Page Management
+* Dashboard Page Management
 * */
 var Dashboard = function () {
     var self = this;

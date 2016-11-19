@@ -6,13 +6,29 @@
 {% block content %}
 
     <section class="mobile-header-bar">
-        <ul class="steps">
+        <ul class="steps" id="vue-steps">
             <li>
-                <span class="text">基本配置</span>
-                <div class="mark-line">
+                <a href="#conf_1"><span class="text">基本配置</span></a>
+                <div  v-if="index == 0" class="mark-line" v-cloak>
                     <div class="small-arrow"></div>
                 </div>
-            </li><li><span class="text">世界属性</span></li><li><span class="text">杂项</span></li>
+            </li>
+            <li>
+                <a href="#conf_2">
+                    <span class="text">世界属性</span>
+                </a>
+                <div  v-if="index == 1" class="mark-line" v-cloak>
+                    <div class="small-arrow"></div>
+                </div>
+            </li>
+            <li>
+                <a href="#conf_3">
+                    <span class="text">杂项</span>
+                </a>
+                <div  v-if="index == 2" class="mark-line" v-cloak>
+                    <div class="small-arrow"></div>
+                </div>
+            </li>
         </ul>
     </section>
 
@@ -20,35 +36,63 @@
         <div class="row">
 
             <div class="step-sel-bar">
-                <div class="step-sel">
+                <div class="step-sel" id="vue-steps-desktop">
                     <div>
-                        <a href="#conf_1" class="selected"> 基本配置</a>
+                        <a href="#conf_1" v-bind:class="{selected: (index == 0)}"> 基本配置</a>
                     </div>
                     <div>
-                        <a href="#conf_2"> 世界属性</a>
+                        <a href="#conf_2" v-bind:class="{selected: (index == 1)}"> 世界属性</a>
                     </div>
                     <div>
-                        <a href="#conf_3"> 杂项</a>
+                        <a href="#conf_3" v-bind:class="{selected: (index == 2)}"> 杂项</a>
                     </div>
                 </div>
             </div>
 
-            <div class="step-content">
-                <div class="row">
-                    <div class="col-md-10 col-lg-6 max-width-limit">
+            <div class="step-content" id="step-content">
+
+                <div class="row step_box" v-if="index == 0">
+                    <div class="col-md-10 col-lg-6 max-width-limit" id="basic_config_box">
                         <div class="box box-solid">
                             <div class="box-body margin-s">
+                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>世界名称</span>
+                                    <span class="input-element">
+                                        <input type="text" class="form-control" v-model="world_name">
+
+                                        <span class="error-hint">取个名字也好嘛~~</span>
+                                    </span>
+                                </div>
+
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>玩家上限</span>
                                     <span class="input-element">
-                                        <input type="range">
-                                        <input type="number">
-                                        <span class="error-hint">呢位同学，你过三爆四了没？</span>
+                                        <input type="range" min="1" max="10" step="1" list="tickmarks" v-model="range_players">
+                                        <datalist id="tickmarks">
+                                            <option>1</option>
+                                            <option>2</option>
+                                            <option>3</option>
+                                            <option>4</option>
+                                            <option>5</option>
+                                            <option>6</option>
+                                            <option>7</option>
+                                            <option>8</option>
+                                            <option>9</option>
+                                            <option>10</option>
+                                        </datalist>
+                                        <input type="number" v-model="number_players">
                                     </span>
                                 </div>
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>内存上限</span>
                                     <span class="input-element">
-                                        <input type="range">
-                                        <input type="number" style="width:18%">&nbsp;&nbsp;<span>G</span>
+                                        <input type="range" min="1" max="6" step="1" list="RAMs" v-model="range_RAM">
+                                        <datalist id="RAMs">
+                                            <option>1</option>
+                                            <option>2</option>
+                                            <option>3</option>
+                                            <option>4</option>
+                                            <option>5</option>
+                                            <option>6</option>
+                                        </datalist>
+                                        <input type="number" style="width:18%" v-model="number_RAM" >&nbsp;&nbsp;<span>G</span>
                                     </span>
                                 </div>
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>服务器核心</span>
@@ -75,19 +119,20 @@
 
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>侦听端口</span>
                                     <span class="input-element">
-                                        <input type="number" style="width: 40%;">
+                                        <input type="number" max="65535" style="width: 40%;">
+                                        <span class="error-hint">端口须在0-65535之间</span>
                                     </span>
                                 </div>
 
                                 <div class="setting-item text-right">
-                                    <button class="btn btn-info">下一步</button>
+                                    <button class="btn btn-info" :disabled="!basic_config_next_button">下一步</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- server.properties-->
-                <div class="row">
+                <div class="row step_box" v-if="index == 1">
                     <div class="col-md-10 col-lg-6 max-width-limit">
                         <div class="box box-solid">
                             <div class="box-body">
@@ -149,15 +194,10 @@
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row step_box" v-if="index == 2">
                     <div class="col-md-10 col-lg-6 max-width-limit">
                         <div class="box box-solid">
                             <div class="box-body">
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>世界名称</span>
-                                    <span class="input-element">
-                                        <input type="text" class="form-control">
-                                    </span>
-                                </div>
 
                                 <div class="setting-item"><span class="item-text">LOGO</span>
                                     <span class="input-element">
@@ -180,6 +220,7 @@
                                 <div class="setting-item"><span class="item-text">FTP 密码</span>
                                     <span class="input-element">
                                         <input type="password" class="form-control">
+                                        <i class="fa fa-eye"></i><i class="fa fa-eye-slash"></i>
                                     </span>
                                 </div>
 
@@ -190,6 +231,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </section>
