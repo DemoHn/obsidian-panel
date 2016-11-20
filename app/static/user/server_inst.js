@@ -49,11 +49,15 @@ var NewInstance = function () {
         data :{
             index : 0,
             /*basic config vm*/
-            "world_name" : "",
             "range_players" : 1,
             "number_players" : 10,
             "range_RAM" : 1,
             "number_RAM" : 1,
+            "data_port" : 0,
+            "data_world_name" : "",
+            /*assert input*/
+            "world_name_assert" : -1,
+            "port_assert": -1,
             "basic_config_next_button" : false
         },
        computed:{
@@ -62,8 +66,51 @@ var NewInstance = function () {
             },
            "number_players" : function (e) {
                return this.range_players * 10
+           },
+           "basic_config_next_button": function (e) {
+               return (this.world_name_assert == 1) && (this.port_assert == 1);
            }
-        }
+       },
+       methods:{
+           /*button click*/
+           "next_to_2": function () {
+               location.hash = "#conf_2";
+           },
+           "port_fs" : function () {
+               this.port_assert = -1;
+           },
+           "port_bl" : function () {
+               var that = this;
+               if(this.data_port < 1 || this.data_port > 65535){
+                   this.port_assert = 0;
+               }else{
+                   self.assert_data("port",this.data_port, function (data) {
+                       if(data){
+                           that.port_assert = 1;
+                       }else{
+                           that.port_assert = 0;
+                       }
+                   });
+               }
+           },
+           "world_name_bl" : function () {
+               var that = this;
+               if(this.data_world_name == ""){
+                   this.world_name_assert = 0;
+               }else{
+                   self.assert_data("inst_name",this.data_world_name, function (data) {
+                       if(data){
+                           that.world_name_assert = 1;
+                       }else{
+                           that.world_name_assert = 0;
+                       }
+                   });
+               }
+           },
+           "world_name_fs" : function () {
+               this.world_name_assert = -1;
+           }
+       }
     });
 
 
@@ -89,6 +136,25 @@ var NewInstance = function () {
     hash_change();
 };
 
+NewInstance.prototype.assert_data = function (type, data , callback) {
+    $.get("/server_inst/new_inst/assert_input?type="+type+"&data="+data, function (data) {
+        try{
+            var d = JSON.parse(data);
+
+            if(d.status == "success"){
+                if(d.info == true){
+                    callback(true);
+                }else{
+                    callback(false);
+                }
+            }else{
+                callback(null);
+            }
+        }catch (e){
+            callback(null);
+        }
+    })
+};
 /*
 * Dashboard Page Management
 * */

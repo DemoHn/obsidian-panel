@@ -57,9 +57,14 @@
                             <div class="box-body margin-s">
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>世界名称</span>
                                     <span class="input-element">
-                                        <input type="text" class="form-control" v-model="world_name">
+                                        <input type="text" class="form-control" placeholder="我的世界" @blur="world_name_bl" @focus="world_name_fs" v-model="data_world_name">
+                                        &nbsp;&nbsp;&nbsp;
+                                        <span class="assert-input">
+                                            <i v-if="world_name_assert == 1" class="ion-android-done"></i>
+                                            <i v-if="world_name_assert == 0" class="ion-android-close"></i>
+                                        </span>
 
-                                        <span class="error-hint">取个名字也好嘛~~</span>
+                                        <span v-if="world_name_assert == 0" class="error-hint">世界名不得为空，或不得重名！</span>
                                     </span>
                                 </div>
 
@@ -101,9 +106,7 @@
                                             {% for item in server_cores %}
                                             <option value="{{ item }}">{{ server_cores[item] }}</option>
                                             {% endfor %}
-                                        </select>
-                                        
-                                        <a href="/super_admin/server_core">添加核心</a>
+                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/server_core">添加核心</a>
                                     </span>
                                 </div>
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>Java 版本</span>
@@ -112,20 +115,25 @@
                                             {% for item in java_versions %}
                                             <option value="{{ item }}">{{ java_versions[item] }}</option>
                                             {% endfor %}
-                                        </select>
-                                        <a href="/super_admin/java_binary">添加Java版本</a>
+                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java_binary">添加Java版本</a>
                                     </span>
                                 </div>
 
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>侦听端口</span>
                                     <span class="input-element">
-                                        <input type="number" max="65535" style="width: 40%;">
-                                        <span class="error-hint">端口须在0-65535之间</span>
+                                        <input type="number" max="65535" min="1" style="width: 40%;" @focus="port_fs" @blur="port_bl" v-model="data_port">
+                                        &nbsp;&nbsp;&nbsp;
+                                        <span class="assert-input">
+                                            <i v-if="port_assert == 1" class="ion-android-done"></i>
+                                            <i v-if="port_assert == 0" class="ion-android-close"></i>
+                                        </span>
+
+                                        <span v-if="port_assert == 0" class="error-hint">端口须在1-65535之间</span>
                                     </span>
                                 </div>
 
                                 <div class="setting-item text-right">
-                                    <button class="btn btn-info" :disabled="!basic_config_next_button">下一步</button>
+                                    <button class="btn btn-info" :disabled="!basic_config_next_button" @click="next_to_2">下一步</button>
                                 </div>
                             </div>
                         </div>
@@ -187,7 +195,7 @@
                                     <span class="des">注： 其他配置可在 server.properties 文件中修改。</span>
                                 </div>
                                 <div class="setting-item text-right">
-                                    <button class="btn btn-default">上一步</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-info">下一步</button>
+                                    <a href="#conf_1" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<a href="#conf_3" class="btn btn-info">下一步</a>
                                 </div>
                             </div>
                         </div>
@@ -205,7 +213,7 @@
                                     </span>
                                 </div>
 
-                                <div class="setting-item"><span class="item-text">欢迎词</span>
+                                <div class="setting-item"><span class="item-text">每日讯息</span>
                                     <span class="input-element">
                                         ***
                                     </span>
@@ -225,7 +233,7 @@
                                 </div>
 
                                 <div class="setting-item text-right">
-                                    <button class="btn btn-default">上一步</button>&nbsp;&nbsp;&nbsp;<button class="btn btn-info">完成</button>
+                                    <a href="#conf_2" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<button class="btn btn-info">完成</button>
                                 </div>
                             </div>
                         </div>

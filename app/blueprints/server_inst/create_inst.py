@@ -6,10 +6,10 @@ from jinja2 import TemplateNotFound
 from app import db
 from app.controller.user_inst import UserInstance
 from app.utils import returnModel
-from app.model import JavaBinary, ServerCORE
+from app.model import JavaBinary, ServerCORE, ServerInstance, FTPAccount
 
 from . import server_inst_page, logger
-from app.blueprints.superadmin.check_login import check_login
+from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 import traceback
 
@@ -52,6 +52,46 @@ def new_Minecraft_instance(uid, priv):
         return render_template("server_inst/new_inst.html",java_versions = java_versions, server_cores = server_cores)
     except TemplateNotFound:
         abort(404)
+
+@server_inst_page.route("/new_inst/assert_input", methods=["GET"])
+@ajax_check_login
+def assert_input(uid, priv):
+    rtn = returnModel("string")
+    try:
+        G = request.args
+        type = G.get("type")
+        data = G.get("data")
+        # port not GLOBALLY conflict
+        if type == "port":
+            try:
+                d = int(data)
+            except:
+                return rtn.success(False)
+            q = db.session.query(ServerInstance).filter(ServerInstance.listening_port == d).first()
+
+            if q == None:
+                return rtn.success(True)
+            else:
+                return rtn.success(False)
+
+        elif type == "inst_name":
+            q = db.session.query(ServerInstance).filter(ServerInstance.inst_name == data and ServerInstance.owner_id == uid).first()
+
+            if q == None:
+                return rtn.success(True)
+            else:
+                return rtn.success(False)
+
+        elif type == "ftp_account":
+            q = db.session.query(FTPAccount).filter(FTPAccount.username == data).first()
+            if q == None:
+                return rtn.success(True)
+            else:
+                return rtn.success(False)
+        else:
+            return rtn.error(500)
+    except:
+        abort(500)
 
 
 @server_inst_page.route("/new_inst", methods=["POST"])

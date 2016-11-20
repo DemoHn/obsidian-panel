@@ -84,12 +84,14 @@ section.mobile-header-bar{
     }
 
     span.input-element select{
-        width:90%;
+        width:80%;
+        display: inline-block;
     }
 
     span.input-element input[type="text"],
     span.input-element input[type="password"]{
         width: 90%;
+        display: inline-block;
     }
 }
 @media (min-width: 768px){
@@ -144,13 +146,15 @@ section.mobile-header-bar{
     }
 
     span.input-element select{
-    width:60%;
-}
+        width:60%;
+        display: inline-block;
+    }
 
-span.input-element input[type="text"],
-span.input-element input[type="password"]{
-    width: 60%;
-}
+    span.input-element input[type="text"],
+    span.input-element input[type="password"]{
+        width: 60%;
+        display: inline-block;
+    }
 }
 
 /*general settings style*/
@@ -212,7 +216,7 @@ span.input-element input[type="range"]{
 span.input-element input[type="number"]{
     display: inline-block;
     width: 24%;
-    line-height: 1.5em;
+    line-height: 2em;
     vertical-align: middle;
 }
 
@@ -227,3 +231,16 @@ span.des{
 .fade-enter, .fade-leave-active {
   opacity: 0
 }
+
+/*assert input*/
+span.assert-input{
+    font-size: 18px;
+    color: green;
+    display: inline-block;
+}
+
+span.assert-input i{
+    display: inline-block;
+    line-height: 30px;
+}
+
