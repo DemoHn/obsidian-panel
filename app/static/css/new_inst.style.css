@@ -160,7 +160,7 @@ section.mobile-header-bar{
 /*general settings style*/
 div.box-body div.setting-item{
     width:100%;
-    height: 4.5em;
+    min-height: 4.5em;
     padding: 1em 2em 1em 0;
 }
 

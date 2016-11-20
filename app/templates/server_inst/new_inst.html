@@ -2,6 +2,7 @@
 {% block title %}新的世界{% endblock %}
 {% block script %}
     <link rel="stylesheet" href="/static/css/new_inst.style.css">
+    <script src="/static/js/ckeditor/ckeditor.js"></script>
 {% endblock %}
 {% block content %}
 
@@ -215,7 +216,7 @@
 
                                 <div class="setting-item"><span class="item-text">每日讯息</span>
                                     <span class="input-element">
-                                        ***
+                                        <textarea name="motd-editor" id="motd-editor"></textarea>
                                     </span>
                                 </div>
 
@@ -243,5 +244,12 @@
             </div>
         </div>
     </section>
+
+    <script>
+    setTimeout(function () {
+        CKEDITOR.replace("motd-editor")
+    },50)
+
+    </script>
 {% endblock %}
 <!--import jquery upload file js lib -->
