@@ -113,6 +113,11 @@ var NewInstance = function () {
        }
     });
 
+    this.step_content_vm.$watch("index", function (newVal, oldVal) {
+        if(newVal == 2){
+            self.init_motd_editor();
+        }
+    });
 
     function hash_change() {
         var hash = location.hash;
@@ -153,6 +158,21 @@ NewInstance.prototype.assert_data = function (type, data , callback) {
         }catch (e){
             callback(null);
         }
+    })
+};
+
+/*we integrate a motd editor prototyped from ckeditor*/
+NewInstance.prototype.init_motd_editor = function () {
+    var toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': ["black","blue"] }]
+    ];
+    var quill = new Quill("#motd-editor",{
+        modules: {
+            toolbar: toolbarOptions
+        },
+        placeholder: '苟利国家生死以...',
+        theme: 'snow'
     })
 };
 /*

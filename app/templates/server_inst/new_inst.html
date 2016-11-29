@@ -2,7 +2,8 @@
 {% block title %}新的世界{% endblock %}
 {% block script %}
     <link rel="stylesheet" href="/static/css/new_inst.style.css">
-    <script src="/static/js/ckeditor/ckeditor.js"></script>
+    <link rel="stylesheet" href="/static/css/quill.snow.css">
+    <script src="/static/js/quill.min.js"></script>
 {% endblock %}
 {% block content %}
 
@@ -210,13 +211,16 @@
 
                                 <div class="setting-item"><span class="item-text">LOGO</span>
                                     <span class="input-element">
-                                        ***
+                                        <span id="show-instance-logo">
+                                            <img src="/static/img/TEST-LOGO.jpg" alt="hehe">
+                                        </span>&nbsp;&nbsp;
+                                        <button class="btn btn-info">上传图片</button>
                                     </span>
                                 </div>
 
                                 <div class="setting-item"><span class="item-text">每日讯息</span>
                                     <span class="input-element">
-                                        <textarea name="motd-editor" id="motd-editor"></textarea>
+                                        <div name="motd-editor" id="motd-editor"></div>
                                     </span>
                                 </div>
 
@@ -228,8 +232,10 @@
 
                                 <div class="setting-item"><span class="item-text">FTP 密码</span>
                                     <span class="input-element">
-                                        <input type="password" class="form-control">
-                                        <i class="fa fa-eye"></i><i class="fa fa-eye-slash"></i>
+                                        <div class="mask">
+                                            <span class="mask-text">&lt;与登录密码相同&gt;</span>
+                                        </div>
+                                        <input type="password" class="form-control">&nbsp;<input type="checkbox"><span class="">使用登录密码</span>
                                     </span>
                                 </div>
 
@@ -246,10 +252,6 @@
     </section>
 
     <script>
-    setTimeout(function () {
-        CKEDITOR.replace("motd-editor")
-    },50)
-
     </script>
 {% endblock %}
 <!--import jquery upload file js lib -->

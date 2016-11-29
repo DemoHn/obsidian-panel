@@ -162,6 +162,7 @@ div.box-body div.setting-item{
     width:100%;
     min-height: 4.5em;
     padding: 1em 2em 1em 0;
+    display: inline-block;
 }
 
 div.max-width-limit{
@@ -244,3 +245,46 @@ span.assert-input i{
     line-height: 30px;
 }
 
+/* FTP password mask*/
+span.input-element div.mask{
+    position: absolute;
+    width: 60%;
+    height: 100%;
+    background-color: rgba(255,255,255, 0.75);
+    text-align: center;
+}
+
+span.input-element div.mask span.mask-text{
+    font-size: 14px;
+    line-height: 30px;
+    display: inline-block;
+    color: rgba(100,100,100,0.75);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+/*motd editor*/
+#motd-editor{
+    height: 8rem;
+    font-size: 15px;
+}
+
+/* LOGO */
+span#show-instance-logo{
+    display: inline-block;
+    width:70px;
+    height: 70px;
+    padding:2px;
+    border:1px solid #9f9f9f;
+    border-radius: 2px;
+    line-height: 68px;
+}
+
+span#show-instance-logo img{
+    width: 64px;
+    height: 64px;
+    display: block;
+}
