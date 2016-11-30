@@ -29,13 +29,15 @@ function getCurrentHost(){
 * */
 var NewInstance = function () {
     var self = this;
-
+    this.motd_editor = null;
     this.mobile_header_vm = new Vue({
         el:"#vue-steps",
         data:{
             index : 0
         }
     });
+
+    this.logo_image_source = "";
 
     this.header_vm = new Vue({
         el:"#vue-steps-desktop",
@@ -44,7 +46,7 @@ var NewInstance = function () {
         }
     });
 
-   this.step_content_vm = new Vue({
+    this.step_content_vm = new Vue({
         el:"#step-content",
         data :{
             index : 0,
@@ -58,7 +60,10 @@ var NewInstance = function () {
             /*assert input*/
             "world_name_assert" : -1,
             "port_assert": -1,
-            "basic_config_next_button" : false
+            "ftp_account_assert" : -1,
+            "basic_config_next_button" : false,
+            "ftp_account_name" : FTP_ACCOUNT_NAME,
+            "default_ftp_password" : true
         },
        computed:{
             "number_RAM" : function (e) {
@@ -109,13 +114,31 @@ var NewInstance = function () {
            },
            "world_name_fs" : function () {
                this.world_name_assert = -1;
+           },
+           "ftp_account_bl" : function () {
+               var that = this;
+               if(this.ftp_account_name == ""){
+                   this.ftp_account_assert = 0;
+               }else{
+                   self.assert_data("ftp_account",this.ftp_account_name, function (data) {
+                       if(data){
+                           that.ftp_account_assert = 1;
+                       }else{
+                           that.ftp_account_assert = 0;
+                       }
+                   });
+               }
+           },
+           "ftp_account_fs" : function () {
+               this.ftp_account_assert = -1;         
            }
        }
     });
 
     this.step_content_vm.$watch("index", function (newVal, oldVal) {
         if(newVal == 2){
-            self.init_motd_editor();
+            self.motd_editor = self.init_motd_editor();
+            self.init_image_upload();
         }
     });
 
@@ -173,8 +196,45 @@ NewInstance.prototype.init_motd_editor = function () {
         },
         placeholder: '苟利国家生死以...',
         theme: 'snow'
-    })
+    });
+
+    return quill;
 };
+
+NewInstance.prototype.init_image_upload = function () {
+    var self = this;
+    if(self.logo_image_source != ""){
+        $("#preview_image").attr("src", "/server_inst/preview_logo/"+self.logo_image_source);
+        $("#upload-mask").css("height", 0 + "px");
+    }
+
+    $("#upload_image").fileupload({
+        url: "/server_inst/upload_logo",
+        autoUpload: false,
+        dataType: 'json',
+        add: function (e, data) {
+            // init mask
+            $("#upload-mask").css("height", 64 + "px");
+
+            if (data.files && data.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview_image').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(data.files[0]);
+
+                data.submit().success(function (result, textStatus, jqXHR) {
+                    self.logo_image_source = result.info;
+                });
+            }
+        },
+        progressall: function (e, data) {
+            var progress = data.loaded / data.total;
+            $("#upload-mask").css("height", 64*(1-progress) + "px");
+        }
+    });
+};
+
 /*
 * Dashboard Page Management
 * */

@@ -5,7 +5,7 @@ import time
 import datetime
 import re, os
 import json
-import calendar
+from random import randint
 import hashlib
 from app.error_code import errcode
 
@@ -30,6 +30,11 @@ def get_file_hash(filename):
     data = file.read(1024)
     return hashlib.md5(data).hexdigest()
 
+def generate_random_string(bits):
+    _str = ""
+    for i in range(0,bits):
+        _str += chr(randint(0,25) + 65)
+    return _str
 
 class returnModel:
     def __init__(self,type="json"):

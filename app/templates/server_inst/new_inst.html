@@ -4,6 +4,13 @@
     <link rel="stylesheet" href="/static/css/new_inst.style.css">
     <link rel="stylesheet" href="/static/css/quill.snow.css">
     <script src="/static/js/quill.min.js"></script>
+    <script src="/static/js/jq_f_up/jquery.ui.widget.js"></script>
+    <script src="/static/js/jq_f_up/jquery.iframe-transport.js"></script>
+    <script src="/static/js/jq_f_up/jquery.fileupload.js"></script>
+
+    <script>
+    var FTP_ACCOUNT_NAME = "{{ FTP_account_name }}";
+    </script>
 {% endblock %}
 {% block content %}
 
@@ -208,34 +215,57 @@
                     <div class="col-md-10 col-lg-6 max-width-limit">
                         <div class="box box-solid">
                             <div class="box-body">
-
                                 <div class="setting-item"><span class="item-text">LOGO</span>
                                     <span class="input-element">
                                         <span id="show-instance-logo">
-                                            <img src="/static/img/TEST-LOGO.jpg" alt="hehe">
+                                            <div id="bottom-image">
+                                                此处无图
+                                            </div>
+                                            <img src="" alt="" id="preview_image">
+                                            <div id="upload-mask">
+
+                                            </div>
                                         </span>&nbsp;&nbsp;
-                                        <button class="btn btn-info">上传图片</button>
+
+                                        <span class="logo-ctrl">
+                                            <div>
+                                                <label class="btn btn-info btn-file">
+                                                    上传图片<input id="upload_image" type="file" name="file" accept="image/png,image/jpeg">
+                                                </label>
+                                                <!--<button class="btn btn-info" id="upload-image">上传图片</button>-->
+                                            </div>
+                                            <div><span class="hint-text">注： 图片大小须为64*64像素，文件名以 .png 结尾</span></div>
+                                        </span>
+
                                     </span>
                                 </div>
 
                                 <div class="setting-item"><span class="item-text">每日讯息</span>
                                     <span class="input-element">
                                         <div name="motd-editor" id="motd-editor"></div>
+                                        <div><span class="hint-text">注： 每日讯息的内容至多两行</span></div>
                                     </span>
                                 </div>
 
                                 <div class="setting-item"><span class="item-text">FTP 账户</span>
                                     <span class="input-element">
-                                        <input type="text" class="form-control">
+                                        <input type="text" class="form-control" @focus="ftp_account_fs" @blur="ftp_account_bl" v-model="ftp_account_name">
+                                        &nbsp;&nbsp;&nbsp;
+                                        <span class="assert-input">
+                                            <i v-if="ftp_account_assert == 1" class="ion-android-done"></i>
+                                            <i v-if="ftp_account_assert == 0" class="ion-android-close"></i>
+                                        </span>
+
+                                        <span v-if="ftp_account_assert == 0" class="error-hint">FTP 账户名不能重复及留空</span>
                                     </span>
                                 </div>
 
                                 <div class="setting-item"><span class="item-text">FTP 密码</span>
                                     <span class="input-element">
-                                        <div class="mask">
+                                        <div class="mask" v-show="default_ftp_password">
                                             <span class="mask-text">&lt;与登录密码相同&gt;</span>
                                         </div>
-                                        <input type="password" class="form-control">&nbsp;<input type="checkbox"><span class="">使用登录密码</span>
+                                        <input type="password" class="form-control" :disabled="default_ftp_password">&nbsp;&nbsp;<input type="checkbox" v-model="default_ftp_password">&nbsp;&nbsp;<span class="">默认密码</span>
                                     </span>
                                 </div>
 

@@ -287,4 +287,36 @@ span#show-instance-logo img{
     width: 64px;
     height: 64px;
     display: block;
+    position: absolute;
+}
+
+div#bottom-image{
+    text-align: center;
+    width: 64px;
+    height: 64px;
+    color: #aaaaaa;
+    background-color: #f3f3f3;
+    font-size: 12px;
+    line-height: 64px;
+    position: absolute;
+}
+
+div#upload-mask{
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    background-color: rgba(255,255,255,0.6);
+}
+
+span.logo-ctrl{
+    vertical-align: top;
+    display: inline-block;
+    max-width:60%;
+}
+
+span.hint-text{
+    font-size: 12px;
+    margin-top: 1em;
+    display: inline-block;
+    color: gray;
 }

@@ -1,12 +1,15 @@
 __author__ = "Nigshoxiz"
 
-from flask import render_template, abort, request, redirect
+from flask import render_template, abort, request, redirect, send_file
+from hashlib import md5
 from jinja2 import TemplateNotFound
+import os
 
 from app import db
+from app.controller.global_config import GlobalConfig
 from app.controller.user_inst import UserInstance
-from app.utils import returnModel
-from app.model import JavaBinary, ServerCORE, ServerInstance, FTPAccount
+from app.utils import returnModel, generate_random_string
+from app.model import JavaBinary, ServerCORE, ServerInstance, FTPAccount, Users
 
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
@@ -49,7 +52,19 @@ def new_Minecraft_instance(uid, priv):
             else:
                 server_cores[item.core_id] = "%s-%s" % (item.core_type, item.minecraft_version)
 
-        return render_template("server_inst/new_inst.html",java_versions = java_versions, server_cores = server_cores)
+        # ...and generate an FTP account.
+        user_name_obj = db.session.query(Users).filter(Users.id == uid).first()
+
+        while True:
+            ftp_user_name = "%s_%s" % (user_name_obj.username, generate_random_string(3))
+            if db.session.query(FTPAccount).filter(FTPAccount.username == ftp_user_name).first() == None:
+                break
+
+        return render_template("server_inst/new_inst.html",
+                               java_versions = java_versions,
+                               server_cores = server_cores,
+                               FTP_account_name = ftp_user_name
+                               )
     except TemplateNotFound:
         abort(404)
 
@@ -92,6 +107,47 @@ def assert_input(uid, priv):
             return rtn.error(500)
     except:
         abort(500)
+
+# upload image
+@server_inst_page.route("/upload_logo", methods=["POST"])
+@ajax_check_login
+def upload_logo(uid, priv):
+
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1] in ['png','jpeg','jpg']
+
+    rtn = returnModel("string")
+    gc = GlobalConfig.getInstance()
+
+    try:
+        if 'file' not in request.files:
+            return rtn.error(500)
+
+        # get file object
+        file = request.files['file']
+
+        if file.filename == "":
+            return rtn.error(500)
+        if file and allowed_file(file.filename):
+            filename = md5(file.filename.encode()+os.urandom(8)).hexdigest()
+            file.save(os.path.join(gc.get("uploads_dir"), filename))
+            return rtn.success(filename)
+
+        return rtn.error(500)
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return rtn.error(500)
+
+@server_inst_page.route("/preview_logo/<logo>", methods=["GET"])
+@check_login
+def preview_server_logo(uid, priv, logo):
+    gc = GlobalConfig.getInstance()
+    logo_file_name = os.path.join(gc.get("uploads_dir"), logo)
+
+    if os.path.exists(logo_file_name):
+        return send_file(logo_file_name)
+    else:
+        abort(404)
 
 
 @server_inst_page.route("/new_inst", methods=["POST"])
