@@ -115,7 +115,7 @@
                                             {% for item in server_cores %}
                                             <option value="{{ item }}">{{ server_cores[item] }}</option>
                                             {% endfor %}
-                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/server_core">添加核心</a>
+                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/server_core" target="_blank">添加核心</a>
                                     </span>
                                 </div>
                                 <div class="setting-item"><span class="item-text"><i class="red-star"></i>Java 版本</span>
@@ -124,7 +124,7 @@
                                             {% for item in java_versions %}
                                             <option value="{{ item }}">{{ java_versions[item] }}</option>
                                             {% endfor %}
-                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java_binary">添加Java版本</a>
+                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java_binary" target="_blank">添加Java版本</a>
                                     </span>
                                 </div>
 
@@ -265,12 +265,17 @@
                                         <div class="mask" v-show="default_ftp_password">
                                             <span class="mask-text">&lt;与登录密码相同&gt;</span>
                                         </div>
-                                        <input type="password" class="form-control" :disabled="default_ftp_password">&nbsp;&nbsp;<input type="checkbox" v-model="default_ftp_password">&nbsp;&nbsp;<span class="">默认密码</span>
+                                        <input type="password" class="form-control" :disabled="default_ftp_password">&nbsp;&nbsp;
+                                        <div>
+                                            <a v-if="default_ftp_password" @click="default_ftp_password = false;">自定义密码</a>
+                                            <a v-if="!default_ftp_password" @click="default_ftp_password = true;">使用登录密码</a>
+                                        </div>
+                                        
                                     </span>
                                 </div>
 
                                 <div class="setting-item text-right">
-                                    <a href="#conf_2" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<button class="btn btn-info">完成</button>
+                                    <a href="#conf_2" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<button class="btn btn-info" @click="finish">完成</button>
                                 </div>
                             </div>
                         </div>

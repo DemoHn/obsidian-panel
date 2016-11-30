@@ -131,6 +131,9 @@ var NewInstance = function () {
            },
            "ftp_account_fs" : function () {
                this.ftp_account_assert = -1;         
+           },
+           "finish": function () {
+               
            }
        }
     });
@@ -186,9 +189,14 @@ NewInstance.prototype.assert_data = function (type, data , callback) {
 
 /*we integrate a motd editor prototyped from ckeditor*/
 NewInstance.prototype.init_motd_editor = function () {
+    var motd_colors = [
+        "#000000", "#0000be", "#00be00", "#00bebe", "#be0000",
+        "#be00be", "#d9a334", "#bebebe", "#3f3f3f", "#3f3ffe",
+        "#3ffe3f", "#3ffefe", "#fe3f3f", "#fe3ffe", "#fefe3f", "#ffffff"
+    ];
     var toolbarOptions = [
         ['bold', 'italic', 'underline', 'strike'],
-        [{ 'color': ["black","blue"] }]
+        [{ 'color': motd_colors }]
     ];
     var quill = new Quill("#motd-editor",{
         modules: {
@@ -235,6 +243,121 @@ NewInstance.prototype.init_image_upload = function () {
     });
 };
 
+NewInstance.prototype.parse_motd = function () {
+    var editor = this.motd_editor;
+    var contents = editor.getContents().ops;
+
+    var motd_colors = [
+        "#000000", "#0000be", "#00be00", "#00bebe", "#be0000",
+        "#be00be", "#d9a334", "#bebebe", "#3f3f3f", "#3f3ffe",
+        "#3ffe3f", "#3ffefe", "#fe3f3f", "#fe3ffe", "#fefe3f", "#ffffff"
+    ];
+    /*
+    * content format:
+    * [
+    *   {
+    *      "insert" : ***,
+    *      "attributes" : {
+    *          <name> : <true | false>
+    *      }
+    *   }
+    * ]
+    *
+    * And § (\u00A7) is Minecraft's color flag, which is necessary for
+    * a colored text
+    * */
+
+    function utf8_encode(str){
+        var f_str = "";
+        for(var i=0;i<str.length;i++){
+            num = str.charCodeAt(i);
+            if(num > 0 && num < 128){
+                f_str += str[i];
+            }else{
+                hex_code = num.toString(16);
+                f_str += "\\u";
+                for(var j=0;j<4-hex_code.length;j++){
+                    f_str += "0"
+                }
+
+                f_str += hex_code;
+            }
+        }
+
+        return f_str;
+    }
+
+    function SS(R){
+        var ss = "\\u00a7" + R; //§
+        return ss;
+    }
+
+    var parsed_string = "";
+    var _count = 0;
+    var attribute_table = [];
+
+    // generate attribute table
+    for(var i = 0;i < contents.length;i++){
+        var attr_arr = [];
+        if(contents[i].hasOwnProperty("attributes") == false){
+            attr_arr.push("r");
+        }else{
+            var attr = contents[i]["attributes"];
+            //color
+            if(attr.hasOwnProperty("color")){
+                for(var k = 0;k<motd_colors.length;k++){
+                    if(attr["color"] == motd_colors[k]){
+                        attr_arr.push(k.toString(16));
+                        //parsed_string += SS(k.toString(16)) + utf8_encode(text);
+                    }
+                }
+            }
+            if(attr.hasOwnProperty("bold")){
+                if(attr["bold"] === true){
+                    attr_arr.push("l");
+                }
+            }
+            if(attr.hasOwnProperty("strike")){
+                if(attr["strike"] === true){
+                    attr_arr.push("m");
+                }
+            }
+            if(attr.hasOwnProperty("italic")){
+                if(attr["italic"] === true){
+                    attr_arr.push("o");
+                }
+            }
+            if(attr.hasOwnProperty("underline")){
+                if(attr["underline"] === true){
+                    attr_arr.push("n");
+                }
+            }
+        }
+        attribute_table.push(attr_arr);
+    }
+
+    // then, use attribute table to parse string
+    for(var k=0;k<attribute_table.length;k++){
+        for(var l=0;l<attribute_table[k].length;l++){
+            parsed_string += SS(attribute_table[k][l])
+        }
+        parsed_string += utf8_encode(contents[k]["insert"])
+    }
+
+    chop_arr = parsed_string.split("\n");
+
+    if(chop_arr.length == 0){
+        return "";
+    }else if(chop_arr.length == 1){
+        return chop_arr[0];
+    }else{
+        if(chop_arr[1].length > 0){
+            return chop_arr[0] + "\n" + chop_arr[1];
+        }else{
+            return chop_arr[0];
+        }
+    }
+};
 /*
 * Dashboard Page Management
 * */
