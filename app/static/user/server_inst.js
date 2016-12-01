@@ -155,7 +155,7 @@ var NewInstance = function () {
            },
            "finish": function () {
                var that = this;
-               console.log(this);
+
                $.post("/server_inst/new_inst", {
                    "inst_name" : that.data_world_name,
                    "core_file_id" : that.core_file_id,
@@ -170,7 +170,10 @@ var NewInstance = function () {
                    "ftp_default_password" : that.default_ftp_password,
                    "ftp_password" : that.ftp_password
                }, function (data) {
-                   console.log(data);
+                   var d = JSON.parse(data);
+                   if(d.status == "success"){
+                       window.location.href = "/server_inst/dashboard/" + d.info;
+                   }
                });
            }
        }

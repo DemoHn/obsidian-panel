@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect, send_file
 from hashlib import md5
 from jinja2 import TemplateNotFound
-import os, json
+import os, json, shutil
 
 from app import db
 from app.controller.global_config import GlobalConfig
@@ -150,8 +150,29 @@ def preview_server_logo(uid, priv, logo):
         abort(404)
 
 @server_inst_page.route("/new_inst", methods=["POST"])
-@check_login
+@ajax_check_login
 def submit_new_inst(uid, priv):
+
+    def _inst_directory(inst_id):
+        '''
+        In order to create a new instance, we have to create an individual space to
+        store files first.
+        :return:
+        '''
+        gc = GlobalConfig.getInstance()
+        servers_dir = gc.get("servers_dir")
+
+        owner = db.session.query(Users).filter(Users.id == uid).first()
+
+        owner_name = owner.username
+        dir_name =  "%s_%s" % (owner_name, inst_id)
+
+        logger.debug("[user_inst] dir_name = %s" % dir_name)
+        return os.path.join(servers_dir, dir_name)
+        pass
+
+    rtn = returnModel("string")
+    gc = GlobalConfig.getInstance()
     try:
         F = request.form
 
@@ -198,10 +219,17 @@ def submit_new_inst(uid, priv):
             i.set_instance_properties(properties_json)
 
             inst_id = i.create_inst()
-            return redirect("/server_inst/dashboard/%s" % inst_id)
+            # move logo
+            if logo_url != None and logo_url != "":
+                logo_file_name = os.path.join(gc.get("uploads_dir"), logo_url)
+                if os.path.exists(logo_file_name):
+                    shutil.move(logo_file_name, os.path.join(_inst_directory(inst_id), "server-icon.png"))
+            # And FTP...
+            return rtn.success(inst_id)
+            # return redirect("/server_inst/dashboard/%s" % inst_id)
         except:
             traceback.print_exc()
-            abort(502)
+            return rtn.error(500)
     except Exception as e:
         logger.error(traceback.format_exc())
-        abort(500)
+        return rtn.error(500)
