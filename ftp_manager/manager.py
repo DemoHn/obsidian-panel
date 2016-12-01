@@ -11,6 +11,13 @@ import hashlib
 import traceback
 import logging
 import json
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 class MD5Authorizer(DummyAuthorizer):
     def validate_authentication(self, username, password, handler):
@@ -32,16 +39,16 @@ class ServerThread(threading.Thread):
     def run(self):
         self.manager.server.serve_forever()
 
-class FTPManager(object):
+class FTPManager(metaclass=Singleton):
 
-    def __init__(self, port):
+    def __init__(self):
         self.handler = FTPHandler
         self.authorizer = MD5Authorizer()
         self.handler.authorizer = self.authorizer
         self.server = None
         self.login_msg = "Login Successful"
         self.quit_msg  = "GoodBye"
-        self.listening_port = port
+        self.listening_port = None
 
         self.server_process = None
         # read global config
@@ -110,6 +117,12 @@ class FTPManager(object):
             # relax, there's nothing to do
             return None
 
+    def _test_log(self):
+        print("TEST TEST, FTPer!")
+        print("===========")
+        print(self.authorizer)
+        pass
+
     def add_user(self, username, hash, working_dir, permission="elradfmw"):
         #hash = hashlib.md5(password.encode('utf-8') + salt).hexdigest()
         self.authorizer.add_user(username, hash, working_dir,
@@ -119,6 +132,9 @@ class FTPManager(object):
 
     def remove_user(self, username):
         self.authorizer.remove_user(username)
+
+    def set_port(self, port):
+        self.listening_port = port
 
     def set_welcome_banner(self, msg):
         self.login_msg = msg

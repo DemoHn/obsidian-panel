@@ -77,14 +77,12 @@ def start_chaussette(use_reloader):
         _make_server()
 
 def start_ftp_manager():
-    from ftp_manager import FTPManager
-    __author__ = "Nigshoxiz"
+    from ftp_manager import start_FTP_manager
     # import app
     # m = FTPManager(2121)
     # m.launch()
     # First .py module
-    manager = FTPManager(2121)
-    manager.launch()
+    start_FTP_manager()
 
 def start_websocket_server():
     from websocket_server import start_websocket_server
