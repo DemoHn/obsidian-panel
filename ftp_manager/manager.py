@@ -6,11 +6,12 @@ from pyftpdlib.servers import FTPServer, ThreadedFTPServer
 from app.utils import salt
 from app.controller.global_config import GlobalConfig
 
-import _thread
+import threading
 import hashlib
 import traceback
 import logging
 import json
+
 class Singleton(type):
     _instances = {}
 
@@ -120,7 +121,7 @@ class FTPManager(metaclass=Singleton):
     def _test_log(self):
         print("TEST TEST, FTPer!")
         print("===========")
-        print(self.authorizer)
+        print(self.authorizer.user_table)
         pass
 
     def add_user(self, username, hash, working_dir, permission="elradfmw"):
@@ -142,8 +143,15 @@ class FTPManager(metaclass=Singleton):
     def set_quit_banner(self, msg):
         self.quit_msg = msg
 
-    def launch(self):
-        address = ("127.0.0.1", self.listening_port)
-        self.server = FTPServer(address, self.handler)
-        _thread.start_new_thread(self.server.serve_forever, ())
-        #self.server.serve_forever(blocking=True)
+    def launch(self, background=False):
+        def _launch(self):
+            address = ("127.0.0.1", self.listening_port)
+            self.server = FTPServer(address, self.handler)
+            self.server.serve_forever()
+
+        if background:
+            t = threading.Thread(target=_launch, args=(self,))
+            t.setDaemon(True)
+            t.start()
+        else:
+            _launch(self)

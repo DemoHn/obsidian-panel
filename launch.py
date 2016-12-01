@@ -78,10 +78,6 @@ def start_chaussette(use_reloader):
 
 def start_ftp_manager():
     from ftp_manager import start_FTP_manager
-    # import app
-    # m = FTPManager(2121)
-    # m.launch()
-    # First .py module
     start_FTP_manager()
 
 def start_websocket_server():

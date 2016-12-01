@@ -8,7 +8,6 @@ class FTPAccountEventHandler(MessageEventHandler):
 
     def add_account(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)
-
         manager = FTPManager()
         manager._test_log()
         pass
