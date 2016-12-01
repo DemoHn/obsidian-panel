@@ -6,7 +6,7 @@ from pyftpdlib.servers import FTPServer, ThreadedFTPServer
 from app.utils import salt
 from app.controller.global_config import GlobalConfig
 
-import threading
+import _thread
 import hashlib
 import traceback
 import logging
@@ -27,7 +27,7 @@ class MD5Authorizer(DummyAuthorizer):
                 raise KeyError
         except KeyError:
             raise AuthenticationFailed
-
+"""
 class ServerThread(threading.Thread):
     def __init__(self, port):
         threading.Thread.__init__(self)
@@ -38,7 +38,7 @@ class ServerThread(threading.Thread):
 
     def run(self):
         self.manager.server.serve_forever()
-
+"""
 class FTPManager(metaclass=Singleton):
 
     def __init__(self):
@@ -145,5 +145,5 @@ class FTPManager(metaclass=Singleton):
     def launch(self):
         address = ("127.0.0.1", self.listening_port)
         self.server = FTPServer(address, self.handler)
-
-        self.server.serve_forever(blocking=True)
+        _thread.start_new_thread(self.server.serve_forever, ())
+        #self.server.serve_forever(blocking=True)

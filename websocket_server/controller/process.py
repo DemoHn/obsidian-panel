@@ -17,7 +17,8 @@ class ProcessEventHandler(MessageEventHandler):
 
     def _test(self, flag, values):
         # just for testing
-        self.proxy.send(flag, "process._test", values, WS_TAG.MPW)
+        self.proxy.send(flag, "ftp.add_account", values, WS_TAG.FTM)
+        #self.proxy.send(flag, "process._test", values, WS_TAG.MPW)
 
     def start(self, flag, values):
         # _inst_running_sig = signals.signal("inst")

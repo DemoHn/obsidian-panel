@@ -47,9 +47,9 @@ class MessageQueueProxy(metaclass=Singleton):
     def _listen(self):
         channel = self.channel.encode()
         for msg in self.pub_sub.listen():
+
             if msg["type"] == "message" and msg["channel"] == channel:
                 msg_json = pickle.loads(msg['data'])
-
                 flag = self._get_flag(msg_json.get("flag"))
                 # check if available
                 event_name = msg_json.get("event")

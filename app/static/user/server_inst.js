@@ -414,7 +414,7 @@ var Dashboard = function () {
 
     this.work_status = null;
     this.socket = io.connect(getCurrentHost()+":5001");
-
+    
     this.dashboard_vm = new Vue({
         el:"#dash_board",
         data:{

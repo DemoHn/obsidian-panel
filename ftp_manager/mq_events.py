@@ -1,4 +1,3 @@
-from app import db
 from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy
 from .manager import FTPManager
 class FTPAccountEventHandler(MessageEventHandler):
@@ -12,5 +11,4 @@ class FTPAccountEventHandler(MessageEventHandler):
 
         manager = FTPManager()
         manager._test_log()
-        print("flog = %s" % flag)
         pass
