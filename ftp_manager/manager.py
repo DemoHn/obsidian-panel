@@ -28,18 +28,7 @@ class MD5Authorizer(DummyAuthorizer):
                 raise KeyError
         except KeyError:
             raise AuthenticationFailed
-"""
-class ServerThread(threading.Thread):
-    def __init__(self, port):
-        threading.Thread.__init__(self)
 
-        self.manager = FTPManager(port)
-        address = ("127.0.0.1", self.manager.listening_port)
-        self.manager.server = FTPServer(address, self.manager.handler)
-
-    def run(self):
-        self.manager.server.serve_forever()
-"""
 class FTPManager(metaclass=Singleton):
 
     def __init__(self):
@@ -56,7 +45,7 @@ class FTPManager(metaclass=Singleton):
         self._global_config = GlobalConfig.getInstance()
 
         if self._get_initdb_status():
-            self._add_account_data()
+            self._update_account_data()
 
     def _get_initdb_status(self):
         if self._global_config.get("init_super_admin") == True:
@@ -64,7 +53,7 @@ class FTPManager(metaclass=Singleton):
         else:
             return False
 
-    def _add_account_data(self):
+    def _update_account_data(self):
         db_type = self._global_config.get("db_type")
         data = []
         exec_statement = "SELECT * FROM ob_ftp_account"
@@ -121,7 +110,7 @@ class FTPManager(metaclass=Singleton):
     def _test_log(self):
         print("TEST TEST, FTPer!")
         print("===========")
-        print(self.authorizer.user_table)
+        print(self.authorizer.user_table.keys())
         pass
 
     def add_user(self, username, hash, working_dir, permission="elradfmw"):
@@ -130,6 +119,9 @@ class FTPManager(metaclass=Singleton):
                                  perm = permission,
                                  msg_login=self.login_msg,
                                  msg_quit=self.quit_msg)
+
+    def update_user_info(self):
+        self._update_account_data()
 
     def remove_user(self, username):
         self.authorizer.remove_user(username)

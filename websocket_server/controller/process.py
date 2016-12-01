@@ -15,11 +15,6 @@ class ProcessEventHandler(MessageEventHandler):
         #self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
         MessageEventHandler.__init__(self)
 
-    def _test(self, flag, values):
-        # just for testing
-        self.proxy.send(flag, "ftp.add_account", values, WS_TAG.FTM)
-        #self.proxy.send(flag, "process._test", values, WS_TAG.MPW)
-
     def start(self, flag, values):
         # _inst_running_sig = signals.signal("inst")
         # hook functions
