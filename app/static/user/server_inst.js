@@ -57,13 +57,25 @@ var NewInstance = function () {
             "number_RAM" : 1,
             "data_port" : 0,
             "data_world_name" : "",
+            "core_file_id" : "",
+            "java_bin_id" : "",
             /*assert input*/
             "world_name_assert" : -1,
             "port_assert": -1,
             "ftp_account_assert" : -1,
             "basic_config_next_button" : false,
             "ftp_account_name" : FTP_ACCOUNT_NAME,
-            "default_ftp_password" : true
+            "default_ftp_password" : true,
+
+            /*server properties*/
+            "server_properties" : "{}",
+            "s_online_mode" : "true",
+            "s_pvp" : "true",
+            "s_difficulty" : 1,
+            "s_spawn_monsters" : "true",
+            "s_allow_nether" : "true",
+            /*others*/
+            "logo_url" : self.logo_image_source,
         },
        computed:{
             "number_RAM" : function (e) {
@@ -74,6 +86,15 @@ var NewInstance = function () {
            },
            "basic_config_next_button": function (e) {
                return (this.world_name_assert == 1) && (this.port_assert == 1);
+           },
+           "server_properties": function (e) {
+               return JSON.stringify({
+                   "online-mode" : (this.s_online_mode === "true"),
+                   "pvp" : (this.s_pvp === "true"),
+                   "difficulty" : parseInt(this.s_difficulty),
+                   "spawn-monsters" : (this.s_spawn_monsters === "true"),
+                   "allow-nether" : (this.s_allow_nether === "true")
+               })
            }
        },
        methods:{
@@ -133,7 +154,24 @@ var NewInstance = function () {
                this.ftp_account_assert = -1;         
            },
            "finish": function () {
-               
+               var that = this;
+               console.log(this);
+               $.post("/server_inst/new_inst", {
+                   "inst_name" : that.data_world_name,
+                   "core_file_id" : that.core_file_id,
+                   "java_bin_id" : that.java_bin_id,
+                   "listening_port" : that.data_port,
+                   "max_RAM" : that.number_RAM,
+                   "max_user" : that.number_players,
+                   "server_properties" : that.server_properties,
+                   "logo_url" : self.logo_image_source,
+                   "motd" : self.parse_motd(),
+                   "ftp_account" : that.ftp_account_name,
+                   "ftp_default_password" : that.default_ftp_password,
+                   "ftp_password" : that.ftp_password
+               }, function (data) {
+                   console.log(data);
+               });
            }
        }
     });

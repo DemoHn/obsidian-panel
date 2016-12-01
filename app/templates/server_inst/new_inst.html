@@ -59,229 +59,232 @@
             </div>
 
             <div class="step-content" id="step-content">
+                <form action="/server_inst/new_inst" method="POST">
+                    <div class="row step_box" v-if="index == 0">
+                        <div class="col-md-10 col-lg-6 max-width-limit" id="basic_config_box">
+                            <div class="box box-solid">
+                                <div class="box-body margin-s">
+                                    <div class="setting-item"><span class="item-text"><i class="red-star"></i>世界名称</span>
+                                        <span class="input-element">
+                                            <input type="text" class="form-control" name="inst_name" placeholder="我的世界" @blur="world_name_bl" @focus="world_name_fs" v-model="data_world_name">
+                                            &nbsp;&nbsp;&nbsp;
+                                            <span class="assert-input">
+                                                <i v-if="world_name_assert == 1" class="ion-android-done"></i>
+                                                <i v-if="world_name_assert == 0" class="ion-android-close"></i>
+                                            </span>
 
-                <div class="row step_box" v-if="index == 0">
-                    <div class="col-md-10 col-lg-6 max-width-limit" id="basic_config_box">
-                        <div class="box box-solid">
-                            <div class="box-body margin-s">
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>世界名称</span>
-                                    <span class="input-element">
-                                        <input type="text" class="form-control" placeholder="我的世界" @blur="world_name_bl" @focus="world_name_fs" v-model="data_world_name">
-                                        &nbsp;&nbsp;&nbsp;
-                                        <span class="assert-input">
-                                            <i v-if="world_name_assert == 1" class="ion-android-done"></i>
-                                            <i v-if="world_name_assert == 0" class="ion-android-close"></i>
+                                            <span v-if="world_name_assert == 0" class="error-hint">世界名不得为空，或不得重名！</span>
                                         </span>
+                                    </div>
 
-                                        <span v-if="world_name_assert == 0" class="error-hint">世界名不得为空，或不得重名！</span>
-                                    </span>
-                                </div>
-
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>玩家上限</span>
-                                    <span class="input-element">
-                                        <input type="range" min="1" max="10" step="1" list="tickmarks" v-model="range_players">
-                                        <datalist id="tickmarks">
-                                            <option>1</option>
-                                            <option>2</option>
-                                            <option>3</option>
-                                            <option>4</option>
-                                            <option>5</option>
-                                            <option>6</option>
-                                            <option>7</option>
-                                            <option>8</option>
-                                            <option>9</option>
-                                            <option>10</option>
-                                        </datalist>
-                                        <input type="number" v-model="number_players">
-                                    </span>
-                                </div>
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>内存上限</span>
-                                    <span class="input-element">
-                                        <input type="range" min="1" max="6" step="1" list="RAMs" v-model="range_RAM">
-                                        <datalist id="RAMs">
-                                            <option>1</option>
-                                            <option>2</option>
-                                            <option>3</option>
-                                            <option>4</option>
-                                            <option>5</option>
-                                            <option>6</option>
-                                        </datalist>
-                                        <input type="number" style="width:18%" v-model="number_RAM" >&nbsp;&nbsp;<span>G</span>
-                                    </span>
-                                </div>
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>服务器核心</span>
-                                    <span class="input-element">
-                                        <select name="core_file_id" class="form-control">
-                                            {% for item in server_cores %}
-                                            <option value="{{ item }}">{{ server_cores[item] }}</option>
-                                            {% endfor %}
-                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/server_core" target="_blank">添加核心</a>
-                                    </span>
-                                </div>
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>Java 版本</span>
-                                    <span class="input-element">
-                                        <select name="java_bin_id" class="form-control">
-                                            {% for item in java_versions %}
-                                            <option value="{{ item }}">{{ java_versions[item] }}</option>
-                                            {% endfor %}
-                                        </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java_binary" target="_blank">添加Java版本</a>
-                                    </span>
-                                </div>
-
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>侦听端口</span>
-                                    <span class="input-element">
-                                        <input type="number" max="65535" min="1" style="width: 40%;" @focus="port_fs" @blur="port_bl" v-model="data_port">
-                                        &nbsp;&nbsp;&nbsp;
-                                        <span class="assert-input">
-                                            <i v-if="port_assert == 1" class="ion-android-done"></i>
-                                            <i v-if="port_assert == 0" class="ion-android-close"></i>
+                                    <div class="setting-item"><span class="item-text"><i class="red-star"></i>玩家上限</span>
+                                        <span class="input-element">
+                                            <input type="range" min="1" max="10" step="1" list="tickmarks" v-model="range_players">
+                                            <datalist id="tickmarks">
+                                                <option>1</option>
+                                                <option>2</option>
+                                                <option>3</option>
+                                                <option>4</option>
+                                                <option>5</option>
+                                                <option>6</option>
+                                                <option>7</option>
+                                                <option>8</option>
+                                                <option>9</option>
+                                                <option>10</option>
+                                            </datalist>
+                                            <input type="number" name="max_user" v-model="number_players">
                                         </span>
+                                    </div>
+                                    <div class="setting-item"><span class="item-text"><i class="red-star"></i>内存上限</span>
+                                        <span class="input-element">
+                                            <input type="range" min="1" max="6" step="1" list="RAMs" v-model="range_RAM">
+                                            <datalist id="RAMs">
+                                                <option>1</option>
+                                                <option>2</option>
+                                                <option>3</option>
+                                                <option>4</option>
+                                                <option>5</option>
+                                                <option>6</option>
+                                            </datalist>
+                                            <input type="number" name="max_RAM" style="width:18%" v-model="number_RAM" >&nbsp;&nbsp;<span>G</span>
+                                        </span>
+                                    </div>
+                                    <div class="setting-item"><span class="item-text"><i class="red-star"></i>服务器核心</span>
+                                        <span class="input-element">
+                                            <select name="core_file_id" class="form-control" v-model="core_file_id">
+                                                {% for item in server_cores %}
+                                                <option value="{{ item }}">{{ server_cores[item] }}</option>
+                                                {% endfor %}
+                                            </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/server_core" target="_blank">添加核心</a>
+                                        </span>
+                                    </div>
+                                    <div class="setting-item"><span class="item-text"><i class="red-star"></i>Java 版本</span>
+                                        <span class="input-element">
+                                            <select name="java_bin_id" class="form-control" v-model="java_bin_id">
+                                                {% for item in java_versions %}
+                                                <option value="{{ item }}">{{ java_versions[item] }}</option>
+                                                {% endfor %}
+                                            </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java_binary" target="_blank">添加Java版本</a>
+                                        </span>
+                                    </div>
 
-                                        <span v-if="port_assert == 0" class="error-hint">端口须在1-65535之间</span>
-                                    </span>
-                                </div>
+                                    <div class="setting-item"><span class="item-text"><i class="red-star"></i>侦听端口</span>
+                                        <span class="input-element">
+                                            <input type="number" name="listening_port" max="65535" min="1" style="width: 40%;" @focus="port_fs" @blur="port_bl" v-model="data_port">
+                                            &nbsp;&nbsp;&nbsp;
+                                            <span class="assert-input">
+                                                <i v-if="port_assert == 1" class="ion-android-done"></i>
+                                                <i v-if="port_assert == 0" class="ion-android-close"></i>
+                                            </span>
+                                            <span v-if="port_assert == 0" class="error-hint">端口须在1-65535之间</span>s
+                                        </span>
+                                    </div>
 
-                                <div class="setting-item text-right">
-                                    <button class="btn btn-info" :disabled="!basic_config_next_button" @click="next_to_2">下一步</button>
+                                    <div class="setting-item text-right">
+                                        <button type="button" class="btn btn-info" :disabled="!basic_config_next_button" @click="next_to_2">下一步</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <!-- server.properties-->
-                <div class="row step_box" v-if="index == 1">
-                    <div class="col-md-10 col-lg-6 max-width-limit">
-                        <div class="box box-solid">
-                            <div class="box-body">
-                                <div class="setting-item"><span class="item-text"><i class="red-star"></i>正版验证</span>
-                                    <span class="input-element">
-                                        <select name="online-mode" class="form-control">
-                                            <option value="1">开启</option>
-                                            <option value="0">关闭</option>
-                                        </select>
-                                    </span>
-                                </div>
+                    <!-- server.properties-->
+                    <div class="row step_box" v-if="index == 1">
+                        <input type="hidden" name="server_properties" v-model="server_properties">
+                        <div class="col-md-10 col-lg-6 max-width-limit">
+                            <div class="box box-solid">
+                                <div class="box-body">
+                                    <div class="setting-item"><span class="item-text"><i class="red-star"></i>正版验证</span>
+                                        <span class="input-element">
+                                            <select name="online-mode" class="form-control" v-model="s_online_mode">
+                                                <option value="true" selected>开启</option>
+                                                <option value="false">关闭</option>
+                                            </select>
+                                        </span>
+                                    </div>
 
-                                <div class="setting-item"><span class="item-text">PVP模式</span>
-                                    <span class="input-element">
-                                        <select name="core_file_id" class="form-control">
-                                            <option value="1">开启</option>
-                                            <option value="1">关闭</option>
-                                        </select>
-                                    </span>
-                                </div>
+                                    <div class="setting-item"><span class="item-text">PVP模式</span>
+                                        <span class="input-element">
+                                            <select  class="form-control" v-model="s_pvp">
+                                                <option value="true" selected>开启</option>
+                                                <option value="false">关闭</option>
+                                            </select>
+                                        </span>
+                                    </div>
 
-                                <div class="setting-item"><span class="item-text">游戏难度</span>
-                                    <span class="input-element">
-                                        <select name="core_file_id" class="form-control">
-                                            <option value="0">0</option>
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                        </select>
-                                    </span>
-                                </div>
+                                    <div class="setting-item"><span class="item-text">游戏难度</span>
+                                        <span class="input-element">
+                                            <select  class="form-control" v-model="s_difficulty">
+                                                <option value="0">0</option>
+                                                <option value="1" selected>1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                            </select>
+                                        </span>
+                                    </div>
 
-                                <div class="setting-item"><span class="item-text">怪物生成</span>
-                                    <span class="input-element">
-                                        <select name="core_file_id" class="form-control">
-                                            <option value="1">开启</option>
-                                            <option value="0">关闭</option>
-                                        </select>
-                                    </span>
-                                </div>
+                                    <div class="setting-item"><span class="item-text">怪物生成</span>
+                                        <span class="input-element">
+                                            <select class="form-control" v-model="s_spawn_monsters">
+                                                <option value="true" selected>开启</option>
+                                                <option value="false">关闭</option>
+                                            </select>
+                                        </span>
+                                    </div>
 
-                                <div class="setting-item"><span class="item-text">生成下界</span>
-                                    <span class="input-element">
-                                        <select name="core_file_id" class="form-control">
-                                            <option value="1">开启</option>
-                                            <option value="0">关闭</option>
-                                        </select>
-                                    </span>
-                                </div>
+                                    <div class="setting-item"><span class="item-text">生成下界</span>
+                                        <span class="input-element">
+                                            <select class="form-control" v-model="s_allow_nether">
+                                                <option value="true" selected>开启</option>
+                                                <option value="false">关闭</option>
+                                            </select>
+                                        </span>
+                                    </div>
 
-                                <div class="setting-item">
-                                    <span class="des">注： 其他配置可在 server.properties 文件中修改。</span>
-                                </div>
-                                <div class="setting-item text-right">
-                                    <a href="#conf_1" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<a href="#conf_3" class="btn btn-info">下一步</a>
+                                    <div class="setting-item">
+                                        <span class="des">注： 其他配置可在 server.properties 文件中修改。</span>
+                                    </div>
+                                    <div class="setting-item text-right">
+                                        <a href="#conf_1" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<a href="#conf_3" class="btn btn-info">下一步</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="row step_box" v-if="index == 2">
-                    <div class="col-md-10 col-lg-6 max-width-limit">
-                        <div class="box box-solid">
-                            <div class="box-body">
-                                <div class="setting-item"><span class="item-text">LOGO</span>
-                                    <span class="input-element">
-                                        <span id="show-instance-logo">
-                                            <div id="bottom-image">
-                                                此处无图
+                    <div class="row step_box" v-if="index == 2">
+                        <div class="col-md-10 col-lg-6 max-width-limit">
+                            <div class="box box-solid">
+                                <div class="box-body">
+                                    <div class="setting-item"><span class="item-text">LOGO</span>
+                                        <input type="hidden" name="logo_url" v-model="logo_url">
+                                        <span class="input-element">
+                                            <span id="show-instance-logo">
+                                                <div id="bottom-image">
+                                                    此处无图
+                                                </div>
+                                                <img src="" alt="" id="preview_image">
+                                                <div id="upload-mask">
+
+                                                </div>
+                                            </span>&nbsp;&nbsp;
+
+                                            <span class="logo-ctrl">
+                                                <div>
+                                                    <label class="btn btn-info btn-file">
+                                                        上传图片<input id="upload_image" type="file" name="file" accept="image/png,image/jpeg">
+                                                    </label>
+                                                    <!--<button class="btn btn-info" id="upload-image">上传图片</button>-->
+                                                </div>
+                                                <div><span class="hint-text">注： 图片大小须为64*64像素，文件名以 .png 结尾</span></div>
+                                            </span>
+
+                                        </span>
+                                    </div>
+
+                                    <div class="setting-item"><span class="item-text">每日讯息</span>
+                                        <input type="hidden" name="motd" v-model="motd">
+                                        <span class="input-element">
+                                            <div name="motd-editor" id="motd-editor"></div>
+                                            <div><span class="hint-text">注： 每日讯息的内容至多两行</span></div>
+                                        </span>
+                                    </div>
+
+                                    <div class="setting-item"><span class="item-text">FTP 账户</span>
+                                        <span class="input-element">
+                                            <input type="text" name="ftp_account" class="form-control" @focus="ftp_account_fs" @blur="ftp_account_bl" v-model="ftp_account_name">
+                                            &nbsp;&nbsp;&nbsp;
+                                            <span class="assert-input">
+                                                <i v-if="ftp_account_assert == 1" class="ion-android-done"></i>
+                                                <i v-if="ftp_account_assert == 0" class="ion-android-close"></i>
+                                            </span>
+
+                                            <span v-if="ftp_account_assert == 0" class="error-hint">FTP 账户名不能重复及留空</span>
+                                        </span>
+                                    </div>
+
+                                    <div class="setting-item"><span class="item-text">FTP 密码</span>
+                                        <input type="hidden" name="ftp_default_password" v-model="default_ftp_password">
+                                        <span class="input-element">
+                                            <div class="mask" v-show="default_ftp_password">
+                                                <span class="mask-text">&lt;与登录密码相同&gt;</span>
                                             </div>
-                                            <img src="" alt="" id="preview_image">
-                                            <div id="upload-mask">
-
-                                            </div>
-                                        </span>&nbsp;&nbsp;
-
-                                        <span class="logo-ctrl">
+                                            <input type="password" name="ftp_password" class="form-control" :disabled="default_ftp_password">&nbsp;&nbsp;
                                             <div>
-                                                <label class="btn btn-info btn-file">
-                                                    上传图片<input id="upload_image" type="file" name="file" accept="image/png,image/jpeg">
-                                                </label>
-                                                <!--<button class="btn btn-info" id="upload-image">上传图片</button>-->
+                                                <a v-if="default_ftp_password" @click="default_ftp_password = false;">自定义密码</a>
+                                                <a v-if="!default_ftp_password" @click="default_ftp_password = true;">使用登录密码</a>
                                             </div>
-                                            <div><span class="hint-text">注： 图片大小须为64*64像素，文件名以 .png 结尾</span></div>
+
                                         </span>
+                                    </div>
 
-                                    </span>
-                                </div>
-
-                                <div class="setting-item"><span class="item-text">每日讯息</span>
-                                    <span class="input-element">
-                                        <div name="motd-editor" id="motd-editor"></div>
-                                        <div><span class="hint-text">注： 每日讯息的内容至多两行</span></div>
-                                    </span>
-                                </div>
-
-                                <div class="setting-item"><span class="item-text">FTP 账户</span>
-                                    <span class="input-element">
-                                        <input type="text" class="form-control" @focus="ftp_account_fs" @blur="ftp_account_bl" v-model="ftp_account_name">
-                                        &nbsp;&nbsp;&nbsp;
-                                        <span class="assert-input">
-                                            <i v-if="ftp_account_assert == 1" class="ion-android-done"></i>
-                                            <i v-if="ftp_account_assert == 0" class="ion-android-close"></i>
-                                        </span>
-
-                                        <span v-if="ftp_account_assert == 0" class="error-hint">FTP 账户名不能重复及留空</span>
-                                    </span>
-                                </div>
-
-                                <div class="setting-item"><span class="item-text">FTP 密码</span>
-                                    <span class="input-element">
-                                        <div class="mask" v-show="default_ftp_password">
-                                            <span class="mask-text">&lt;与登录密码相同&gt;</span>
-                                        </div>
-                                        <input type="password" class="form-control" :disabled="default_ftp_password">&nbsp;&nbsp;
-                                        <div>
-                                            <a v-if="default_ftp_password" @click="default_ftp_password = false;">自定义密码</a>
-                                            <a v-if="!default_ftp_password" @click="default_ftp_password = true;">使用登录密码</a>
-                                        </div>
-                                        
-                                    </span>
-                                </div>
-
-                                <div class="setting-item text-right">
-                                    <a href="#conf_2" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<button class="btn btn-info" @click="finish">完成</button>
+                                    <div class="setting-item text-right">
+                                        <a href="#conf_2" class="btn btn-default">上一步</a>&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-info" @click="finish">完成</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
+                </form>
             </div>
         </div>
     </section>

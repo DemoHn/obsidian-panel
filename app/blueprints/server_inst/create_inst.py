@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect, send_file
 from hashlib import md5
 from jinja2 import TemplateNotFound
-import os
+import os, json
 
 from app import db
 from app.controller.global_config import GlobalConfig
@@ -149,7 +149,6 @@ def preview_server_logo(uid, priv, logo):
     else:
         abort(404)
 
-
 @server_inst_page.route("/new_inst", methods=["POST"])
 @check_login
 def submit_new_inst(uid, priv):
@@ -161,11 +160,24 @@ def submit_new_inst(uid, priv):
         java_bin_id  = F.get("java_bin_id")
         listening_port = F.get("listening_port")
         auto_port_dispatch = F.get("auto_port_dispatch")
+
+        # unit: GiB
         max_RAM = F.get("max_RAM")
         max_user = F.get("max_user")
 
         # json format
-        properties = F.get("server_properties")
+        server_properties = F.get("server_properties")
+
+        # logo url
+        logo_url = F.get("logo_url")
+
+        # set encoded motd content
+        motd     = F.get("motd")
+
+        # FTP account
+        FTP_account_name = F.get("ftp_account")
+        FTP_default_password = F.get("ftp_default_password")
+        FTP_password  = F.get("ftp_password")
 
         i = UserInstance(uid)
 
@@ -177,9 +189,13 @@ def submit_new_inst(uid, priv):
 
             i.set_instance_name(inst_name)
             i.set_java_bin(java_bin_id)
-            i.set_allocate_RAM(max_RAM)
+            i.set_allocate_RAM(int(max_RAM)*1024)
             i.set_server_core(core_file_id)
             i.set_max_user(max_user)
+
+            properties_json = json.loads(server_properties)
+            properties_json["motd"] = motd
+            i.set_instance_properties(properties_json)
 
             inst_id = i.create_inst()
             return redirect("/server_inst/dashboard/%s" % inst_id)

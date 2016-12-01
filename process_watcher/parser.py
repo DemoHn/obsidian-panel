@@ -102,19 +102,7 @@ class ServerPropertiesParser(KVParser):
         colored text (like §a) is also supported
         :return:
         """
-        # get each
-        motd_arr = []
-        for motd_char in motd:
-            char_num = ord(motd_char)
-            # 小于128，则不转码
-            if char_num < 128 and char_num != ord('\\'):
-                motd_arr.append(motd_char)
-            else:
-                # 大于128，则转成 \uXXXX 格式
-                s = '\\u' + str(hex(char_num))[2:]
-                motd_arr.append(s)
-
-        self.replace("motd","".join(motd_arr))
+        self.replace("motd", motd)
 
     def get_motd(self):
         _motd_str = self.get("motd")
@@ -174,6 +162,39 @@ class ServerPropertiesParser(KVParser):
             self.replace("online-mode","true")
         else:
             self.replace("online-mode","false")
+
+    def set_spawn_monsters(self, spawn_monsters):
+        '''
+        :param online_mode: If set to True, monsters may be generated in the game.
+        value : True or False.
+        :return: nothing
+        '''
+        if spawn_monsters == True:
+            self.replace("spawn-monsters", "true")
+        else:
+            self.replace("spawn-monsters", "false")
+
+    def set_allow_nether(self, allow_nether):
+        '''
+        :param allow_nether: if set to True, nether will be
+        value : True or False.
+        :return: nothing
+        '''
+        if allow_nether == True:
+            self.replace("allow-nether", "true")
+        else:
+            self.replace("allow-nether", "false")
+
+    def set_pvp(self, pvp):
+        '''
+        :param allow_nether: if set to True, nether will be
+        value : True or False.
+        :return: nothing
+        '''
+        if pvp == True:
+            self.replace("pvp", "true")
+        else:
+            self.replace("pvp", "false")
 
     def set_difficulty(self, difficulty):
         '''
