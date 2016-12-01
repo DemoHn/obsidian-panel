@@ -16,9 +16,6 @@ app.config['REDIS_QUEUE_KEY'] = 'reboot_queue'
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)
 
-# monkey patch eventlet
-import eventlet
-eventlet.monkey_patch()
 # init socketio
 socketio = SocketIO(app, message_queue='redis://')
 
