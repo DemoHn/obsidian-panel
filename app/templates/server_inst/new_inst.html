@@ -268,7 +268,7 @@
                                             <div class="mask" v-show="default_ftp_password">
                                                 <span class="mask-text">&lt;与登录密码相同&gt;</span>
                                             </div>
-                                            <input type="password" name="ftp_password" class="form-control" :disabled="default_ftp_password">&nbsp;&nbsp;
+                                            <input type="password" name="ftp_password" v-model="ftp_password" class="form-control" :disabled="default_ftp_password">&nbsp;&nbsp;
                                             <div>
                                                 <a v-if="default_ftp_password" @click="default_ftp_password = false;">自定义密码</a>
                                                 <a v-if="!default_ftp_password" @click="default_ftp_password = true;">使用登录密码</a>

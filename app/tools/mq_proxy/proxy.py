@@ -32,6 +32,9 @@ class MessageQueueProxy(metaclass=Singleton):
         self.pool = MessageUserStatusPool()
         self.handlers = {}
 
+        # to prevent send same package for multi times
+        self.sended_flags = {}
+
     def _get_flag(self, flag):
         '''
         get flag. If flag is None, it will return an automatically generated uuid-like
@@ -57,12 +60,18 @@ class MessageQueueProxy(metaclass=Singleton):
                 uid,sid,src,dest = self.pool.get(flag)
 
                 if dest == self.ws_tag and event_name != None and values != None:
-                    if self.handlers.get(event_name) != None:
-                        handler = self.handlers.get(event_name)
-                        try:
-                            handler(flag, values)
-                        except:
-                            logging.debug(traceback.format_exc())
+                    f_tag = "%s_%s" % (flag, src)
+                    if self.sended_flags.get(f_tag) != None and self.sended_flags.get(f_tag) == True:
+                        return
+                    else:
+                        # mark flag
+                        self.sended_flags[f_tag] = True
+                        if self.handlers.get(event_name) != None:
+                            handler = self.handlers.get(event_name)
+                            try:
+                                handler(flag, values)
+                            except:
+                                logging.debug(traceback.format_exc())
 
     def _register_handler(self, event_name, handler):
         if inspect.ismethod(handler):

@@ -9,7 +9,7 @@ import time
 #from app.tools.mc_wrapper.instance import MCServerInstanceThread
 from process_watcher.parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
-from app.controller.ftp_controller import FTPController
+
 # models
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users
 from app import socketio
@@ -224,14 +224,6 @@ class UserInstance():
 
         # query database
         inst_id = db.session.query(db.func.max(ServerInstance.inst_id)).scalar()
-
-        username_obj = db.session.query(Users).filter(Users.id == self.owner_id).first()
-        username = username_obj.username
-        # create FTP account
-        ftp_controller = FTPController()
-        ftp_controller.create_account(self.owner_id,
-                                      username+"_"+self.inst_name,
-                                      _work_dir)
         return inst_id
 
     def remove_inst(self, inst_id):

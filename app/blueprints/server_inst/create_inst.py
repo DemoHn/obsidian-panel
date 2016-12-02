@@ -8,6 +8,7 @@ import os, json, shutil
 from app import db
 from app.controller.global_config import GlobalConfig
 from app.controller.user_inst import UserInstance
+from app.controller.ftp_controller import FTPController
 from app.utils import returnModel, generate_random_string
 from app.model import JavaBinary, ServerCORE, ServerInstance, FTPAccount, Users
 
@@ -197,7 +198,7 @@ def submit_new_inst(uid, priv):
 
         # FTP account
         FTP_account_name = F.get("ftp_account")
-        FTP_default_password = F.get("ftp_default_password")
+        FTP_default_password = (F.get("ftp_default_password") == "true")
         FTP_password  = F.get("ftp_password")
 
         i = UserInstance(uid)
@@ -224,7 +225,15 @@ def submit_new_inst(uid, priv):
                 logo_file_name = os.path.join(gc.get("uploads_dir"), logo_url)
                 if os.path.exists(logo_file_name):
                     shutil.move(logo_file_name, os.path.join(_inst_directory(inst_id), "server-icon.png"))
-            # And FTP...
+            # create FTP account
+            ftp_controller = FTPController()
+
+            if not FTP_default_password:
+                _ftp_password = FTP_password
+            else:
+                _ftp_password = None
+            ftp_controller.create_account(uid, FTP_account_name, _inst_directory(inst_id), ftp_password=_ftp_password)
+
             return rtn.success(inst_id)
             # return redirect("/server_inst/dashboard/%s" % inst_id)
         except:
