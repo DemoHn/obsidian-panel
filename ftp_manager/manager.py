@@ -96,7 +96,8 @@ class FTPManager(metaclass=Singleton):
                     if conn != None:
                         conn.close()
             # connect database server
-            # add user
+            # clear user table
+            self.authorizer.user_table = {}
             for item in data:
                 _username = item[1]
                 _hash     = item[2]

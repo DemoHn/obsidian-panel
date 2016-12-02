@@ -27,14 +27,17 @@ class FTPController:
             raise ValueError("No such user!")
         else:
             if ftp_password == None:
-                _ftp_hash = user.hash
+                default_password = True
+                _ftp_hash = None
             else:
+                default_password = False
                 _ftp_hash = hashlib.md5(ftp_password.encode('utf-8') + salt).hexdigest()
             account = FTPAccount(
                 username = login_username,
                 hash = _ftp_hash,
                 working_dir = working_dir,
-                owner_id = uid
+                owner_id = uid,
+                default_password = default_password
             )
 
             db.session.add(account)
