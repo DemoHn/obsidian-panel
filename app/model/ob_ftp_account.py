@@ -24,6 +24,9 @@ class FTPAccount(db.Model):
     #permission str
     permission = db.Column(db.String(50), default="elradfmw")
 
+    # default password (if True, than its password will be the as its login password)
+    default_password = db.Column(db.Boolean, default=True)
+
     def __repr__(self):
         return "<owner_id = %s, cwd = %s, username = %s>" % \
                (self.owner_id, self.working_dir, self.username)

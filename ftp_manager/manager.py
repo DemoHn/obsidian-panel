@@ -107,12 +107,6 @@ class FTPManager(metaclass=Singleton):
             # relax, there's nothing to do
             return None
 
-    def _test_log(self):
-        print("TEST TEST, FTPer!")
-        print("===========")
-        print(self.authorizer.user_table.keys())
-        pass
-
     def add_user(self, username, hash, working_dir, permission="elradfmw"):
         #hash = hashlib.md5(password.encode('utf-8') + salt).hexdigest()
         self.authorizer.add_user(username, hash, working_dir,
