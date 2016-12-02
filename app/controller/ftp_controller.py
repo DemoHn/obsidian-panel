@@ -43,7 +43,6 @@ class FTPController:
             db.session.add(account)
             db.session.commit()
 
-        #self.restart_ftp()
         self.update_user()
 
     def _restart_ftp(self):
