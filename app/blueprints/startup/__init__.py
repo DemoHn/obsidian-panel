@@ -1,7 +1,7 @@
 __author__ = "Nigshoxiz"
 
 # import models
-from flask import Blueprint, render_template, abort, request, current_app, redirect
+from flask import Blueprint, render_template, abort, request, make_response
 from flask_socketio import send, emit
 from jinja2 import TemplateNotFound
 from app import socketio
@@ -21,7 +21,6 @@ from app.controller.init_main_db import init_database, migrate_superadmin
 from app.controller.global_config import GlobalConfig
 from app.controller.sys_process import SystemProcessClient
 from app.tools.mc_downloader import  DownloaderPool
-
 
 start_page = Blueprint("start_page", __name__,
                        template_folder='templates',
@@ -49,11 +48,11 @@ def show_starter_page():
         _step = int(_step)
 
         if _step == 1:
-            return render_template("startup/step_1.html")
+            return render_template("startup/startup_super_admin.html")
         elif _step == 2:
-            return render_template("startup/step_2.html")
+            return render_template("startup/startup_source_java.html")
         elif _step == 3:
-            return render_template("startup/step_3.html",g_error_hidden="none")
+            return render_template("startup/startup_database.html", g_error_hidden="none")
         else:
             abort(404)
     except TemplateNotFound:
@@ -84,7 +83,7 @@ def handle_init_config():
                 logger.error(traceback.format_exc())
                 return abort(500)
 
-            return render_template("startup/step_2.html")
+            return render_template("startup/startup_source_java.html")
         elif _step == 3:
             try:
                 gc = GlobalConfig.getInstance()
@@ -92,7 +91,7 @@ def handle_init_config():
             except:
                 logger.error(traceback.format_exc())
                 return abort(500)
-            return render_template("startup/step_3.html",g_error_hidden="none")
+            return render_template("startup/startup_database.html", g_error_hidden="none")
         else:
             abort(404)
     except TemplateNotFound:
@@ -134,7 +133,7 @@ def starter_finish():
                 gc.set("_RESTART_LOCK", "True")
                 return render_template("startup/finish.html")
             else:
-                return render_template("startup/step_3.html",g_error_hidden="block")
+                return render_template("startup/startup_database.html", g_error_hidden="block")
 
     except TemplateNotFound:
         abort(404)

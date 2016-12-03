@@ -148,7 +148,13 @@ class GlobalConfig(object):
 
             "database_uri" : "",
 
-            "_RESTART_LOCK" : "False"
+            "_RESTART_LOCK" : "False",
+
+            # listening ports
+            # TODO not available yet!
+            "app_listen_port": 5000,
+            "ftp_listen_port" : 2121,
+            "ws_listen_port" : 5001
         }
 
         # set 'ob_init_flag=False' and so on

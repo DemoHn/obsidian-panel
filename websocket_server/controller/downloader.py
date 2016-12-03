@@ -71,6 +71,13 @@ class DownloaderEventHandler(MessageEventHandler):
         self.sch_job = None
         MessageEventHandler.__init__(self)
 
+    def download_newest_java(self, flag, values):
+        s = sourceJAVA()
+        list = s.get_download_list()
+        # most newest one
+        newest_version = list[0]
+        self.add_download_java_task(flag, newest_version)
+
     def add_download_java_task(self, flag, values):
         '''
             when accessing this route, a new JDK starts downloading in the background.

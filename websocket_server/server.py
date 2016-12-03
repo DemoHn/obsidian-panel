@@ -1,6 +1,6 @@
 from app import db
 from app.model import Users, UserToken
-
+from app.controller.global_config import GlobalConfig
 from app.utils import PRIVILEGES
 from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
 import socketio

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>初始化 - JAVA</title>
+    <title>初始设置 - JAVA</title>
     <!-- Material Design fonts -->
     <!--<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">-->
     <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
@@ -119,8 +119,24 @@
     <script>
         Vue.config.delimiters = ['${','}'];
 
+        function getCurrentHost(){
+            var http = location.protocol;
+            var slashes = http.concat("//");
+            var host = slashes.concat(window.location.hostname);
+            return host;
+        }
+
+        var _generate_flag = function (num) {
+            var series = "0123456789abcdefghijklmnopqrstuvwxyzZ";
+            var str = "";
+            for(var i=0;i<num;i++){
+                str += series[Math.floor(Math.random() * 36)]
+            }
+            return str;
+        };
+
         var _idf;
-        var socket = io.connect('/');
+        var socket = io.connect(getCurrentHost()+":5001");
         var current_hash = "";
         $(document).ready(function () {
             var vm = new Vue({
@@ -154,6 +170,7 @@
                 },
                 methods:{
                     "down_java" : function (e) {
+                        /*
                         $.get("/startup/download_java", function (data) {
                             try{
                                 d = JSON.parse(data);
@@ -169,6 +186,15 @@
                             }
                         });
                         $('#download_java_modal').modal();
+                        */
+                        var flag = _generate_flag(16);
+                        var start_download_json = {
+                            "event":"downloader.download_newest_java",
+                            "flag" : flag,
+                            "props": {}
+                        };
+
+                        socket.emit("message_startup", start_download_json);
                     }
                 }
             });
@@ -198,7 +224,7 @@
                 }
             });
 
-            socket.on("download_progress", function (data) {
+            socket.on("message", function (msg) {
                 function _to_file_size(size){
                     // GB
                     if(size > 1024 * 1024 * 1024){
@@ -216,21 +242,16 @@
                     }
                 }
 
-                if(data.finished == false){
-                    modal_vm.download_size = _to_file_size(data.current);
-                    modal_vm.total_size = _to_file_size(data.total);
-
-                    modal_vm.percent = (data.current / data.total * 100).toFixed(1) + "%";
-                }else{
-                    clearInterval(_idf);
-                    //if(data.finished == true)
-                      //  modal_vm.modal_finish = true;
+                if(msg.event == "_get_progress"){
+                    var _dw = msg['value'][0];
+                    var _total = msg['value'][1];
+                    modal_vm.download_size = _to_file_size(_dw);
+                    modal_vm.total_size = _to_file_size(_total);
+                    modal_vm.percent = (_dw / _total * 100).toFixed(1) + "%";
+                }else if(msg.event == "_download_start"){
+                    current_hash = msg["hash"];
                 }
             });
-
-            socket.on("download_event",function (data) {
-                console.log(data);
-            })
         });
     </script>
 </head>
@@ -274,6 +295,7 @@
                         </label>
                     </div>
                 </div>
+                <button type="button" class="btn btn-raised btn-sm" v-on:click="down_java">添加最新java环境</button>
             </div>
         </div>
 
