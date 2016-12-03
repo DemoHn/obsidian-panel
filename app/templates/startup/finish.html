@@ -81,7 +81,7 @@
       <hr>
     <p class="login-box-msg" id="reg-box-msg">
         很好，很清真。<br>
-        <span id="time"><b>5</b></span> 秒后将会跳转至登陆界面。
+        <b><span id="time">5</span></b> 秒后将会跳转至登陆界面。
     </p>
       <hr>
   </div>
@@ -97,7 +97,7 @@
     setInterval(function () {
         index -= 1;
         if(index >= 0){
-        $("#time").html(index);
+            $("#time").html(index);
         }
     },1000)
 </script>

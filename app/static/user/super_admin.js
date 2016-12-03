@@ -201,7 +201,12 @@ JavaBinary.prototype._start_downloading = function (major, minor, _index) {
 
 JavaBinary.prototype._init_download_list_listener = function (socket) {
     var self = this;
-    var DOWNLOADING = 2;
+    var WAIT = 1,
+        DOWNLOADING = 2,
+        EXTRACTING = 3,
+        FINISH = 4,
+        FAIL = 5,
+        EXTRACT_FAIL = 6;
 
     function _find_index_by_hash(_hash){
         var list = self.list_vm.versions;
@@ -250,26 +255,11 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
             var btn_status = self.list_vm.versions[_index].btn_status;
             self.list_vm.versions[_index].dw_hash = dw_hash;
 
-            if(dw_hash != null) {
-                btn_status._interval_flag = setInterval(function () {
-                    var event_json = {
-                        "event": "downloader.request_task_progress",
-                        "flag": self._generate_flag(20),
-                        "props": {
-                            "hash": dw_hash
-                        }
-                    };
-                    self.socket.emit("message", event_json);
-                }, 1000);
-            }
-
         }else if(msg.event == "_download_finish"){
             _hash = msg["hash"];
-            _result = msg["value"];
+            _result = msg["result"];
 
             _index = _find_index_by_hash(_hash);
-            clearInterval(self.list_vm.versions[_index]["btn_status"]["_interval_flag"]);
-
             if(_result == true){
                 self.list_vm.versions[_index]["btn_status"]["status"] = EXTRACTING;
             }else{
@@ -277,10 +267,8 @@ JavaBinary.prototype._init_download_list_listener = function (socket) {
             }
         }else if(msg.event == "_extract_finish"){
             _hash = msg["hash"];
-            _result = msg["value"];
-
+            _result = msg["result"];
             _index = _find_index_by_hash(_hash);
-            clearInterval(self.list_vm.versions[_index]["btn_status"]["_interval_flag"]);
             if(_result == true){
                 self.list_vm.versions[_index]["btn_status"]["status"] = FINISH; //extract success
             }else{

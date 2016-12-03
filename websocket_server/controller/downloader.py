@@ -180,12 +180,14 @@ class DownloaderEventHandler(MessageEventHandler):
                     # delete scheduler
                     if self.sch_job != None:
                         self.sch_job.remove()
+                        self.sch_job = None
                     _send_dw_signal("_download_finish", hash, False)
                     return
 
                 self.tasks_pool.update(hash, status=_utils.FINISH)
                 if self.sch_job != None:
                     self.sch_job.remove()
+                    self.sch_job = None
                 _send_dw_signal("_extract_finish", hash, True)
 
             def _send_finish_event(download_result, filename):
@@ -246,42 +248,16 @@ class DownloaderEventHandler(MessageEventHandler):
                 # start progress scheduler
                 self.scheduler.start()
 
+                # first remove old job, then create new one
+                if self.sch_job != None:
+                    self.sch_job.remove()
+                    self.sch_job = None
                 self.sch_job = self.scheduler.add_job(_schedule_get_progress, 'interval', seconds=1, args=[self, hash])
                 _send_dw_signal("_download_start", hash, None)
             else:
                 _send_dw_signal("_download_start", None, None)
         except:
             logging.error(traceback.format_exc())
-
-    def request_task_progress(self, flag, values):
-        uid, sid, src, dest = self.pool.get(flag)
-        hash = values.get('hash')
-
-        def send_dw_signal(event_name, hash, result):
-            ws = WSConnections.getInstance()
-            v = {
-                "event": event_name,
-                "hash": hash,
-                "result": result,
-                "flag" : flag
-            }
-            ws.send_data("message", v, sid=sid)
-
-            # fetch and update data
-
-        dp = DownloaderPool.getInstance()
-        _t = dp.get(hash)
-        if _t != None:
-            inst = _t.dl
-            _dw, _filesize = inst.getProgress()
-
-            # update data on download_queue
-            if _filesize > 0 and \
-                            _dw != None and _filesize != None:
-                #    download_queue[hash]["progress"] = _dw / _filesize
-                # _utils.send_dw_signal("_get_progress", hash, (_dw, _filesize))
-                self.tasks_pool.update(hash, progress=_dw / _filesize)
-                send_dw_signal("_get_progress", hash, (_dw, _filesize))
 
     def get_active_tasks(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)

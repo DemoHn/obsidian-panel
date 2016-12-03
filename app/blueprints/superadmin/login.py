@@ -46,9 +46,9 @@ def login():
             if _user.privilege == PRIVILEGES.ROOT_USER:
                 # make response with cookie
                 #resp = make_response(redirect("/super_admin/"))
-                resp = make_response(redirect("/server_inst/"))
+                resp = make_response(redirect("/server_inst/dashboard"))
             elif _user.privilege == PRIVILEGES.INST_OWNER:
-                resp = make_response(redirect("/server_inst/"))
+                resp = make_response(redirect("/server_inst/dashboard"))
             else:
                 resp = make_response()
             # `remember me` checkbox ticked
