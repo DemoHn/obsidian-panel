@@ -139,6 +139,7 @@
         var socket = io.connect(getCurrentHost()+":5001");
         var current_hash = "";
         $(document).ready(function () {
+            var self = this;
             var vm = new Vue({
                 el:"#java-form",
                 data:{
@@ -170,22 +171,6 @@
                 },
                 methods:{
                     "down_java" : function (e) {
-                        /*
-                        $.get("/startup/download_java", function (data) {
-                            try{
-                                d = JSON.parse(data);
-                                if(d.status == "success"){
-                                    hash = d.info;
-                                    current_hash = hash;
-                                    _idf = setInterval(function () {
-                                        socket.emit("ask_download_progess",hash)
-                                    },1000)
-                                }
-                            }catch (e){
-
-                            }
-                        });
-                        */
                         var flag = _generate_flag(16);
                         var start_download_json = {
                             "event":"downloader.download_newest_java",
@@ -194,7 +179,7 @@
                         };
 
                         socket.emit("message_startup", start_download_json);
-                        $('#download_java_modal').modal();
+                        $('#download_java_modal').modal({backdrop: 'static', keyboard: false});
                     }
                 }
             });
@@ -205,12 +190,15 @@
                     download_size:"0",
                     total_size:"0",
                     percent:"0%",
-                    "modal_finish": false
+                    "modal_finish": false,
+                    "terminate_hint" : false
                 },
                 methods: {
                     "terminate_downloading" : function (e) {
                         var self = this;
                         if(current_hash != ""){
+                            // TODO
+                            /*
                             $.get("/startup/terminate_download_java/"+current_hash,function (data) {
                                 console.log(data);
                                 // reinit data
@@ -218,8 +206,15 @@
                                 self.total_size = "0";
                                 self.percent="0%";
                                 self.modal_finish=false;
-                            })
+                            })*/
                         }
+                    },
+                    "regret_cancel_task" : function (e) {
+                        var self = this;
+                        this.terminate_hint = false;
+                    },
+                    "enter_cancel_task" : function (e) {
+                        this.terminate_hint = true;
                     }
                 }
             });
@@ -241,7 +236,6 @@
                         return _s.toFixed(1)+"K"
                     }
                 }
-                console.log(msg);
                 if(msg.event == "_get_progress"){
                     var _dw = msg['result'][0];
                     var _total = msg['result'][1];
@@ -250,6 +244,41 @@
                     modal_vm.percent = (_dw / _total * 100).toFixed(1) + "%";
                 }else if(msg.event == "_download_start"){
                     current_hash = msg["hash"];
+                }else if(msg.event == "_download_finish"){
+                  var hash = msg["hash"];
+                  var success = msg["result"];
+
+                  if(success && hash == current_hash){
+                      modal_vm.modal_finish = true;
+                      modal_vm.download_size = modal_vm.total_size;
+                      modal_vm.percent = "100%";
+                      modal_vm.percent = "下载完成";
+                  }
+                }else if(msg.event == "_extract_finish"){
+                    var hash = msg["hash"];
+                    var success = msg["result"];
+
+                    if(success && hash == current_hash){
+                        var self = vm;
+                        $.get("/startup/detect_java_environment",function (data) {
+                            try{
+                                d = JSON.parse(data);
+                                if(d.status == "success"){
+                                    var info = d.info;
+                                    self.loading = false;
+                                    if(info.length == 0){
+                                        self.no_java_env = true;
+                                    }else{
+                                        self.java_info = info;
+                                    }
+                                }else{
+                                    self.fetch_java_data_error = true;
+                                }
+                            }catch (e){
+                                self.fetch_java_data_error = true;
+                            }
+                        })
+                    }
                 }
             });
         });
@@ -327,6 +356,7 @@
       </div>
       <div class="modal-body">
           <div class="row">
+              <div class="col-xs-8"><span>Java版本：1.8.0_102</span></div>
               <div class="col-xs-6"><span class="pg">${download_size} / ${total_size}</span></div>
               <div class="col-xs-6" style="text-align:right;"><span class="pg">${percent}</span></div>
           </div>
@@ -338,11 +368,17 @@
             </div>
         </div>
       </div>
-      <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal" v-show="!modal_finish" v-on:click="terminate_downloading"
-                  data-toggle="tooltip" data-placement="bottom" title="点击「取消」后，下载任务及已下载的文件将会删除！请小心操作！" v-cloak>取消</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal" v-show="modal_finish" v-cloak>完成</button>
-      </div>
+        <div class="modal-footer" v-show="terminate_hint == true" v-cloak>
+            <span style="color: gray;">确定要「取消」下载任务？任务及已下载的文件将会被<b>删除！</b></span>
+            <button type="button" class="btn btn-raised btn-info" data-dismiss="modal" v-on:click="terminate_downloading"
+                    data-toggle="tooltip" data-placement="bottom" title="" v-cloak>确认!</button>
+            <button type="button" class="btn btn-default" v-on:click="regret_cancel_task">返回</button>
+        </div>
+        <div class="modal-footer" v-show="terminate_hint == false" v-cloak>
+            <button type="button" class="btn btn-raised btn-default" v-show="!modal_finish" v-on:click="enter_cancel_task"
+                    data-toggle="tooltip" data-placement="bottom" title="" v-cloak>取消</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" v-show="modal_finish" v-cloak>完成</button>
+        </div>
     </div>
   </div>
 </div>

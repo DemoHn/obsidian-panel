@@ -94,7 +94,7 @@ class DownloaderEventHandler(MessageEventHandler):
             :minor: <minor version of java>
             '''
         uid, sid, src, dest = self.pool.get(flag)
-
+        gc = GlobalConfig.getInstance()
         def _schedule_get_progress(self, hash):
             # fetch and update data
             dp = DownloaderPool.getInstance()
@@ -159,15 +159,19 @@ class DownloaderEventHandler(MessageEventHandler):
                 archive.close()
 
                 try:
-                    # save the version info into the database
-                    version_data = JavaBinary(
-                        major_version=major_ver,
-                        minor_version=minor_ver,
-                        bin_directory=os.path.join(root_dir, binary_dir),
-                        install_time=datetime.now()
-                    )
-                    db.session.add(version_data)
-                    db.session.commit()
+                    if gc.get("init_super_admin"):
+                        # save the version info into the database
+                        version_data = JavaBinary(
+                            major_version=major_ver,
+                            minor_version=minor_ver,
+                            bin_directory=os.path.join(root_dir, binary_dir),
+                            install_time=datetime.now()
+                        )
+                        db.session.add(version_data)
+                        db.session.commit()
+                    else:
+                        # TODO store database data into a temporal database
+                        pass
                 except:
                     # writing database error
                     logging.error(traceback.format_exc())
@@ -177,9 +181,9 @@ class DownloaderEventHandler(MessageEventHandler):
                     if self.sch_job != None:
                         self.sch_job.remove()
                     _send_dw_signal("_download_finish", hash, False)
+                    return
 
                 self.tasks_pool.update(hash, status=_utils.FINISH)
-                #download_queue[hash]["status"] = _utils.FINISH
                 if self.sch_job != None:
                     self.sch_job.remove()
                 _send_dw_signal("_extract_finish", hash, True)
