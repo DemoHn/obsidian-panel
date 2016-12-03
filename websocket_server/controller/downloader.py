@@ -74,7 +74,6 @@ class DownloaderEventHandler(MessageEventHandler):
         #self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
         self.tasks_pool = DownloadingTasks()
         self.scheduler  = BackgroundScheduler()
-        self.sch_job = None
         MessageEventHandler.__init__(self)
 
     def download_newest_java(self, flag, values):
@@ -125,6 +124,7 @@ class DownloaderEventHandler(MessageEventHandler):
             #self.proxy.send(event, WS_TAG.CLIENT, flag, v)
 
         def _add_java_task(link, download_dir, binary_dir):
+            sch_job = None
             '''
             add task of downloading java, with hooks.
             :return: (<instance>, <download_hash>)
@@ -178,16 +178,15 @@ class DownloaderEventHandler(MessageEventHandler):
                     self.tasks_pool.update(hash, status=_utils.FAIL)
                     #download_queue[hash]["status"] = _utils.FAIL
                     # delete scheduler
-                    if self.sch_job != None:
-                        self.sch_job.remove()
-                        self.sch_job = None
+                    if sch_job != None:
+                        sch_job.remove()
                     _send_dw_signal("_download_finish", hash, False)
                     return
 
                 self.tasks_pool.update(hash, status=_utils.FINISH)
-                if self.sch_job != None:
-                    self.sch_job.remove()
-                    self.sch_job = None
+                if sch_job != None:
+                    sch_job.remove()
+
                 _send_dw_signal("_extract_finish", hash, True)
 
             def _send_finish_event(download_result, filename):
@@ -246,13 +245,11 @@ class DownloaderEventHandler(MessageEventHandler):
                 #_utils.queue_add(hash, link)
                 #download_queue[hash]["status"] = _utils.DOWNLOADING
                 # start progress scheduler
-                self.scheduler.start()
+                if not self.scheduler.running:
+                    self.scheduler.start()
 
-                # first remove old job, then create new one
-                if self.sch_job != None:
-                    self.sch_job.remove()
-                    self.sch_job = None
-                self.sch_job = self.scheduler.add_job(_schedule_get_progress, 'interval', seconds=1, args=[self, hash])
+                sch_job = self.scheduler.add_job(_schedule_get_progress, 'interval', seconds=1, args=[self, hash])
+
                 _send_dw_signal("_download_start", hash, None)
             else:
                 _send_dw_signal("_download_start", None, None)
