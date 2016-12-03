@@ -2,7 +2,6 @@ import logging
 
 import os
 from app import app as _app
-from app import socketio#, ftp_manager
 from app.controller.global_config import GlobalConfig
 from app.controller.init_main_db import init_database
 

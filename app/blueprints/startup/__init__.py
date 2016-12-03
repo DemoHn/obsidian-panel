@@ -4,7 +4,6 @@ __author__ = "Nigshoxiz"
 from flask import Blueprint, render_template, abort, request, make_response
 from flask_socketio import send, emit
 from jinja2 import TemplateNotFound
-from app import socketio
 from app.utils import returnModel, salt
 
 import hashlib
@@ -187,79 +186,6 @@ def detect_java_environment():
         return rtn.error(500)
     pass
 
-@start_page.route("/download_java")
-@only_on_startup
-def download_java():
-    #socketio.emit("download_event",{"dat":42})
-    def _extract_file(download_result, filename):
-        _event_model = {
-            "event": "_extract_finish",
-            "hash": _hash,
-            "success": True
-        }
-
-        logger.debug("Download Result: %s" % download_result)
-        logger.debug("Start Extracting File...")
-
-        # send extract_start event
-        _event_model["event"] = "_extract_start"
-        _event_model["success"] = True
-        socketio.emit("download_event", _event_model)
-
-        archive = tarfile.open(filename)
-        try:
-            archive.extractall(path=bin_dir)
-        except:
-            archive.close()
-
-            # send extract_finish event (when extract failed)
-            _event_model["event"] = "_extract_finish"
-            _event_model["success"] = False
-            socketio.emit("download_event", _event_model)
-
-        logger.debug("extract dir: %s, finish!" % bin_dir)
-        archive.close()
-
-        _event_model["event"] = "_extract_finish"
-        _event_model["success"] = True
-        socketio.emit("download_event", _event_model)
-
-    def _send_finish_event(download_result, filename):
-        _model = {
-            "event": "_finish",
-            "hash": _hash,
-            "success": download_result
-        }
-        logger.debug('<ws> ' + json.dumps(_model))
-        socketio.emit("download_event", _model)
-
-    logger = logging.getLogger("ob_panel")
-    rtn = returnModel("string")
-    gc  = GlobalConfig.getInstance()
-
-    bin_dir   = gc.get("lib_bin_dir")
-    files_dir = gc.get("files_dir")
-
-    # TODO only jdk 8u102?
-    java_url = "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz"
-    #java_url = "http://mirrors.zju.edu.cn/debian/indices/Maintainers"
-    try:
-        dp = DownloaderPool.getInstance()
-        inst,_hash = dp.newTask(java_url, download_dir=files_dir)
-
-        inst.disableSSLCert()
-        inst.setHeaders({
-            "Cookie": "oraclelicense=accept-securebackup-cookie"
-        })
-
-        inst.addDownloadFinishHook(_send_finish_event)
-        inst.addDownloadFinishHook(_extract_file)
-        dp.start(_hash)
-        return rtn.success(_hash)
-    except:
-        logger.error(traceback.format_exc())
-        return rtn.error(500)
-
 @start_page.route("/terminate_download_java/<hash>")
 @only_on_startup
 def terminate_downloading_java(hash):
@@ -272,30 +198,6 @@ def terminate_downloading_java(hash):
         return rtn.success(True)
     except:
         return rtn.error(500)
-
-#  download progress socket
-@socketio.on("ask_download_progress")
-@only_on_startup
-def get_java_download_progress(msg):
-    logger = logging.getLogger("ob_panel")
-    _model = {
-        "current": None,
-        "total": None,
-        "hash": msg,
-        "finished": False
-    }
-    dp = DownloaderPool.getInstance()
-    inst = dp.get(msg)
-    if inst == None:
-        _model["finished"] = True
-    else:
-        prog = inst.dl.getProgress()
-        _model["current"] = prog[0]
-        _model["total"] = prog[1]
-
-        logger.debug(_model)
-
-    emit("download_progress",_model)
 
 # in step=3 (test MySQL connection)
 @start_page.route("/test_mysql_connection", methods=["POST"])

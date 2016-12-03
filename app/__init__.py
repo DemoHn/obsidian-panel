@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO
 from app.controller.global_config import GlobalConfig
 
 app = Flask(__name__)
@@ -15,11 +14,6 @@ app.config['REDIS_QUEUE_KEY'] = 'reboot_queue'
 
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)
-
-# init socketio
-socketio = SocketIO(app, message_queue='redis://')
-
-#socketio = MessageQueueProxy.getInstance()
 
 # import blueprints
 # to event circular importing, this `import` statement should be put

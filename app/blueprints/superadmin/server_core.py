@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, make_response, redirect, session
 from jinja2 import TemplateNotFound
 
-from app import db, socketio
+from app import db
 from app.controller.global_config import GlobalConfig
 from app.utils import returnModel, get_file_hash
 from app.model.ob_server_core import ServerCORE

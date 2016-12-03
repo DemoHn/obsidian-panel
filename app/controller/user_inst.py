@@ -12,7 +12,6 @@ from app.controller.global_config import GlobalConfig
 
 # models
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users
-from app import socketio
 from app.blueprints.server_inst import logger
 from app import db#, watcher
 

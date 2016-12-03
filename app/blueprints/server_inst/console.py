@@ -6,7 +6,6 @@ from app.utils import returnModel
 import os
 from . import server_inst_page, logger
 from app.blueprints.superadmin.check_login import check_login
-from app import socketio
 from app import db
 from app.model import ServerInstance
 rtn = returnModel("string")
