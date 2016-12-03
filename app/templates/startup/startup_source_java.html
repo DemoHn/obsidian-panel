@@ -185,7 +185,6 @@
 
                             }
                         });
-                        $('#download_java_modal').modal();
                         */
                         var flag = _generate_flag(16);
                         var start_download_json = {
@@ -195,6 +194,7 @@
                         };
 
                         socket.emit("message_startup", start_download_json);
+                        $('#download_java_modal').modal();
                     }
                 }
             });
@@ -241,10 +241,10 @@
                         return _s.toFixed(1)+"K"
                     }
                 }
-
+                console.log(msg);
                 if(msg.event == "_get_progress"){
-                    var _dw = msg['value'][0];
-                    var _total = msg['value'][1];
+                    var _dw = msg['result'][0];
+                    var _total = msg['result'][1];
                     modal_vm.download_size = _to_file_size(_dw);
                     modal_vm.total_size = _to_file_size(_total);
                     modal_vm.percent = (_dw / _total * 100).toFixed(1) + "%";

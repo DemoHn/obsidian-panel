@@ -109,6 +109,10 @@ def starter_finish():
 
         db_env = F.get("db_env")
 
+        if gc.get("temp_superadmin_username") == "" or \
+            gc.get("temp_superadmin_hash") == "":
+            return render_template("startup/startup_super_admin.html")
+
         if db_env == "sqlite":
             db.setDatabaseType("sqlite")
             # set init flag = True

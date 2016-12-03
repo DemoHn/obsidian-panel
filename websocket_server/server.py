@@ -56,6 +56,11 @@ class WSConnections(object):
                     break
             return cookies
 
+        gc = GlobalConfig.getInstance()
+        if gc.get("init_super_admin") == False:
+            return (1, 0)
+
+        # after  initialization
         cookies = _construct_cookie(environment["headers_raw"])
         _token = cookies.get("session_token")
 
@@ -85,7 +90,6 @@ class WSConnections(object):
 
                 if sid not in self.connections.get(user_key):
                     self.connections[user_key].append(sid)
-                    #emit("ack",{"sid":sid})
 
     def _init_disconnect_event(self):
         @sio.on("disconnect", namespace="/")
@@ -162,7 +166,17 @@ def emit_message(sid, data):
                    sid = sid,
                    _src= WS_TAG.CLIENT)
 
-    #    mgr.redis.publish("socketio",pickle.dumps(_send_data_model))
+@sio.on('message_startup', namespace="/")
+def emit_message_startup(sid, data):
+    proxy = MessageQueueProxy(WS_TAG.CONTROL)
+    _flag  = data.get("flag")
+    _event = data.get("event")
+    _props = data.get("props")
+    proxy.send(_flag, _event, _props, WS_TAG.CONTROL,
+               uid = 0,
+               sid = sid,
+               _src= WS_TAG.CLIENT)
+
 
 def start_websocket_server():
     from .controller import ProcessEventHandler, DownloaderEventHandler
