@@ -49,21 +49,7 @@ class sourceJAVA(object):
                         "windows": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-windows-x64.exe"
                     }
                 }
-            },{
-                'priority':2, 'major': "7", "minor": "79",
-                'bin': "jdk1.7.0_79/bin/java",
-                "arch": {
-                    "x86": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-i586.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-windows-i586.exe"
-                    },
-                    "x64": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-windows-x64.exe"
-                    }
-                }
-            }
-        ]
+            }]
 
     def _get_cpu_arch(self):
         if cpu._is_64bit():
