@@ -59,6 +59,12 @@ class DownloadingTasks(object):
     def get_all(self):
         return self.tasks
 
+    def has_working_link(self, link):
+        for item in self.tasks:
+            if self.tasks[item]['link'] == link:
+                return True
+        return False
+
 
 class DownloaderEventHandler(MessageEventHandler):
 
@@ -223,6 +229,10 @@ class DownloaderEventHandler(MessageEventHandler):
             binary_dir = source.get_binary_directory(major_ver, minor_ver)
 
             if link != None:
+                if self.tasks_pool.has_working_link(link):
+                    _send_dw_signal("_download_start", None, None)
+                    return
+
                 # create new task and download
                 inst, hash = _add_java_task(link, files_dir, binary_dir)
 
