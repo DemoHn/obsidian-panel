@@ -6,7 +6,7 @@ from jinja2 import TemplateNotFound
 from app import db
 from app.utils import returnModel
 
-from app.model import ServerInstance, ServerCORE
+from app.model import ServerInstance, ServerCORE, FTPAccount
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 from . import server_inst_page
@@ -66,13 +66,23 @@ def render_dashboard_page(uid, priv, inst_id = None):
                             motd_string = item[5:]
                             break
 
+                # ftp account name
+                ftp_account_name = ""
+                default_ftp_password = True
+                ftp_obj = db.session.query(FTPAccount).filter(FTPAccount.inst_id == current_inst_id).first()
+
+                if ftp_obj != None:
+                    ftp_account_name = ftp_obj.username
+                    default_ftp_password = ftp_obj.default_password
                 return render_template("server_inst/dashboard.html",
                                        user_list=user_list, current_instance=current_inst_id,
                                        current_instance_name=current_inst_name,
                                        image_source="/server_inst/dashboard/logo_src/%s" % inst_id,
                                        motd = motd_string,
                                        str_ip_port = "127.0.0.1:%s" % current_inst_obj.listening_port,
-                                       mc_version = mc_version
+                                       mc_version = mc_version,
+                                       ftp_account_name = ftp_account_name,
+                                       default_ftp_password = default_ftp_password
                 )
             else:
                 # there is no any instance for this user,

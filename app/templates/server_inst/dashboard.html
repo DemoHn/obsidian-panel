@@ -160,7 +160,7 @@
                 <div class="col-md-5">
                     <div class="box box-solid">
                         <div class="box-body no-padding">
-                            <table class="table table-striped" id="inst-info-table">
+                            <table class="table table-striped inst-info-table">
                                 <tbody>
                                 <tr>
                                     <td>LOGO</td>
@@ -189,6 +189,30 @@
                                   <td>MC 版本</td>
                                   <td>{{ mc_version }}</td>
                                 </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                  </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-5 col-md-offset-7">
+                    <div class="box box-solid">
+                        <div class="box-body no-padding">
+                            <table class="table table-striped inst-info-table">
+                                <tbody>
+                                    <tr>
+                                        <td>FTP账户</td>
+                                        <td>{{ ftp_account_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>FTP密码</td>
+                                        {% if default_ftp_password %}
+                                            <td style="color:gray;">&lt; 与登录密码相同 &gt;</td>
+                                        {% else %}
+                                            <td style="color:gray;">&lt; 自定义密码 &gt;</td>
+                                        {% endif %}
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>

@@ -13,7 +13,7 @@ class FTPController:
     def __init__(self):
         pass
 
-    def create_account(self, uid, login_username, working_dir, ftp_password = None):
+    def create_account(self, uid, login_username, inst_id, ftp_password = None):
         '''
         by default, when a new instance was created, a FTP
         account for this instance will be also created too.
@@ -35,7 +35,7 @@ class FTPController:
             account = FTPAccount(
                 username = login_username,
                 hash = _ftp_hash,
-                working_dir = working_dir,
+                inst_id = inst_id,
                 owner_id = uid,
                 default_password = default_password
             )

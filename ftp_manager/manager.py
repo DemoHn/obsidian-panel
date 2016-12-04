@@ -9,8 +9,6 @@ from app.controller.global_config import GlobalConfig
 import threading
 import hashlib
 import traceback
-import logging
-import json
 
 class Singleton(type):
     _instances = {}
@@ -56,7 +54,14 @@ class FTPManager(metaclass=Singleton):
     def _update_account_data(self):
         db_type = self._global_config.get("db_type")
         data = []
-        exec_statement = "SELECT * FROM ob_ftp_account"
+        exec_statement = "SELECT ob_ftp_account.username, " \
+                         " ob_ftp_account.default_password," \
+                         " ob_ftp_account.hash," \
+                         " ob_ftp_account.permission," \
+                         " ob_server_instance.inst_dir," \
+                         " ob_user.hash" \
+                         " FROM ob_ftp_account INNER JOIN ob_server_instance ON ob_server_instance.inst_id = ob_ftp_account.inst_id" \
+                         " INNER JOIN ob_user ON ob_ftp_account.owner_id = ob_user.id"
         if self._global_config.get("init_super_admin") == True:
             db_env = self._global_config
 
@@ -99,10 +104,16 @@ class FTPManager(metaclass=Singleton):
             # clear user table
             self.authorizer.user_table = {}
             for item in data:
-                _username = item[1]
-                _hash     = item[2]
-                _work_dir = item[3]
-                _permission = item[6]
+                _username = item[0]
+                _default_password = item[1]
+                _account_hash = item[2]
+                _permission = item[3]
+                _work_dir = item[4]
+                _user_hash     = item[5]
+
+                _hash = _user_hash
+                if _default_password == 0:
+                    _hash = _account_hash
                 self.add_user(_username, _hash, _work_dir, permission=_permission)
         else:
             # relax, there's nothing to do

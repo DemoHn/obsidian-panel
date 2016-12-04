@@ -232,7 +232,7 @@ def submit_new_inst(uid, priv):
                 _ftp_password = FTP_password
             else:
                 _ftp_password = None
-            ftp_controller.create_account(uid, FTP_account_name, _inst_directory(inst_id), ftp_password=_ftp_password)
+            ftp_controller.create_account(uid, FTP_account_name, inst_id, ftp_password=_ftp_password)
 
             return rtn.success(inst_id)
             # return redirect("/server_inst/dashboard/%s" % inst_id)
