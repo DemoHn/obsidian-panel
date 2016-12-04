@@ -1,20 +1,16 @@
 __author__ = "Nigshoxiz"
 
-from flask import render_template, abort, request, redirect
+from flask import render_template, abort, request, redirect, send_file
 from jinja2 import TemplateNotFound
 
 from app import db
 from app.utils import returnModel
 
 from app.model import ServerInstance
-from app.blueprints.superadmin.check_login import check_login
+from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
-from . import server_inst_page, logger
-from process_watcher import SERVER_STATE
-
-import traceback
-import os, json
-from datetime import datetime
+from . import server_inst_page
+import os
 
 rtn = returnModel("string")
 
@@ -71,3 +67,21 @@ def render_dashboard_page_II(uid, priv, inst_id):
         return render_dashboard_page(inst_id=int(inst_id))
     except TemplateNotFound:
         abort(404)
+
+@server_inst_page.route("/dashboard/logo_src/<inst_id>", methods=["GET"])
+@check_login
+def server_logo_source(uid, priv, inst_id):
+    rtn = returnModel("string")
+    user_inst_obj = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+    if user_inst_obj == None:
+        # inst id not belong to this user
+        abort(403)
+    elif user_inst_obj.owner_id != uid:
+        abort(403)
+    else:
+        inst_dir = user_inst_obj.inst_dir
+        logo_file_name = os.path.join(inst_dir, "server-icon.png")
+        if os.path.exists(logo_file_name):
+            return send_file(logo_file_name)
+        else:
+            abort(404)
