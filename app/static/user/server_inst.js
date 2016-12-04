@@ -414,7 +414,7 @@ var Dashboard = function () {
 
     this.work_status = null;
     this.socket = io.connect(getCurrentHost()+":5001");
-    
+
     this.dashboard_vm = new Vue({
         el:"#dash_board",
         data:{
@@ -490,6 +490,7 @@ var Dashboard = function () {
 
     this._add_socket_listener(self.socket);
     //read status at the beginning
+    this.editor = this.init_embeded_console();
     this.fetch_status();
 };
 
@@ -515,9 +516,64 @@ Dashboard.prototype.updateDVM = function (data) {
             dvm.current_RAM = data.RAM.toFixed(1);
             var ratio = data.RAM / data.total_RAM;
             dvm.RAM_percent = (ratio * 100).toFixed(0);
-            self.updateCircleLoop("RAM", ratio)
+            self.updateCircleLoop("RAM", ratio);
         }
     }
+};
+
+Dashboard.prototype.init_embeded_console = function(callback){
+    var self = this;
+    var jq_input_cmd = $("#input_cmd");
+    var jq_btn_enter = $("#btn_enter");
+
+    function _send(){
+        //avoid null input
+        if(jq_input_cmd.val() == ""){
+            return null;
+        }
+        var msg = {
+            "event":"process.send_command",
+            "flag" : self._generate_flag(16),
+            "props":{
+                "inst_id" : CURRENT_INSTANCE,
+                "command" : jq_input_cmd.val()
+            }
+        };
+        self.socket.emit("message", msg);
+        // then clear input bar
+        jq_input_cmd.val("");
+    }
+    // init input bar
+    jq_input_cmd.on('keyup', function (e) {
+        if(e.keyCode == 13){ // enter
+            _send();
+        }
+    });
+
+    jq_btn_enter.click(function(e){
+        _send(); 
+    });
+
+    var editor = ace.edit("embeded-console");
+    editor.$blockScrolling = Infinity;
+
+    // set read only
+    editor.setReadOnly(true);
+
+    // set a light theme
+    editor.setTheme("ace/theme/dawn");
+
+    // not show line number
+    editor.renderer.setOption('showLineNumbers', false);
+
+    // set font size
+    editor.setFontSize(12);
+    editor.setShowPrintMargin(false);
+    // wrap lines when a line is too long to show all
+    editor.session.setOption('indentedSoftWrap', false);
+    editor.session.setUseWrapMode(true);
+
+    return editor;
 };
 
 Dashboard.prototype.fetch_status = function (callback) {
@@ -700,6 +756,16 @@ Dashboard.prototype._add_socket_listener = function (socket) {
                 self.updateDVM(msg.val);
             }
             //console.log(msg);
+        }else if(msg.event == "log_update"){
+            _log = msg.value;
+            self.editor.session.insert({
+                row: self.editor.session.getLength(),
+                column: 0
+            }, _log);
+            
+                // keep the cursor in the last line
+            var row = self.editor.session.getLength();
+            self.editor.gotoLine(row+1, 0);
         }
     })
 };
@@ -711,18 +777,28 @@ var Console = function () {
 
     this.current_instance = CURRENT_INSTANCE;
     this.editor = this.init_console();
+
     var socket = io.connect(getCurrentHost()+":5001");
+
+    var session = self.editor.session;
     socket.on("connect",function () {
         // on connect, server will emit an `ack` even
 
         socket.on("message",function (msg) {
             if(msg.event == "log_update") {
                 _log = msg.value;
-                self.editor.replaceRange(_log, CodeMirror.Pos(self.editor.lastLine()));
+                session.insert({
+                    row: session.getLength(),
+                    column: 0
+                }, _log);
+
+                // keep the cursor in the last line
+                var row = session.getLength();
+                self.editor.gotoLine(row+1, 0);
             }
         });
     });
-    
+
     this.select_menu_vm = new Vue({
         el:"#select_menu",
         data:{
@@ -762,10 +838,18 @@ Console.prototype._generate_flag = function (num) {
 };
 
 Console.prototype.init_console = function () {
-    var console_ta = document.getElementById("console");
-    var editor = CodeMirror.fromTextArea(console_ta, {
+    //var console_ta = document.getElementById("console");
+    /*    var editor = CodeMirror.fromTextArea(console_ta, {
         lineNumbers: true,
         readOnly : true
-    });
+        });*/
+
+    var editor = ace.edit("console");
+    
+    // just close the annoying hint
+    editor.$blockScrolling = Infinity;
+
+    // set read only
+    editor.setReadOnly(true);
     return editor;
 };

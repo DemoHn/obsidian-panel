@@ -1,10 +1,9 @@
 {% extends "server_inst/_layout.html" %}
 {% block title %}控制台{% endblock %}
 {% block script %}
-    <script src="/static/js/codemirror.js"></script>
-    <link rel="stylesheet" href="/static/css/codemirror.css">
+    <script src="/static/js/ace/ace.js"></script>
     <link rel="stylesheet" href="/static/css/dashboard.style.css">
-
+    <link rel="stylesheet" href="/static/css/console.style.css">
     <script>
     var CURRENT_INSTANCE = {{ current_instance }};
     </script>
@@ -54,9 +53,8 @@
 
     <div class="inst-content">
         <div class="row">
-            <div class="col-xs-8">
-                <textarea name="" id="console" cols="30" rows="10"></textarea>
-
+            <div class="col-md-10">
+                <div id="console"></div>
                 <input type="text" id="in">
                 <button class="btn-raised" id="input">输入</button>
             </div>
