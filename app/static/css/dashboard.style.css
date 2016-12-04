@@ -348,8 +348,8 @@ table#inst-info-table tr td:nth-child(2){
 
 span#show-instance-logo{
     display: inline-block;
-    width:68px;
-    height: 68px;
+    width:70px;
+    height: 70px;
     padding:2px;
     border:1px solid #9f9f9f;
     border-radius: 2px;
@@ -357,10 +357,21 @@ span#show-instance-logo{
 }
 
 span#show-instance-logo img{
+    width: 64px;
+    height: 64px;
     display: block;
-    height: 100%;
-    width: 100%;
-    margin: 0;
+    position: absolute;
+}
+
+div#bottom-image{
+    text-align: center;
+    width: 64px;
+    height: 64px;
+    color: #aaaaaa;
+    background-color: #f3f3f3;
+    font-size: 12px;
+    line-height: 64px;
+    position: absolute;
 }
 
 span#motd{

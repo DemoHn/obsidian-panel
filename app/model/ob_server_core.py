@@ -11,7 +11,7 @@ class ServerCORE(db.Model):
     there're many optimized branches of this mod, like Bukkit, Spigot, KCauldron, SpongeForge and so on.
 
     Notice: Each mod has its own version number and correspond Minecraft version.
-    
+
     """
     __tablename__ = "ob_server_core"
     core_id = db.Column(db.Integer, primary_key=True)

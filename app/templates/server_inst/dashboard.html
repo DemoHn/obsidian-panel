@@ -72,7 +72,7 @@
             <!-- first row (with instance status and instance info)-->
             <!-- second row (with login users and graph (still under consideration))-->
             <div class="row">
-                <div class="col-md-6" id="dash_board">
+                <div class="col-md-7" id="dash_board">
                     <div class="box box-solid">
                         <div class="box-body">
                             <ul class="progress"><li id="progress-status">
@@ -157,7 +157,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="box box-solid">
                         <div class="box-body no-padding">
                             <table class="table table-striped" id="inst-info-table">
@@ -165,22 +165,29 @@
                                 <tr>
                                     <td>LOGO</td>
                                     <td>
-                                        <span id="show-instance-logo">
-                                            <img src="/static/img/TEST-LOGO.jpg" alt="hehe">
+                                      <span id="show-instance-logo">
+                                        <div id="bottom-image">
+                                          此处无图
+                                        </div>
+                                        <img src="{{ image_source }}" alt="" id="preview_image">
                                         </span>
                                     </td>
-                                    <td>IP / PORT</td>
-                                    <td>120.34.56.78:23454</td>
                                 </tr>
                                 <tr>
                                     <td>欢迎辞</td>
                                     <td>
                                         <span id="motd">
-                                            一个人的命运啊，当然要靠自我奋斗；同时也要考虑到历史的行程
+                                          {{ motd }}
                                         </span>
                                     </td>
-                                    <td>MC 版本</td>
-                                    <td>1.7.10</td>
+                                </tr>
+                                <tr>
+                                  <td>IP / PORT</td>
+                                  <td>{{ str_ip_port }}</td>
+                                </tr>
+                                <tr>
+                                  <td>MC 版本</td>
+                                  <td>{{ mc_version }}</td>
                                 </tr>
                                 </tbody>
                             </table>

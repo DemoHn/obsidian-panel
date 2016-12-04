@@ -6,7 +6,7 @@ from jinja2 import TemplateNotFound
 from app import db
 from app.utils import returnModel
 
-from app.model import ServerInstance
+from app.model import ServerInstance, ServerCORE
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 from . import server_inst_page
@@ -26,12 +26,14 @@ def render_dashboard_page(uid, priv, inst_id = None):
             if len(user_insts) > 0:
                 current_inst_id = user_insts[0].inst_id
                 current_inst_name = user_insts[0].inst_name
+                current_inst_obj  = user_insts[0]
                 star_flag = False
                 for item in user_insts:
                     _model = {
                         "inst_name": item.inst_name,
                         "star": item.star,
                         "inst_id": item.inst_id,
+                        "obj" : item,
                         "link": "/server_inst/dashboard/" + str(item.inst_id)
                     }
                     user_insts_dict[item.inst_id] = _model
@@ -40,16 +42,38 @@ def render_dashboard_page(uid, priv, inst_id = None):
                     if item.star == True and star_flag == True:
                         current_inst_id = item.inst_id
                         current_inst_name = item.inst_name
+                        current_inst_obj = item
                         star_flag = True
 
                 # if inst_id is assigned (e.g. GET /dashboard/2)
                 if inst_id != None:
                     current_inst_id = inst_id
                     current_inst_name = user_insts_dict[inst_id]["inst_name"]
+                    current_inst_obj  = user_insts_dict[inst_id]["obj"]
+
+                # get info
+                serv_core_obj = db.session.query(ServerInstance).join(ServerCORE).filter(ServerInstance.inst_id == current_inst_id).first()
+
+                mc_version = serv_core_obj.ob_server_core.minecraft_version
+
+                # get motd
+                file_server_properties = os.path.join(current_inst_obj.inst_dir,"server.properties")
+                motd_string = ""
+                if os.path.exists(file_server_properties):
+                    f = open(file_server_properties, "r")
+                    for item in f.readlines():
+                        if item.find("motd=") >= 0:
+                            motd_string = item[5:]
+                            break
 
                 return render_template("server_inst/dashboard.html",
                                        user_list=user_list, current_instance=current_inst_id,
-                                       current_instance_name=current_inst_name)
+                                       current_instance_name=current_inst_name,
+                                       image_source="/server_inst/dashboard/logo_src/%s" % inst_id,
+                                       motd = motd_string,
+                                       str_ip_port = "127.0.0.1:%s" % current_inst_obj.listening_port,
+                                       mc_version = mc_version
+                )
             else:
                 # there is no any instance for this user,
                 # thus it is better to create another one

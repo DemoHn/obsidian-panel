@@ -26,3 +26,7 @@ span.control-btn{
         padding-top:50px !important;
     }
 }
+
+div.inst-content{
+    max-width: 1350px;
+}
