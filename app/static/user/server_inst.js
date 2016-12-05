@@ -477,6 +477,11 @@ var Dashboard = function () {
             dvm.current_player = "-";
             dvm.current_RAM = "-";
             dvm.RAM_percent = "--";
+
+            // and reset outer loop
+            self.updateCircleLoop("online_player", 0);
+            self.updateCircleLoop("RAM", 0);
+            
         } else if(newVal == 1){
             self.inst_ctrl_vm.btn_disable = true;
         }else if(newVal == 2){
@@ -510,10 +515,10 @@ Dashboard.prototype.updateDVM = function (data) {
             dvm.total_player = data.total_player;
 
         if(data.total_RAM != -1)
-            dvm.max_RAM = data.total_RAM;
-
+            dvm.max_RAM = (data.total_RAM/1024);
+        
         if(data.RAM != -1){
-            dvm.current_RAM = data.RAM.toFixed(1);
+            dvm.current_RAM = (data.RAM/1024).toFixed(1);
             var ratio = data.RAM / data.total_RAM;
             dvm.RAM_percent = (ratio * 100).toFixed(0);
             self.updateCircleLoop("RAM", ratio);
@@ -605,7 +610,7 @@ Dashboard.prototype.UI_set_progress_animation = function (work_status) {
     function trig_rev() {
         setTimeout(function () {
             tr.play();
-        },400)
+        },400);
     }
     function trig_wait() {
         tr.reset();
@@ -626,10 +631,6 @@ Dashboard.prototype.UI_set_progress_animation = function (work_status) {
             new Vivus('svg-running', {duration: 30 , type:"sync"});
             break;
     }
-
-    new Vivus('online-users-svg', {duration: 50});
-   // new Vivus('RAM-usage-svg', {duration: 30});
-    //new Vivus('status-svg', {duration: 50}, myCallback);
 };
 
 Dashboard.prototype.updateCircleLoop = function (type, ratio) {
@@ -657,7 +658,7 @@ Dashboard.prototype.updateCircleLoop = function (type, ratio) {
         return d;
     }
 
-    if(type == 'online_player'){
+    if(type == "online_player"){
         $("#online-users-svg path").attr("d", describeArc(100,100, 85, 0, 360*ratio));
     }else if(type == "RAM"){
         $("#RAM-usage-svg path").attr("d", describeArc(100,100, 85, 0, 360*ratio));
@@ -741,12 +742,13 @@ Dashboard.prototype._add_socket_listener = function (socket) {
         }else if(msg.event == "player_change"){
             if(parseInt(self.inst_id) == parseInt(msg.inst_id)){
                 dvm.current_player = msg.value;
-                self.updateCircleLoop("online_player", ratio);
+                var _ratio = (msg.value / dvm.total_player);
+                self.updateCircleLoop("online_player", _ratio);
             }
         }else if(msg.event == "memory_change") {
             if(parseInt(self.inst_id) == parseInt(msg.inst_id)){
-                dvm.current_RAM = msg.value.toFixed(1);
-                ratio = (msg.value / dvm.max_RAM);
+                dvm.current_RAM = (msg.value/1024).toFixed(2);
+                ratio = ((msg.value/1024) / dvm.max_RAM);
                 dvm.RAM_percent = (ratio*100).toFixed(0);
                 self.updateCircleLoop("RAM", ratio);
             }
@@ -755,17 +757,20 @@ Dashboard.prototype._add_socket_listener = function (socket) {
             if(msg.status == "success"){
                 self.updateDVM(msg.val);
             }
-            //console.log(msg);
         }else if(msg.event == "log_update"){
-            _log = msg.value;
-            self.editor.session.insert({
-                row: self.editor.session.getLength(),
-                column: 0
-            }, _log);
-            
+            var _log = msg.value;
+            var _inst_id = parseInt(msg.inst_id);
+
+            if(self.inst_id == _inst_id){
+                self.editor.session.insert({
+                    row: self.editor.session.getLength(),
+                    column: 0
+                }, _log);
+
                 // keep the cursor in the last line
-            var row = self.editor.session.getLength();
-            self.editor.gotoLine(row+1, 0);
+                var row = self.editor.session.getLength();
+                self.editor.gotoLine(row+1, 0);
+            }
         }
     })
 };
