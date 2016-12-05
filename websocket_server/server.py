@@ -7,8 +7,6 @@ import socketio
 import eventlet
 import json
 import re
-import threading
-import pickle
 
 eventlet.monkey_patch()
 
@@ -179,6 +177,7 @@ def emit_message_startup(sid, data):
 
 
 def start_websocket_server():
+    from . import logger
     from .controller import ProcessEventHandler, DownloaderEventHandler
     # register listeners
     #ControllerOfInstance()
@@ -196,5 +195,9 @@ def start_websocket_server():
     proxy.listen(background=True)
 
     app = socketio.Middleware(sio)
+
+    PORT = 5001
+    logger.info("This is Websocket Server.")
+    logger.info("The listening port is %s" % PORT)
     # deploy as an eventlet WSGI server
-    eventlet.wsgi.server(eventlet.listen(('', 5001)), app)
+    eventlet.wsgi.server(eventlet.listen(('', PORT)), app)

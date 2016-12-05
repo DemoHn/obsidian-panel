@@ -1,7 +1,7 @@
 # import python library
 
-import logging
-logger = logging.getLogger("ob_panel")
+from ob_logger import Logger
+logger = Logger("MPW", debug=True)
 
 class SERVER_STATE(object):
     HALT = 0
@@ -18,4 +18,6 @@ def start_process_watcher():
 
     proxy = MessageQueueProxy(WS_TAG.MPW)
     proxy.register(WatcherEvents)
+
+    logger.info("This is Minecraft Process Watcher.")
     proxy.listen(background=False)

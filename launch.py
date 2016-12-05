@@ -45,15 +45,16 @@ port = 5000
 import sys
 
 def start_chaussette(use_reloader):
-    from start_server import _app
+    from start_server import _app, logger
 
     from chaussette.backend import _backends
     from chaussette.backend._eventlet import Server as eventlet_server
-
-    from chaussette import logger
     from chaussette.server import make_server
 
+    import os
     _host = "fd://%d" % int(sys.argv[4])
+
+    logger.debug("This is Main Web Server (%s)" % os.getpid())
     def _make_server():
         try:
             # instill eventlet_server instance to `_backends` dict to bypass the restriction!

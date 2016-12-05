@@ -2,6 +2,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from app.controller.global_config import GlobalConfig
 
+from ob_logger import Logger
+logger = Logger("APP", debug=True)
+
 app = Flask(__name__)
 
 # shut up, please. I don't wanna see your useless notice again !!
