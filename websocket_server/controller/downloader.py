@@ -272,9 +272,26 @@ class DownloaderEventHandler(MessageEventHandler):
         active_tasks = self.tasks_pool.get_all()
         send_dw_signal("_active_tasks", active_tasks)
 
-    def clear_failed_tasks(self, flag, values):
-        # TODO
-        pass
+    def terminate_task(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+
+        def send_dw_signal(event_name, result):
+            ws = WSConnections.getInstance()
+            v = {
+                "event": event_name,
+                "result": result,
+                "flag" : flag
+            }
+
+            ws.send_data("message",v ,sid=sid)
+
+        hash = values.get("hash")
+        if hash == None:
+            return
+        else:
+            dp = DownloaderPool.getInstance()
+            dp.terminate(hash)
+            send_dw_signal("terminate_task", True)
 
     def init_download_list(self, flag, values):
         '''

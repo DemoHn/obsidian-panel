@@ -829,7 +829,6 @@ var Console = function () {
             }
         }
         socket.emit("message", msg);
-        //console.log($("#in").val())
     })
 };
 

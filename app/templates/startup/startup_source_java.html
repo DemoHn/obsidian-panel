@@ -196,17 +196,17 @@
                 methods: {
                     "terminate_downloading" : function (e) {
                         var self = this;
+                        console.log(current_hash);
                         if(current_hash != ""){
-                            // TODO
-                            /*
-                            $.get("/startup/terminate_download_java/"+current_hash,function (data) {
-                                console.log(data);
-                                // reinit data
-                                self.download_size = "0";
-                                self.total_size = "0";
-                                self.percent="0%";
-                                self.modal_finish=false;
-                            })*/
+                            var flag = _generate_flag(16);
+                            var terminate_download_json = {
+                                "event":"downloader.terminate_task",
+                                "flag" : flag,
+                                "props": {
+                                    "hash" : current_hash
+                                }
+                            };
+                            socket.emit("message_startup", terminate_download_json);
                         }
                     },
                     "regret_cancel_task" : function (e) {
@@ -244,6 +244,19 @@
                     modal_vm.percent = (_dw / _total * 100).toFixed(1) + "%";
                 }else if(msg.event == "_download_start"){
                     current_hash = msg["hash"];
+
+                }else if(msg.event == "_terminate_task"){
+                    if(msg.result == true){
+                        // reinit data
+                        modal_vm.download_size = "0";
+                        modal_vm.total_size = "0";
+                        modal_vm.percent="0%";
+                        modal_vm.modal_finish=false;
+
+                        setTimeout(function(){
+                            $('#download_java_modal').modal('hide');
+                        },500);
+                    }
                 }else if(msg.event == "_download_finish"){
                   var hash = msg["hash"];
                   var success = msg["result"];
@@ -370,7 +383,7 @@
       </div>
         <div class="modal-footer" v-show="terminate_hint == true" v-cloak>
             <span style="color: gray;">确定要「取消」下载任务？任务及已下载的文件将会被<b>删除！</b></span>
-            <button type="button" class="btn btn-raised btn-info" data-dismiss="modal" v-on:click="terminate_downloading"
+            <button type="button" class="btn btn-raised btn-info" v-on:click="terminate_downloading"
                     data-toggle="tooltip" data-placement="bottom" title="" v-cloak>确认!</button>
             <button type="button" class="btn btn-default" v-on:click="regret_cancel_task">返回</button>
         </div>
