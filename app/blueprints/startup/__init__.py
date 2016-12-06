@@ -2,7 +2,6 @@ __author__ = "Nigshoxiz"
 
 # import models
 from flask import Blueprint, render_template, abort, request, make_response
-from flask_socketio import send, emit
 from jinja2 import TemplateNotFound
 from app.utils import returnModel, salt
 
