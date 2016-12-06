@@ -234,6 +234,52 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-5">
+                    <div class="box box-solid">
+                        <div class="box-body no-padding">
+                            <table class="table table-striped inst-info-table">
+                                <tbody>
+                                    <tr>
+                                        <td>正版验证</td>
+                                        {% if server_properties.get("online-mode") == 'true' %}
+                                            <td>开启</td>
+                                        {% else %}
+                                            <td>关闭</td>
+                                        {% endif %}
+                                    </tr>
+                                    <tr>
+                                        <td>PVP</td>
+                                        {% if server_properties.get("pvp") == 'true' %}
+                                            <td>开启</td>
+                                        {% else %}
+                                            <td>关闭</td>
+                                        {% endif %}
+                                    </tr>
+                                    <tr>
+                                        <td>游戏难度</td>
+                                        <td>{{ server_properties.get("difficulty") }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>怪物生成</td>
+                                        {% if server_properties.get("spawn-monsters") == 'true' %}
+                                            <td>开启</td>
+                                        {% else %}
+                                            <td>关闭</td>
+                                        {% endif %}
+                                    </tr>
+                                    <tr>
+                                        <td>下界生成</td>
+                                        {% if server_properties.get("allow-nether") == 'true' %}
+                                            <td>开启</td>
+                                        {% else %}
+                                            <td>关闭</td>
+                                        {% endif %}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

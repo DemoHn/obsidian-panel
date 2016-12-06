@@ -3,14 +3,55 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, redirect, send_file
 from jinja2 import TemplateNotFound
 
-from app import db
+from app import db, logger
 from app.utils import returnModel
 
 from app.model import ServerInstance, ServerCORE, FTPAccount
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 from . import server_inst_page
-import os
+import os, re, traceback
+
+# copied from process_watcher/parser.py
+class KVParser(object):
+    """
+    A general Key-Value Parser
+    Parsed File Format :
+
+    # here is comment
+    server-ip=12.23.43.3
+    motd=This is a Minecraft Server # inline comment
+
+    """
+    def __init__(self,file):
+        """
+        :param file: filename being parsed.
+        """
+        self.conf_items = {}
+        self.file = file
+        self.loads()
+
+    def loads(self):
+        """
+        read the whole config file and make config index
+        :return:
+        """
+        fd = open(os.path.normpath(self.file),"r+")
+
+        if fd == None:
+            raise FileNotFoundError
+        for line in fd.readlines():
+            if line.find("#") == 0:
+                continue
+            else:
+                pattern = "^([a-zA-Z\-_ ]+)=([^#]*)"
+                result  = re.match(pattern,line)
+                if result != None:
+                    key = result.group(1)
+                    val = result.group(2).strip()
+                    self.conf_items[key] = val
+        fd.close()
+
 
 rtn = returnModel("string")
 
@@ -56,15 +97,14 @@ def render_dashboard_page(uid, priv, inst_id = None):
 
                 mc_version = serv_core_obj.ob_server_core.minecraft_version
 
-                # get motd
+                # get server properties and motd
                 file_server_properties = os.path.join(current_inst_obj.inst_dir,"server.properties")
                 motd_string = ""
+                server_properties = {}
                 if os.path.exists(file_server_properties):
-                    f = open(file_server_properties, "r")
-                    for item in f.readlines():
-                        if item.find("motd=") >= 0:
-                            motd_string = item[5:]
-                            break
+                    parser = KVParser(file_server_properties)
+                    server_properties = parser.conf_items
+                    motd_string = server_properties.get("motd")
 
                 # ftp account name
                 ftp_account_name = ""
@@ -82,7 +122,8 @@ def render_dashboard_page(uid, priv, inst_id = None):
                                        str_ip_port = "127.0.0.1:%s" % current_inst_obj.listening_port,
                                        mc_version = mc_version,
                                        ftp_account_name = ftp_account_name,
-                                       default_ftp_password = default_ftp_password
+                                       default_ftp_password = default_ftp_password,
+                                       server_properties = server_properties
                 )
             else:
                 # there is no any instance for this user,
@@ -91,6 +132,8 @@ def render_dashboard_page(uid, priv, inst_id = None):
 
     except TemplateNotFound:
         abort(404)
+    except:
+        logger.error(traceback.format_exc())
     pass
 
 
