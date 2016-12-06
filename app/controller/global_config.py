@@ -5,6 +5,14 @@ import os
 import traceback
 import logging
 
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
 class GlobalConfigDatabase(object):
     """
     This database manages ob_panel global configuration.
@@ -116,7 +124,7 @@ class GlobalConfigDatabase(object):
         except self.conn.Error:
             self.logger.error(traceback.format_exc())
 
-class GlobalConfig(object):
+class GlobalConfig(metaclass=Singleton):
     """
     GlobalConfig class
     """
