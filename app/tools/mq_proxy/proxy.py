@@ -7,9 +7,11 @@ import threading
 from uuid import uuid4
 from . import Singleton, WS_TAG, MessageUserStatusPool
 from .event_handler import MessageEventHandler
-import logging
 import traceback
 
+# logging system
+from ob_logger import Logger
+logger = Logger("MsgQ", debug=True)
 class MessageQueueProxy(metaclass=Singleton):
     '''
     What is a .. Message Queue Proxy?
@@ -31,9 +33,6 @@ class MessageQueueProxy(metaclass=Singleton):
         # It's a singleton class
         self.pool = MessageUserStatusPool()
         self.handlers = {}
-
-        # to prevent send same package for multi times
-        self.sended_flags = {}
 
     def _get_flag(self, flag):
         '''
@@ -60,18 +59,13 @@ class MessageQueueProxy(metaclass=Singleton):
                 uid,sid,src,dest = self.pool.get(flag)
 
                 if dest == self.ws_tag and event_name != None and values != None:
-                    f_tag = "%s_%s" % (flag, src)
-                    if self.sended_flags.get(f_tag) != None and self.sended_flags.get(f_tag) == True:
-                        return
-                    else:
-                        # mark flag
-                        self.sended_flags[f_tag] = True
-                        if self.handlers.get(event_name) != None:
-                            handler = self.handlers.get(event_name)
-                            try:
-                                handler(flag, values)
-                            except:
-                                logging.debug(traceback.format_exc())
+
+                    if self.handlers.get(event_name) != None:
+                        handler = self.handlers.get(event_name)
+                        try:
+                            handler(flag, values)
+                        except:
+                            logger.debug(traceback.format_exc())
 
     def _register_handler(self, event_name, handler):
         if inspect.ismethod(handler):

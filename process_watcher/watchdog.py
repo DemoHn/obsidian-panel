@@ -11,10 +11,12 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import re
 import inspect
 import threading
-import logging
 import psutil
 import json
 import traceback
+
+from . import logger
+
 POLL_NULL = 0x00
 POLL_IN = 0x01
 POLL_OUT = 0x04
@@ -291,7 +293,7 @@ class Watchdog(object):
                     inst_dict["current_player"] = current_player
                     self._run_hook("inst_player_change", inst_id, (current_player, total_player))
                 except:
-                    logging.debug(traceback.format_exc())
+                    logger.debug(traceback.format_exc())
                     return None
 
         for sock, fd, event in events:
@@ -562,10 +564,10 @@ class Watchdog(object):
 
         # start scheduler
         self.scheduler.start()
-        logging.info("start Watchdog thread.")
+        logger.info("start Watchdog thread.")
 
     def terminate(self):
         # set stopping to True -> terminate while loop
         self.event_loop.stopping = True
         self.scheduler.shutdown()
-        logging.info("stop Watchdog thread.")
+        logger.info("stop Watchdog thread.")

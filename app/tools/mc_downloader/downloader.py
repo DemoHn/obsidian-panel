@@ -1,16 +1,11 @@
 __author__ = "Nigshoxiz"
 from urllib.error import HTTPError
 from urllib.request import urlopen, Request
-import threading
-import shutil
-import traceback
-import json
-import os, ssl
-import inspect
-import random
-import string
-import copy
-import time
+import os, ssl, json, inspect, random, string, copy, time, traceback, threading, shutil
+
+# add logger
+from ob_logger import Logger
+logger = Logger("dlMC", debug=True)
 
 class AbruptException(Exception):
     def __init__(self):
@@ -86,6 +81,7 @@ class DownloaderPool(object):
 
                 if os.path.exists(_report_file):
                     os.remove(_report_file)
+                _inst.dl.stopping = False
 
     def resume(self, downloader_hash):
 
@@ -201,7 +197,7 @@ class Downloader(object):
         for i in headers:
             req.add_header(i, headers.get(i))
         try:
-            print("start analysing URL...")
+            logger.info("start analysing URL...")
             result = urlopen(req, timeout=15)
 
             headers = result.info()
@@ -326,7 +322,7 @@ class Downloader(object):
     def download(self):
         def _download_singlethread():
             while True:
-                print("[MC Downloader] directly downloading...")
+                logger.info("Mode: directly downloading")
                 self._reopen_file()
                 self.fd.seek(0,0)
                 self.dw_type_flag = "single"
@@ -352,8 +348,10 @@ class Downloader(object):
                         continue
 
                 except HTTPError:
+                    logger.error(traceback.format_exc())
                     return False
                 except:
+                    logger.error(traceback.format_exc())
                     return False
                 return True
 
@@ -375,11 +373,11 @@ class Downloader(object):
                         if item[0] + item[1] - 1 < item[2]:
                             ranges.append( (item[0] + item[1], item[2]) )
                     self._reopen_file()
-                    print("[MC downloader] Resume Downloading...")
+                    logger.info("Resume Downloading")
                 else:
                     ranges = self._split_range()
 
-                print("[MC downloader] Start Downloading... threads = %s" % len(ranges))
+                logger.info("Start Downloading... threads = %s" % len(ranges))
                 _i = 0
                 for threads in range(len(ranges)):
                     self.slices.append([ranges[_i][0], 0, ranges[_i][1]])
@@ -427,6 +425,7 @@ class Downloader(object):
             else:
                 result = _download_singlethread()
 
+        logger.info("Download finish! result = %s" % result)
         # after file is successfully downloaded
         if result:
             __repeat_file_counter = 0
@@ -495,20 +494,20 @@ class Downloader(object):
             try:
                 resp = urlopen(req, timeout=self.timeout, context=self.ssl_ctx)
             except TypeError:
-                traceback.print_exc()
-                print("[DEBUG] TypeError")
+                logger.error(traceback.format_exc())
+                logger.debug("TypeError")
                 if self.lock.locked():
                     self.lock.release()
 
                 self.download_correct_flag = False
                 break
             except:
-                traceback.print_exc()
-                print("%s - HTTP connection error %s - %s" % (
+                logger.error(traceback.format_exc())
+                logger.debug("%s - HTTP connection error %s - %s" % (
                     threading.current_thread().getName(), range_item[0], range_item[1]))
                 retry += 1
                 if retry <= MAX_RETRY:
-                    print("retry %s time" % retry)
+                    logger.debug("retry %s time" % retry)
 
                 if self.lock.locked():
                     self.lock.release()
@@ -548,13 +547,13 @@ class Downloader(object):
                     self.lock.release()
 
                 # shutil.copyfileobj(resp, self.fd)
-                print("%s finished!" % threading.current_thread().getName())
+                logger.debug("%s finished!" % threading.current_thread().getName())
                 break
             except:
-                traceback.print_exc()
+                logger.error(traceback.format_exc())
                 retry += 1
                 if retry <= MAX_RETRY:
-                    print("retry %s time" % retry)
+                    logger.debug("retry %s time" % retry)
 
                 if self.lock.locked():
                     self.lock.release()

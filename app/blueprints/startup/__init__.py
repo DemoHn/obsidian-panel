@@ -8,11 +8,7 @@ from app.utils import returnModel, salt
 
 import hashlib
 import traceback
-import logging
-import tarfile
-import json
-import subprocess
-import time
+from app import logger
 from functools import wraps
 # import controllers
 from app.controller.config_env import DatabaseEnv, JavaEnv
@@ -60,7 +56,6 @@ def show_starter_page():
 @start_page.route("/", methods=["POST"])
 @only_on_startup
 def handle_init_config():
-    logger = logging.getLogger("ob_panel")
     try:
         F = request.form
         _step = request.args.get('step')
@@ -101,7 +96,6 @@ def handle_init_config():
 @only_on_startup
 def starter_finish():
     try:
-        logger = logging.getLogger("ob_panel")
         F = request.form
         gc = GlobalConfig.getInstance()
         db = DatabaseEnv()
@@ -189,7 +183,6 @@ def detect_java_environment():
 @start_page.route("/terminate_download_java/<hash>")
 @only_on_startup
 def terminate_downloading_java(hash):
-    logger = logging.getLogger("ob_panel")
     rtn = returnModel("string")
     dp = DownloaderPool.getInstance()
 

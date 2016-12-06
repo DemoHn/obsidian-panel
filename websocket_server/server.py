@@ -10,12 +10,15 @@ import re
 
 eventlet.monkey_patch()
 
+# logging system
+from . import logger
+
 mgr = socketio.RedisManager("redis://")
 sio = socketio.Server(client_manager=mgr)
 
 class WSConnections(object):
-    instance = None
 
+    instance = None
     @staticmethod
     def getInstance():
         if WSConnections.instance == None:
@@ -133,6 +136,7 @@ class WSConnections(object):
         send websocket data to all session that belongs to the user
         '''
         if sid != None:
+            logger.debug("send <-- sid = %s, content = %s" % (sid[0:6], data))
             sio.emit(event, data, room=sid, namespace="/")
         elif uid == None:
             return None
@@ -140,11 +144,13 @@ class WSConnections(object):
             user_key = "user_%s" % uid
             sessions = self.connections.get(user_key)
             if sessions != None:
+                logger.debug("send[B] <-- uid = %s, content = %s" % (uid, data))
                 for sid in sessions:
                     sio.emit(event, data, room=sid, namespace="/")
 
 @sio.on('message', namespace="/")
 def emit_message(sid, data):
+    from . import logger
     proxy = MessageQueueProxy(WS_TAG.CONTROL)
 
     ws = WSConnections.getInstance()
@@ -159,17 +165,22 @@ def emit_message(sid, data):
     if avail == True:
         # from CLIENT -> CONTROL
         #
+        logger.debug("recv --> event = %s, props = %s" % (_event, _props))
         proxy.send(_flag, _event, _props, WS_TAG.CONTROL,
                    uid = ws.find_uid(sid),
                    sid = sid,
                    _src= WS_TAG.CLIENT)
+    else:
+        logger.debug("reject --> event = %s, props = %s" % (_event, _props))
 
 @sio.on('message_startup', namespace="/")
 def emit_message_startup(sid, data):
+    from . import logger
     proxy = MessageQueueProxy(WS_TAG.CONTROL)
     _flag  = data.get("flag")
     _event = data.get("event")
     _props = data.get("props")
+    logger.debug("recv (startup) --> event = %s, props = %s" % (_event, _props))
     proxy.send(_flag, _event, _props, WS_TAG.CONTROL,
                uid = 0,
                sid = sid,

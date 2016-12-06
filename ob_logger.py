@@ -84,5 +84,7 @@ def Logger(name, debug=True):
     s_formatter = ObsidianFormatter(name)
     s_handler.setFormatter(s_formatter)
     logger.propagate = False
-    logger.addHandler(s_handler)
+
+    if not len(logger.handlers):
+        logger.addHandler(s_handler)
     return logger
