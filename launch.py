@@ -1,26 +1,5 @@
 __author__ = "Nigshoxiz"
 
-'''
-[circus]
-endpoint = tcp://127.0.0.1:5555
-pubsub_endpoint = tcp://127.0.0.1:5556
-stats_endpoint = tcp://127.0.0.1:5557
-
-[watcher:web]
-copy_env = True
-virtualenv = ./env
-working_dir = ./
-
-use_sockets = True
-cmd = ./env/bin/chaussette run.app
-args = --fd $(circus.sockets.web) --backend eventlet
-numprocesses = 5
-
-[socket:web]
-host = 0.0.0.0
-port = 5000
-'''
-
 # Dev Note:
 # For some strange reasons, it is not allowed to run a chaussette instance
 # using eventlet backend in python3 (chaussette version: v0.13.0, which is the newest version pip could download).
@@ -40,9 +19,7 @@ port = 5000
 # Nigshoxiz
 # 2016-8-16
 
-# import app
-
-import sys
+import sys, getopt
 
 def start_chaussette(use_reloader):
     from app import app as _app
@@ -125,8 +102,36 @@ def start_process_watcher():
     from process_watcher import start_process_watcher
     start_process_watcher()
 
-launch_branch_name = sys.argv[2]
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug", "use_reloader"])
+except getopt.GetoptError as err:
+    print(err)
+    sys.exit(2)
 
+debug_flag = False
+listen_port = None
+branch_name = None
+use_reloader = False
+# parse args
+for o, a in opts:
+    if o == "-b":
+        branch_name = a
+    elif o == "-d":
+        debug_flag = True
+    elif o == "-p":
+        listen_port = int(a)
+    elif o == "--use_reloader":
+        if a == "true":
+            use_reloader = True
+        else:
+            use_reloader = False
+    elif o == "--debug":
+        if a == "true":
+            debug_flag = True
+        else:
+            debug_flag = False
+
+# TODO: add params
 if launch_branch_name == "app":
     start_chaussette(False)
 elif launch_branch_name == "ftp_manager":

@@ -32,7 +32,6 @@ endpoint = tcp://127.0.0.1:$config_circus_end_port
 
 EOF
 
-
 }
 
 write_app(){
@@ -43,6 +42,8 @@ copy_env = True
 virtualenv = ./env
 working_dir = ./
 stderr_stream.class = FileStream
+stdout_stream.class = FileStream
+stdout_stream.filename = $config_global_log_file
 use_sockets = True
 cmd = python launch.py -b app --fd \$(circus.sockets.app)
 numprocesses = $config_server_process_num
@@ -62,6 +63,8 @@ virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b ftp_manager
 numprocesses = 1
+stdout_stream.class = FileStream
+stdout_stream.filename = $config_global_log_file
 
 EOF
 }
@@ -74,6 +77,8 @@ virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b process_watcher
 numprocesses = 1
+stdout_stream.class = FileStream
+stdout_stream.filename = $config_global_log_file
 
 EOF
 }
@@ -86,6 +91,8 @@ virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b websocket_server
 numprocesses = 1
+stdout_stream.class = FileStream
+stdout_stream.filename = $config_global_log_file
 
 EOF
 }
