@@ -6,7 +6,7 @@ class SystemProcessClient(CircusClient):
     In the future, we will consider adding Minecraft process monitoring
     '''
     def __init__(self):
-        CircusClient.__init__(self, timeout=0.5)
+        CircusClient.__init__(self, timeout=0.5, endpoint="tcp://127.0.0.1:5002")
 
     def send_msg(self,command, props=None):
         msg_json = {"command": command, "properties": props or {}}

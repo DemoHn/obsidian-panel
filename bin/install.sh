@@ -114,7 +114,7 @@ echo "[INFO] Start redis server!"
 redis-server &
 
 echo "[INFO] Finally, run the instance!"
-circusd production.ini --daemon
+circusd obsidian.ini --daemon
 
 #
 # psutil

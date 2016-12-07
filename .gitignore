@@ -6,3 +6,4 @@ config.py
 .idea/
 __pycache__/
 app/__pycache__/
+.obsidian_panel.ini

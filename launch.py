@@ -45,7 +45,10 @@ port = 5000
 import sys
 
 def start_chaussette(use_reloader):
-    from start_server import _app, logger
+    from app import app as _app
+    from app import logger
+    from app.controller.global_config import GlobalConfig
+    from app.controller.init_main_db import init_database
 
     from chaussette.backend import _backends
     from chaussette.backend._eventlet import Server as eventlet_server
@@ -54,7 +57,22 @@ def start_chaussette(use_reloader):
     import os
     _host = "fd://%d" % int(sys.argv[4])
 
-    logger.debug("This is Main Web Server (%s)" % os.getpid())
+    logger.debug("This is Main Server (%s)" % os.getpid())
+    def init_directory():
+        gc = GlobalConfig.getInstance()
+        dirs = [
+            gc.get("base_dir"),
+            gc.get("uploads_dir"),
+            gc.get("files_dir"),
+            gc.get("servers_dir"),
+            gc.get("lib_bin_dir"),
+            gc.get("sqlite_dir")
+        ]
+
+        for item in dirs:
+            if not os.path.isdir(item):
+                os.makedirs(item)
+
     def _make_server():
         try:
             # instill eventlet_server instance to `_backends` dict to bypass the restriction!
@@ -65,6 +83,12 @@ def start_chaussette(use_reloader):
             httpd.serve_forever()
         except KeyboardInterrupt:
             sys.exit(0)
+
+    # init directories
+    init_directory()
+
+    # init database
+    init_database(logger=logger)
 
     if use_reloader:
         try:
