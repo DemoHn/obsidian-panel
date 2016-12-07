@@ -8,10 +8,10 @@ _URL="https://github.com/DemoHn/obsidian-panel.git"
 _check_sudo() {
 	if [[ "$EUID" -ne 0 ]]; then
 	    echo -e "\n"
-	    echo "[HINT] You are not running on root."
-	    echo "[HINT] Don't worry. Just input your root password in the following step."
-	    echo "[HINT] If 'sudo' command have not been installed yet, or you can't use 'sudo' to"
-	    echo "[HINT] elevate your privilege, try using 'su' and run this script again :-)"
+	    echo "[INFO] You are not running on root."
+	    echo "[INFO] Don't worry. Just input your root password in the following step."
+	    echo "[INFO] If 'sudo' command have not been installed yet, or you can't use 'sudo' to"
+	    echo "[INFO] elevate your privilege, try using 'su' and run this script again :-)"
 	    _SUDO="sudo"
 	fi
 }
@@ -92,8 +92,7 @@ if [ $_OSTYPE = "YUM" ]; then
 fi
 
 # clone code
-echo "[HINT] Now clone source code"
-echo "[HINT] Obsidian Panel is STILL testing!"
+echo "[INFO] Now let's clone the source code"
 git clone $_URL obsidian-panel
 cd obsidian-panel
 
@@ -110,12 +109,13 @@ fi
 if [ $_OSTYPE = "YUM" ]; then
     pip3.5 install -r requirement.txt
 fi
-echo "[INFO] Start redis server!"
-redis-server &
 
-echo "[INFO] Finally, run the instance!"
-circusd obsidian.ini --daemon
+# install `ob-panel` command to /usr/local/bin
+echo "[INFO] Copying op-panel command"
 
-#
-# psutil
-# redis
+# make sure the old file has been removed
+$_SUDO rm /usr/local/bin/ob-panel 2>/dev/null
+$_SUDO ln -s $(realpath ob-panel.sh) /usr/local/bin/ob-panel
+
+echo "[INFO] Finally, let's start!"
+ob-panel start
