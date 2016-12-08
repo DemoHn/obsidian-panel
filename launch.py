@@ -33,8 +33,10 @@ def start_chaussette(fd, port=5000, debug=True, use_reloader=True, circusd_end_p
 
     _host = "fd://%d" % int(fd)
 
+    logger.set_debug(debug)
     _app.config["_circusd_end_port"] = circusd_end_port
-    logger.debug("This is Main Server (%s)" % os.getpid())
+
+    logger.info("This is Main Server (%s)" % os.getpid())
     def init_directory():
         gc = GlobalConfig.getInstance()
         dirs = [

@@ -1,7 +1,7 @@
 __author__ = "Nigshoxiz"
 
 from ob_logger import Logger
-logger = Logger("WS", debug=True)
+logger = Logger("WS")
 
 class PRIVILEGES:
     NONE = 0x0000

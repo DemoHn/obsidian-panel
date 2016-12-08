@@ -1,7 +1,7 @@
 # import python library
 
 from ob_logger import Logger
-logger = Logger("MPW", debug=True)
+logger = Logger("MPW")
 
 class SERVER_STATE(object):
     HALT = 0
@@ -9,6 +9,9 @@ class SERVER_STATE(object):
     RUNNING = 2
 
 def start_process_watcher(debug=True):
+
+    logger.set_debug(debug)
+
     from .watchdog import Watchdog
     from .mq_events import EventSender, WatcherEvents
     from app.tools.mq_proxy import WS_TAG, MessageQueueProxy

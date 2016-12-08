@@ -189,6 +189,8 @@ def emit_message_startup(sid, data):
 
 def start_websocket_server(debug=True, port=5001):
     from . import logger
+    logger.set_debug(debug)
+
     from .controller import ProcessEventHandler, DownloaderEventHandler
     # register listeners
     #ControllerOfInstance()
