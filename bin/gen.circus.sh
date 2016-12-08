@@ -50,7 +50,7 @@ copy_env = True
 virtualenv = ./env
 working_dir = ./
 EOF
-    if [ $debug == "false" ]; then
+    if [ "$debug" == "false" ]; then
         cat >> $DEST_FILE <<- EOF
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file
@@ -79,7 +79,7 @@ cmd = python launch.py -b ftp_manager -p $config_ftp_listen_port --debug=$debug
 numprocesses = 1
 EOF
 
-    if [ $debug == "false" ]; then
+    if [ "$debug" == "false" ]; then
         cat >> $DEST_FILE <<- EOF
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file
@@ -98,7 +98,7 @@ cmd = python launch.py -b process_watcher --debug=$debug
 numprocesses = 1
 EOF
 
-    if [ $debug == "false" ]; then
+    if [ "$debug" == "false" ]; then
         cat >> $DEST_FILE <<- EOF
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file
@@ -117,7 +117,7 @@ cmd = python launch.py -b websocket_server -p $config_websocket_listen_port --de
 numprocesses = 1
 EOF
 
-    if [ $debug == "false" ]; then
+    if [ "$debug" == "false" ]; then
         cat >> $DEST_FILE <<- EOF
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file
