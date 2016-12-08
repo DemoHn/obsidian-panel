@@ -1,11 +1,10 @@
 from .manager import FTPManager
 from .mq_events import FTPAccountEventHandler
 from app.tools.mq_proxy import MessageQueueProxy, WS_TAG
-PORT = 2121
 
-def start_FTP_manager():
+def start_FTP_manager(port=2121, debug=True):
     manager = FTPManager()
-    manager.set_port(PORT)
+    manager.set_port(port)
     manager.launch(background=True)
 
     proxy = MessageQueueProxy(WS_TAG.FTM)

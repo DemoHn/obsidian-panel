@@ -187,7 +187,7 @@ def emit_message_startup(sid, data):
                _src= WS_TAG.CLIENT)
 
 
-def start_websocket_server():
+def start_websocket_server(debug=True, port=5001):
     from . import logger
     from .controller import ProcessEventHandler, DownloaderEventHandler
     # register listeners

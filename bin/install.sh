@@ -80,21 +80,15 @@ fi
 # For CentOS, Red Hat, Fedora
 if [ $_OSTYPE = "YUM" ]; then
     $_SUDO yum update
-    $_SUDO yum install -y python3.5 pip3.5 git
-    $_SUDO yum groupinstall 'Development Tools'
-    wget http://download.redis.io/releases/redis-2.8.3.tar.gz
-    tar xzvf redis-2.8.3.tar.gz
-    cd redis-2.8.3
-    make
-    make install
-    cd ..
-    $_SUDO pip3.5 install virtualenv circus
+    $_SUDO yum install -y python34u-devel pip34u redis30u git
+    $_SUDO yum groupinstall -y "Development Tools"
+    $_SUDO pip3.4 install virtualenv circus
 fi
 
 # clone code
 echo "[INFO] Now let's clone the source code"
-git clone $_URL obsidian-panel
-cd obsidian-panel
+$_SUDO git clone $_URL /opt/obsidian-panel
+$_SUDO cd /opt/obsidian-panel
 
 # shift into virtualenv
 virtualenv env
@@ -107,7 +101,7 @@ fi
 
 # For CentOS, Red Hat, Fedora
 if [ $_OSTYPE = "YUM" ]; then
-    pip3.5 install -r requirement.txt
+    pip3.4 install -r requirement.txt
 fi
 
 # install `ob-panel` command to /usr/local/bin
@@ -115,7 +109,7 @@ echo "[INFO] Copying op-panel command"
 
 # make sure the old file has been removed
 $_SUDO rm /usr/local/bin/ob-panel 2>/dev/null
-$_SUDO ln -s $(realpath ob-panel.sh) /usr/local/bin/ob-panel
+$_SUDO ln -s $(realpath ./bin/ob-panel.sh) /usr/local/bin/ob-panel
 
 echo "[INFO] Finally, let's start!"
 ob-panel start

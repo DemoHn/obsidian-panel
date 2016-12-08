@@ -22,6 +22,7 @@ parse_yaml() {
 # clear file
 echo -e '' > $DEST_FILE
 
+debug="false"
 # read config.yaml
 eval $(parse_yaml $(dirname $DIR)/config.yaml "config_")
 
@@ -41,11 +42,10 @@ write_app(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-stderr_stream.class = FileStream
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file
 use_sockets = True
-cmd = python launch.py -b app --fd \$(circus.sockets.app)
+cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader
 numprocesses = $config_server_process_num
 
 [socket:app]
@@ -61,7 +61,7 @@ write_ftp_manager(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-cmd = python launch.py -b ftp_manager
+cmd = python launch.py -b ftp_manager -p $config_ftp_listen_port --debug=$debug
 numprocesses = 1
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file
@@ -75,7 +75,7 @@ write_process_watcher(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-cmd = python launch.py -b process_watcher
+cmd = python launch.py -b process_watcher --debug=$debug
 numprocesses = 1
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file
@@ -89,7 +89,7 @@ write_websocket_server(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-cmd = python launch.py -b websocket_server
+cmd = python launch.py -b websocket_server -p $config_websocket_listen_port --debug=$debug
 numprocesses = 1
 stdout_stream.class = FileStream
 stdout_stream.filename = $config_global_log_file

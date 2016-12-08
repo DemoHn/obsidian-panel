@@ -19,9 +19,9 @@ __author__ = "Nigshoxiz"
 # Nigshoxiz
 # 2016-8-16
 
-import sys, getopt
+import sys, getopt, os
 
-def start_chaussette(use_reloader):
+def start_chaussette(fd, port=5000, debug=True, use_reloader=True):
     from app import app as _app
     from app import logger
     from app.controller.global_config import GlobalConfig
@@ -31,8 +31,7 @@ def start_chaussette(use_reloader):
     from chaussette.backend._eventlet import Server as eventlet_server
     from chaussette.server import make_server
 
-    import os
-    _host = "fd://%d" % int(sys.argv[4])
+    _host = "fd://%d" % int(fd)
 
     logger.debug("This is Main Server (%s)" % os.getpid())
     def init_directory():
@@ -78,44 +77,33 @@ def start_chaussette(use_reloader):
     else:
         _make_server()
 
-def start_ftp_manager():
+def start_ftp_manager(**kwargs):
     from ftp_manager import start_FTP_manager
-    start_FTP_manager()
+    start_FTP_manager(**kwargs)
 
-def start_websocket_server():
+def start_websocket_server(**kwargs):
     from websocket_server import start_websocket_server
-    start_websocket_server()
+    start_websocket_server(**kwargs)
 
-def start_process_watcher():
-    '''
-    from process_watcher.watchdog import Watchdog
-    from process_watcher.mq_events import EventSender, WatcherEvents
-    from process_watcher.mq_proxy import MessageQueueProxy
-
-    watcher = Watchdog.getWDInstance()
-    watcher.launch(hook_class=EventSender)
-    # init recv events
-    proxy = MessageQueueProxy.getInstance()
-    WatcherEvents()
-    proxy.listen()
-    '''
+def start_process_watcher(**kwargs):
     from process_watcher import start_process_watcher
-    start_process_watcher()
+    start_process_watcher(**kwargs)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug", "use_reloader"])
+    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport="])
 except getopt.GetoptError as err:
-    print(err)
+    print(err, file=sys.stderr)
     sys.exit(2)
 
 debug_flag = False
 listen_port = None
-branch_name = None
+launch_branch_name = None
 use_reloader = False
+fd = 0
 # parse args
 for o, a in opts:
     if o == "-b":
-        branch_name = a
+        launch_branch_name = a
     elif o == "-d":
         debug_flag = True
     elif o == "-p":
@@ -130,13 +118,15 @@ for o, a in opts:
             debug_flag = True
         else:
             debug_flag = False
+    elif o == "--fd":
+        fd = int(a)
 
 # TODO: add params
 if launch_branch_name == "app":
-    start_chaussette(False)
+    start_chaussette(fd,debug=debug_flag, port=listen_port, use_reloader=use_reloader)
 elif launch_branch_name == "ftp_manager":
-    start_ftp_manager()
+    start_ftp_manager(debug=debug_flag, port=listen_port)
 elif launch_branch_name == "process_watcher":
-    start_process_watcher()
+    start_process_watcher(debug=debug_flag)
 elif launch_branch_name == "websocket_server":
-    start_websocket_server()
+    start_websocket_server(port=listen_port, debug=debug_flag)

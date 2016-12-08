@@ -8,7 +8,7 @@ class SERVER_STATE(object):
     STARTING = 1
     RUNNING = 2
 
-def start_process_watcher():
+def start_process_watcher(debug=True):
     from .watchdog import Watchdog
     from .mq_events import EventSender, WatcherEvents
     from app.tools.mq_proxy import WS_TAG, MessageQueueProxy

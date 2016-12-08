@@ -1,6 +1,5 @@
 global:
-  log_file: /var/log/ob-panel.log
-  debug: true #{true|false}
+  log_file: ob-panel.log
 
 server:
   listen_port: 5000
