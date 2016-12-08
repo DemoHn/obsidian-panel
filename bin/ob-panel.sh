@@ -56,6 +56,20 @@ restart(){
     cmd_circusctl restart
 }
 
+debug(){
+    echo "Running in debug mode..."
+    # generate ini file
+    sh $DIR/gen.circus.sh true
+    redis-server --daemonize yes
+    cd $DIR/../
+    circusd .obsidian_panel.ini
+}
+
+quit(){
+    echo "Quit..."
+    cmd_circusctl quit
+}
+
 case "$1" in
   start)
       start
@@ -72,6 +86,12 @@ case "$1" in
   status)
       status
       ;;
+  debug)
+      debug
+      ;;
+  quit)
+      quit
+      ;;
   *)
-    echo "Usage: $0 {start|stop|restart|status|clear}"
+    echo "Usage: $0 {start|stop|restart|status|clear|debug|quit}"
 esac

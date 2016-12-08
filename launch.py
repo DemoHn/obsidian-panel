@@ -21,7 +21,7 @@ __author__ = "Nigshoxiz"
 
 import sys, getopt, os
 
-def start_chaussette(fd, port=5000, debug=True, use_reloader=True):
+def start_chaussette(fd, port=5000, debug=True, use_reloader=True, circusd_end_port=5002):
     from app import app as _app
     from app import logger
     from app.controller.global_config import GlobalConfig
@@ -33,6 +33,7 @@ def start_chaussette(fd, port=5000, debug=True, use_reloader=True):
 
     _host = "fd://%d" % int(fd)
 
+    _app.config["_circusd_end_port"] = circusd_end_port
     logger.debug("This is Main Server (%s)" % os.getpid())
     def init_directory():
         gc = GlobalConfig.getInstance()
@@ -100,6 +101,7 @@ listen_port = None
 launch_branch_name = None
 use_reloader = False
 fd = 0
+circusd_end_port = 0
 # parse args
 for o, a in opts:
     if o == "-b":
@@ -120,10 +122,12 @@ for o, a in opts:
             debug_flag = False
     elif o == "--fd":
         fd = int(a)
+    elif o == "--circusd-endport":
+        circusd_end_port = int(a)
 
 # TODO: add params
 if launch_branch_name == "app":
-    start_chaussette(fd,debug=debug_flag, port=listen_port, use_reloader=use_reloader)
+    start_chaussette(fd, debug=debug_flag, port=listen_port, use_reloader=use_reloader, circusd_end_port=circusd_end_port)
 elif launch_branch_name == "ftp_manager":
     start_ftp_manager(debug=debug_flag, port=listen_port)
 elif launch_branch_name == "process_watcher":
