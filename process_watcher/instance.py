@@ -102,7 +102,7 @@ class MCServerInstance():
         #)
 
         cmd = " ".join(cmd_args)
-        self._proc = subprocess.Popen(cmd,shell=True, bufsize=1024, cwd=mc_w_config.proc_cwd,
+        self._proc = subprocess.Popen(cmd,shell=True, bufsize=0, cwd=mc_w_config.proc_cwd,
                                       stdin=subprocess.PIPE,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.STDOUT)
