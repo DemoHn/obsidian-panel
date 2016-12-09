@@ -19,7 +19,7 @@ Only input one line to install it!
 
 ### One-Line Method
 ```
-curl -s http://static.demohn.com/sh/install-obpanel | sh
+curl -s http://static.demohn.com/sh/install-obpanel | bash
 ```
 
 Then open your browser and input `[your server domain]:5000` to start!

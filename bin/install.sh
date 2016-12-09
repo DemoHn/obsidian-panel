@@ -1,4 +1,5 @@
 #!/bin/bash
+# detect OS type
 # ref: https://github.com/icy/pacapt/blob/master/pacapt
 _SUDO=""
 _OSTYPE=""
@@ -14,6 +15,10 @@ _check_sudo() {
 	    echo "[INFO] elevate your privilege, try using 'su' and run this script again :-)"
 	    _SUDO="sudo"
 	fi
+}
+
+_realpath () {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 
 _found_arch() {
@@ -63,6 +68,73 @@ _OSTYPE_detect() {
   fi
 }
 
+_get_centOS_version(){
+    _centOS_version=$($_SUDO rpm -q --queryformat '%{VERSION}' centos-release)
+}
+
+_detect_dpendency(){
+    if command -v $1 >/dev/null 2>&1; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+_make_install_git(){
+    # install Git
+    cd /var/tmp
+    wget https://github.com/git/git/archive/v2.4.0.tar.gz -O /var/tmp/git-2.4.0.tar.gz
+    tar xzf git-2.4.0.tar.gz
+    cd git-2.4.0
+    autoconf
+    ./configure
+    make
+    make install
+}
+
+_make_install_python3(){
+    # install python 3.5.2 by compiling it
+    cd /var/tmp
+    wget http://www.python.org/ftp/python/3.5.2/Python-3.5.2.tar.xz -O /var/tmp/Python-3.5.2.tar.xz
+
+    # for centos 5, this does a small trick
+    # see https://www.centos.org/forums/viewtopic.php?t=5059
+    # this is the most conservative way to uncompress tar.xz
+    $_SUDO yum install -y xz
+    cd /var/tmp
+    unxz Python-3.5.2.tar.xz
+    tar xf Python-3.5.2.tar
+    tar xf /var/tmp/Python-3.5.2.tar.xz
+
+    cd /var/tmp/Python-3.5.2
+    ./configure --enable-loadable-sqlite-extensions
+    make
+    make install
+}
+
+_make_install_pip3(){
+    echo "[INFO] install python3-pip"
+    wget --no-check-certificate https://pypi.python.org/packages/source/s/setuptools/setuptools-1.4.2.tar.gz -O /var/tmp/setuptools-1.4.2.tar.gz
+    cd /var/tmp
+    tar xf /var/tmp/setuptools-1.4.2.tar.gz
+    cd setuptools-1.4.2
+    python3 setup.py install
+    wget --no-check-certificate https://bootstrap.pypa.io/get-pip.py -O /var/tmp/get-pip.py
+    python3 /var/tmp/get-pip.py install
+    # upgrade pip
+    pip3 install --upgrade pip
+}
+
+_make_install_redis(){
+    echo "[INFO] compile redis"
+    wget http://download.redis.io/releases/redis-2.8.3.tar.gz -O /var/tmp/redis-2.8.3.tar.gz
+    cd /var/tmp
+    tar xzvf /var/tmp/redis-2.8.3.tar.gz
+    cd redis-2.8.3
+    make
+    make install
+}
+
 _check_sudo
 _OSTYPE_detect
 
@@ -70,46 +142,51 @@ echo "Package Manager: $_OSTYPE"
 # install necessary packages
 # for Ubuntu, Debian
 if [ $_OSTYPE = "DPKG" ]; then
-    $_SUDO apt-get update
-    $_SUDO apt-get install -y python3 python3-pip git redis-server
-
+    $_SUDO apt-get update -y
+    $_SUDO apt-get install -y python3 python3-pip git redis-server libzmq-dev
     # install virtualenv,circusd
     $_SUDO pip3 install virtualenv circus
 fi
 
 # For CentOS, Red Hat, Fedora
 if [ $_OSTYPE = "YUM" ]; then
-    $_SUDO yum update
-    $_SUDO yum install -y python34u-devel pip34u redis30u git
+    $_SUDO yum update -y
+
     $_SUDO yum groupinstall -y "Development Tools"
-    $_SUDO pip3.4 install virtualenv circus
+    $_SUDO yum install -y zlib zlib-devel openssl-devel curl-devel sqlite-devel
+
+    # install dependcies
+    _detect_dpendency git && _make_install_git
+    _detect_dpendency python3 && _make_install_python3
+    _detect_dpendency pip3 && _make_install_pip3
+    _detect_dpendency redis-server && _make_install_redis
+
+    $_SUDO pip3 install virtualenv circus
 fi
 
+#TODO other OS support
 # clone code
 echo "[INFO] Now let's clone the source code"
-$_SUDO git clone $_URL /opt/obsidian-panel
-$_SUDO cd /opt/obsidian-panel
-
-# shift into virtualenv
-virtualenv env
+CLONE_DIR="/opt/obsidian-panel"
+if [ ! -d "$CLONE_DIR" ]; then
+    $_SUDO git clone $_URL /opt/obsidian-panel
+    $_SUDO cd $CLONE_DIR
+    virtualenv /opt/obsidian-panel/env
+else
+    $_SUDO cd $CLONE_DIR
+fi
+# run virtualenv
 . env/bin/activate
 
 # now, install required packages!
-if [ $_OSTYPE = "DPKG" ]; then
-    pip3 install -r requirement.txt
-fi
-
-# For CentOS, Red Hat, Fedora
-if [ $_OSTYPE = "YUM" ]; then
-    pip3.4 install -r requirement.txt
-fi
+pip3 install -r requirement.txt
 
 # install `ob-panel` command to /usr/local/bin
 echo "[INFO] Copying op-panel command"
 
 # make sure the old file has been removed
 $_SUDO rm /usr/local/bin/ob-panel 2>/dev/null
-$_SUDO ln -s $(realpath ./bin/ob-panel.sh) /usr/local/bin/ob-panel
+$_SUDO ln -s $(_realpath ./bin/ob-panel.sh) /usr/local/bin/ob-panel
 
 echo "[INFO] Finally, let's start!"
-ob-panel start
+ob-panel restart
