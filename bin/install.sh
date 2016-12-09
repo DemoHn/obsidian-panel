@@ -131,7 +131,7 @@ _make_install_redis(){
     cd /var/tmp
     tar xzvf /var/tmp/redis-2.8.3.tar.gz
     cd redis-2.8.3
-    make
+    make CFLAGS="-march=i686"
     make install
 }
 
