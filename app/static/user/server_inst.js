@@ -344,6 +344,7 @@ NewInstance.prototype.parse_motd = function () {
             attr_arr.push("r");
         }else{
             var attr = contents[i]["attributes"];
+            attr_arr.push("r");
             //color
             if(attr.hasOwnProperty("color")){
                 for(var k = 0;k<motd_colors.length;k++){
@@ -481,7 +482,6 @@ var Dashboard = function () {
             // and reset outer loop
             self.updateCircleLoop("online_player", 0);
             self.updateCircleLoop("RAM", 0);
-            
         } else if(newVal == 1){
             self.inst_ctrl_vm.btn_disable = true;
         }else if(newVal == 2){
@@ -497,8 +497,64 @@ var Dashboard = function () {
     //read status at the beginning
     this.editor = this.init_embeded_console();
     this.fetch_status();
+
+    $("#motd").html(self.encodeMOTD($("#motd").html()));
 };
 
+Dashboard.prototype.encodeMOTD = function(motd_string){
+
+    function _format_style_string(char_code){
+        var motd_colors = [
+            "#000000", "#0000be", "#00be00", "#00bebe", "#be0000",
+            "#be00be", "#d9a334", "#bebebe", "#3f3f3f", "#3f3ffe",
+            "#3ffe3f", "#3ffefe", "#fe3f3f", "#fe3ffe", "#fefe3f", "#ffffff"
+        ];
+
+        if(/^[0-9a-fA-F]$/.test(char_code)){
+            return "color : " + motd_colors[parseInt(char_code, 16)] + ";";
+        }else if(char_code == "l"){
+            return "font-weight: bold;";
+        }else if(char_code == "m"){
+            return "text-decoration: line-through;";
+        }else if(char_code == "o"){
+            return "font-style: italic;";
+        }else if(char_code == "n"){
+            return "text-decoration: underline;";
+        }else{
+            return "";
+        }
+    }
+    
+    // decode into utf-mode
+    var motd_string = motd_string.replace(/\\u([0-9a-fA-F]{4})/g, function(match, p1){
+        return String.fromCharCode(parseInt(p1, 16));
+    });
+
+    var motd_string = motd_string.trim();
+
+    // then add format
+    var format_table = motd_string.split("§r");
+
+    var formatted_string = "";
+    for(var i=0;i<format_table.length;i++){
+        var _text = format_table[i];
+        var f_arr = [];
+
+        if(_text.length > 0){
+            if(/§([0-9a-flmon])/gi.test(_text) == true){
+                f_arr = /§([0-9a-flmon])/gi.exec(_text);
+            }
+
+            _text = _text.replace(/§([0-9a-flmon])/gi, "");
+            for(var j=0;j<f_arr.length;j++){
+                _text = "<span style='" + _format_style_string(f_arr[j]) + "'>" + _text + "</span>";
+            }
+
+            formatted_string += _text;
+        }
+    }
+    return formatted_string;
+}
 Dashboard.prototype.updateDVM = function (data) {
 
     var self = this;
@@ -516,7 +572,7 @@ Dashboard.prototype.updateDVM = function (data) {
 
         if(data.total_RAM != -1)
             dvm.max_RAM = (data.total_RAM/1024);
-        
+
         if(data.RAM != -1){
             dvm.current_RAM = (data.RAM/1024).toFixed(1);
             var ratio = data.RAM / data.total_RAM;
