@@ -1,6 +1,16 @@
 #!/bin/sh
+### BEGIN INIT INFO
+# Provides:          ob-panel
+# Required-Start:    $local_fs $network $named $time $syslog
+# Required-Stop:     $local_fs $network $named $time $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Description:       This is an Minecraft server manageer
+### END INIT INFO
 
 DIR=$(dirname $([ -L $0 ] && readlink -f $0 || echo $0))
+
+PIDFILE=/var/run/ob-panel.pid
 
 _parse_yaml() {
    local prefix=$2
@@ -18,6 +28,11 @@ _parse_yaml() {
    }'
 }
 
+_start_circus(){
+    circusd .obsidian_panel.ini --daemon
+    echo $! > $PIDFILE
+}
+
 cmd_circusctl(){
     eval $(_parse_yaml $(dirname "$DIR")/config.yaml "config_")
     circusctl --endpoint=tcp://127.0.0.1:$config_circus_end_port --timeout 3 $@
@@ -28,7 +43,9 @@ start(){
     sh $DIR/gen.circus.sh
     redis-server --daemonize yes
     cd $DIR/../
-    circusd .obsidian_panel.ini --daemon
+    if [ ! -f $PIDFILE ]; then
+        _start_circus
+    fi
     cmd_circusctl start
 }
 
@@ -51,13 +68,19 @@ restart(){
     sh $DIR/gen.circus.sh
     redis-server --daemonize yes
     cd $DIR/../
-    circusd .obsidian_panel.ini --daemon
+    if [ ! -f $PIDFILE ]; then
+        _start_circus
+    fi
 
     cmd_circusctl restart
 }
 
 debug(){
     echo "Running in debug mode..."
+
+    if [ -f $PIDFILE ]; then
+        quit
+    fi
     # generate ini file
     sh $DIR/gen.circus.sh true
     redis-server --daemonize yes
@@ -66,8 +89,10 @@ debug(){
 }
 
 quit(){
-    echo "Quit..."
-    cmd_circusctl quit
+    if [ -f $PIDFILE ]; then
+        cmd_circusctl quit
+        rm -f $PIDFILE
+    fi
 }
 
 case "$1" in
