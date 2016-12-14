@@ -188,5 +188,17 @@ echo "[INFO] Copying op-panel command"
 $_SUDO rm /usr/local/bin/ob-panel 2>/dev/null
 $_SUDO ln -s $(_realpath ./bin/ob-panel.sh) /usr/local/bin/ob-panel
 
+$_SUDO rm /etc/init.d/ob-panel 2>/dev/null
+$_SUDO ln -s $(_realpath ./bin/ob-panel.sh) /etc/init.d/ob-panel
+# make it autostart
+if [ $_OSTYPE = "DPKG" ]; then
+    update-rc.d ob-panel defaults
+    update-rc.d ob-panel enable
+fi
+
+if [ $_OSTYPE = "YUM" ]; then
+    chkconfig --add ob-panel
+    chkconfig ob-panel on
+fi
 echo "[INFO] Finally, let's start!"
 ob-panel restart

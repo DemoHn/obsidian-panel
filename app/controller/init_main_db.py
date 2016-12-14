@@ -3,11 +3,14 @@ from app.controller.global_config import GlobalConfig
 from app.controller.config_env import DatabaseEnv
 from sqlalchemy_utils import create_database, database_exists
 from app import app, db
-from app.model import Users, UserToken
+from app.model import Users, UserToken, JavaBinary
 
-import logging
+from datetime import datetime
+from ob_logger import Logger
 import traceback
+import json
 
+g_logger = Logger("STARTUP", debug=True)
 from app.utils import PRIVILEGES
 def init_database(logger=None):
 
@@ -15,7 +18,7 @@ def init_database(logger=None):
     db_env = DatabaseEnv()
 
     if logger == None:
-        logger = logging.getLogger("ob_panel")
+        logger = g_logger
 
     db_type = db_env.getDatabaseType()
 
@@ -68,6 +71,8 @@ def migrate_superadmin():
     _email    = gc.get("temp_superadmin_email")
     _hash     = gc.get("temp_superadmin_hash")
 
+    _java_bin_arr = gc.get("_temp_java_binary")
+
     #for superadmin, privilege = 1
     try:
         super_admin_user = Users(username=_username, privilege = PRIVILEGES.ROOT_USER, email=_email, hash= _hash)
@@ -77,10 +82,19 @@ def migrate_superadmin():
             traceback.print_exc()
         # if everything works correctly <including the inserting operation above>,
         # it is time to delete account data
-        gc.delete("temp_superadmin_username")
-        gc.delete("temp_superadmin_email")
-        gc.delete("temp_superadmin_hash")
+        gc.set("temp_superadmin_username", "")
+        gc.set("temp_superadmin_email", "")
+        gc.set("temp_superadmin_hash", "")
 
+        for java_binary in json.loads(_java_bin_arr):
+            j = JavaBinary(
+                major_version = java_binary.get("major_version"),
+                minor_version = java_binary.get("minor_version"),
+                bin_directory = java_binary.get("bin_directory"),
+                install_time  = datetime.fromtimestamp(java_binary.get("install_time"))
+            )
+            db.session.add(j)
+        db.session.commit()
         return True
     except:
         return False

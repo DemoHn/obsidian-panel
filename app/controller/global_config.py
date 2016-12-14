@@ -4,6 +4,8 @@ import sqlite3
 import os
 import traceback
 import logging
+from ob_logger import Logger
+logger = Logger("GbConf", debug=True)
 
 class Singleton(type):
     _instances = {}
@@ -32,7 +34,7 @@ class GlobalConfigDatabase(object):
         # NOTE : set isolation_level to None to close autocommit mode
         self.conn = sqlite3.connect(config_db_file, isolation_level=None, check_same_thread=False)
         self.db_name = "_global_config"
-        self.logger = logging.getLogger("ob_panel")
+        self.logger = logger
         self.init_table()
 
     def init_table(self):
@@ -44,14 +46,16 @@ class GlobalConfigDatabase(object):
     def init_data(self,default_values):
         c = self.conn.cursor()
         try:
-            c.execute("begin")
+            #c.execute("begin")
             for key in default_values:
                 _key = key
                 _val = str(default_values.get(key))
-                insert_str = "INSERT OR REPLACE into config (conf_key, conf_value) VALUES (?,?)"
-                c.execute(insert_str,(_key,_val))
 
-            c.execute("commit")
+                if self.read(_key) == None:
+                    insert_str = "INSERT OR REPLACE into config (conf_key, conf_value) VALUES (?,?)"
+                    c.execute(insert_str,(_key,_val))
+                    self.conn.commit()
+            #c.execute("commit")
         except self.conn.Error:
             self.logger.error(traceback.format_exc())
             c.execute("rollback")
@@ -136,7 +140,7 @@ class GlobalConfig(metaclass=Singleton):
         not the well-known GNU/Linux debugger!!
         """
         self.gdb = GlobalConfigDatabase()
-        self.logger = logging.getLogger("ob_panel")
+        self.logger = logger
 
         base_dir = self.gdb.BASE_DIR
 
@@ -158,18 +162,11 @@ class GlobalConfig(metaclass=Singleton):
 
             "_RESTART_LOCK" : "False",
 
-            # listening ports
-            # TODO not available yet!
-            "app_listen_port": 5000,
-            "ftp_listen_port" : 2121,
-            "ws_listen_port" : 5001
+            "_temp_java_binary" : "", # records java binary you installed
+            "_temp_server_core" : "", # records of server core
         }
 
-        # set 'ob_init_flag=False' and so on
-        if self.gdb.read("ob_init_flag") == None:
-            self.gdb.init_data(self.default_values)
-            self.logger.debug("init GlobalConfig Database")
-            self.gdb.add("ob_init_flag","True")
+        self.gdb.init_data(self.default_values)
 
     @staticmethod
     def getInstance():
@@ -193,7 +190,6 @@ class GlobalConfig(metaclass=Singleton):
 
     def delete(self, key):
         self.gdb.delete(key)
-
     # ob_init_flag
     def enableInitFlag(self):
         self.gdb.update("ob_init_flag","True")
