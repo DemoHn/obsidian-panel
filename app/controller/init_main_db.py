@@ -10,7 +10,7 @@ from ob_logger import Logger
 import traceback
 import json
 
-g_logger = Logger("STARTUP", debug=True)
+g_logger = Logger("StartUp", debug=True)
 from app.utils import PRIVILEGES
 def init_database(logger=None):
 
@@ -66,7 +66,7 @@ def migrate_superadmin():
         init_database()
 
     # read data from GlobalConfig database
-    gc = GlobalConfig.getInstance()
+    gc = GlobalConfig()
     _username = gc.get("temp_superadmin_username")
     _email    = gc.get("temp_superadmin_email")
     _hash     = gc.get("temp_superadmin_hash")
@@ -86,6 +86,16 @@ def migrate_superadmin():
         gc.set("temp_superadmin_email", "")
         gc.set("temp_superadmin_hash", "")
 
+        g_logger.debug(_java_bin_arr)
+
+        # for empty value, just emit it
+        if _java_bin_arr == None:
+            gc.set("temp_java_binary", "")
+            return True
+
+        if _java_bin_arr == "":
+            return True
+
         for java_binary in json.loads(_java_bin_arr):
             j = JavaBinary(
                 major_version = java_binary.get("major_version"),
@@ -95,8 +105,8 @@ def migrate_superadmin():
             )
             db.session.add(j)
         db.session.commit()
-
-        gc.set("temp_java_binary","")
+        gc.set("temp_java_binary", "")
         return True
     except:
+        g_logger.error(traceback.format_exc())
         return False

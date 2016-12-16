@@ -80,7 +80,8 @@ def handle_init_config():
         elif _step == 3:
             try:
                 gc = GlobalConfig.getInstance()
-                #gc.set("")
+                java_env_index = F.get("java_env_index")
+                gc.set("default_java_binary_id", java_env_index)
             except:
                 logger.error(traceback.format_exc())
                 return abort(500)
@@ -156,14 +157,17 @@ def detect_java_environment():
 
     try:
         env = JavaEnv()
-        java_envs = []
+        java_envs = {
+            "system": [],
+            "user" : []
+        }
         __dir, __ver = env.findSystemJavaInfo()
         if __dir != None:
             _model = {
                 "name" : "java",
                 "dir" : "(%s)" % __dir
             }
-            java_envs.append(_model)
+            java_envs.get("system").append(_model)
 
         _arr = env.findUserJavaInfo()
         for java_ver in _arr:
@@ -172,23 +176,11 @@ def detect_java_environment():
                 "dir" : "(%s)" % java_ver["dir"]
             }
 
-            java_envs.append(_model)
+            java_envs.get("user").append(_model)
         return rtn.success(java_envs)
     except:
         return rtn.error(500)
     pass
-
-@start_page.route("/terminate_download_java/<hash>")
-@only_on_startup
-def terminate_downloading_java(hash):
-    rtn = returnModel("string")
-    dp = DownloaderPool.getInstance()
-
-    try:
-        dp.terminate(hash)
-        return rtn.success(True)
-    except:
-        return rtn.error(500)
 
 # in step=3 (test MySQL connection)
 @start_page.route("/test_mysql_connection", methods=["POST"])

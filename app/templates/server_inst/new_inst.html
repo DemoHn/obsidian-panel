@@ -121,8 +121,9 @@
                                     <div class="setting-item"><span class="item-text"><i class="red-star"></i>Java 版本</span>
                                         <span class="input-element">
                                             <select name="java_bin_id" class="form-control" v-model="java_bin_id">
+                                                <option value="-1" selected>-- 还没有选择 --</option>
                                                 {% for item in java_versions %}
-                                                <option value="{{ item }}">{{ java_versions[item] }}</option>
+                                                <option value="{{ item['index'] }}" {{ item['selected'] }}>{{ item['name'] }}</option>
                                                 {% endfor %}
                                             </select>&nbsp;&nbsp;&nbsp;<a href="/super_admin/java_binary" target="_blank">添加Java版本</a>
                                         </span>

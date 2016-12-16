@@ -37,11 +37,22 @@ def new_Minecraft_instance(uid, priv):
     :return:
     '''
     try:
+        gc = GlobalConfig()
         # get all versions of java
-        java_versions = {}
+        java_versions = []
         java_versions_obj = db.session.query(JavaBinary).all()
+
+        default_java_binary_id = int(gc.get("default_java_binary_id"))
         for item in java_versions_obj:
-            java_versions[item.id] = "1.%s.0_%s" % (item.major_version, item.minor_version)
+            _model = {
+                "name" : "1.%s.0_%s" % (item.major_version, item.minor_version),
+                "index" : item.id,
+                "selected": ""
+            }
+
+            if item.id == default_java_binary_id:
+                _model['selected'] = "selected"
+            java_versions.append(_model)
 
         # get all info of server core
         server_cores = {}
@@ -56,7 +67,9 @@ def new_Minecraft_instance(uid, priv):
         # ...and generate an FTP account.
         user_name_obj = db.session.query(Users).filter(Users.id == uid).first()
 
-        while True:
+        _safe_index = 0
+        while _safe_index < 30:
+            _safe_index += 1
             ftp_user_name = "%s_%s" % (user_name_obj.username, generate_random_string(3))
             if db.session.query(FTPAccount).filter(FTPAccount.username == ftp_user_name).first() == None:
                 break

@@ -119,6 +119,7 @@
     <script>
         Vue.config.delimiters = ['${','}'];
 
+        var system_java_exists = true;
         function getCurrentHost(){
             var http = location.protocol;
             var slashes = http.concat("//");
@@ -135,6 +136,39 @@
             return str;
         };
 
+        function update_java_environment(vm){
+            $.get("/startup/detect_java_environment",function (data) {
+                try{
+                    d = JSON.parse(data);
+                    if(d.status == "success"){
+                        var info = d.info;
+                        vm.loading = false;
+
+                        var system_java_arr = info['system'];
+                        var user_java_arr   = info['user'];
+                        if(system_java_arr.length == 0 && user_java_arr.length == 0){
+                            vm.no_java_env = true;
+                        }else{
+                            if(system_java_arr.length == 0){
+                                vm.java_info = info['user'];
+                                system_java_exists = false;
+                            }else{
+                                vm.java_info.push(info['system'][0]);
+                                for(var k = 0; k< user_java_arr.length;k++){
+                                    vm.java_info.push(info['user'][k]);
+                                }
+                            }
+                        }
+                        //set default index
+                        vm.java_env_index = info['user'].length;
+                    }else{
+                        vm.fetch_java_data_error = true;
+                    }
+                }catch (e){
+                    vm.fetch_java_data_error = true;
+                }
+            });
+        }
         var _idf;
         var socket = io.connect(getCurrentHost()+":5001");
         var current_hash = "";
@@ -151,31 +185,15 @@
                 },
                 ready:function () {
                     var self = this;
-                    $.get("/startup/detect_java_environment",function (data) {
-                        try{
-                            d = JSON.parse(data);
-                            if(d.status == "success"){
-                                var info = d.info;
-                                self.loading = false;
-                                if(info.length == 0){
-                                    self.no_java_env = true;
-                                }else{
-                                    self.java_info = info;
-                                }
-                                //set default index
-                                self.java_env_index += info.length;
-                            }else{
-                                self.fetch_java_data_error = true;
-                            }
-                        }catch (e){
-                            self.fetch_java_data_error = true;
-                        }
-                    })
+                    update_java_environment(self);
                 },
                 methods:{
                     "radio_click" : function(index){
-                        console.log(index);
-                        vm.java_env_index = index;
+                        if(system_java_exists){
+                            vm.java_env_index = index;
+                        }else{
+                            vm.java_env_index = index + 1;
+                        }
                     },
                     "down_java" : function (e) {
                         var flag = _generate_flag(16);
@@ -279,26 +297,7 @@
                     var success = msg["result"];
 
                     if(success && hash == current_hash){
-                        var self = vm;
-                        $.get("/startup/detect_java_environment",function (data) {
-                            try{
-                                d = JSON.parse(data);
-                                if(d.status == "success"){
-                                    var info = d.info;
-                                    self.loading = false;
-                                    if(info.length == 0){
-                                        self.no_java_env = true;
-                                    }else{
-                                        self.java_info = info;
-                                    }
-                                    self.java_env_index = info.length - 1;
-                                }else{
-                                    self.fetch_java_data_error = true;
-                                }
-                            }catch (e){
-                                self.fetch_java_data_error = true;
-                            }
-                        })
+                        update_java_environment(vm);
                     }
                 }
             });
