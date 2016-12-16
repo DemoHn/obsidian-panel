@@ -152,18 +152,19 @@ class GlobalConfig(metaclass=Singleton):
             "servers_dir" : os.path.join(base_dir,"servers"),
             "lib_bin_dir" : os.path.join(base_dir,"env"),
             "sqlite_dir" : self.gdb.SQLITE_DIR,
-
+            # default java binary id && server core id
+            "default_java_binary_id" : "-1",
+            "default_server_core_id" : "-1", # -1 means 'not set'
             # temporal super admin database
             "temp_superadmin_username":"",
             "temp_superadmin_email":"",
             "temp_superadmin_hash":"",
+            "temp_java_binary" : "", # records java binary you installed
+            "temp_server_core" : "", # records of server core
 
             "database_uri" : "",
 
             "_RESTART_LOCK" : "False",
-
-            "_temp_java_binary" : "", # records java binary you installed
-            "_temp_server_core" : "", # records of server core
         }
 
         self.gdb.init_data(self.default_values)

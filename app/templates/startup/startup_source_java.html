@@ -146,6 +146,7 @@
                     "loading" : true,
                     "no_java_env" : false,
                     "fetch_java_data_error" : false,
+                    "java_env_index" : -1,
                     "java_info" : []
                 },
                 ready:function () {
@@ -161,6 +162,8 @@
                                 }else{
                                     self.java_info = info;
                                 }
+                                //set default index
+                                self.java_env_index += info.length;
                             }else{
                                 self.fetch_java_data_error = true;
                             }
@@ -170,6 +173,10 @@
                     })
                 },
                 methods:{
+                    "radio_click" : function(index){
+                        console.log(index);
+                        vm.java_env_index = index;
+                    },
                     "down_java" : function (e) {
                         var flag = _generate_flag(16);
                         var start_download_json = {
@@ -284,6 +291,7 @@
                                     }else{
                                         self.java_info = info;
                                     }
+                                    self.java_env_index = info.length - 1;
                                 }else{
                                     self.fetch_java_data_error = true;
                                 }
@@ -327,10 +335,11 @@
                 </div>
             </div>
             <div class="form-group" v-show="!loading && !no_java_env" v-cloak>
+                <input type="hidden" name="java_env_index" v-model="java_env_index">
                 <div v-for="item in java_info">
                     <div class="radio">
                         <label>
-                            <input type="radio" name="java_env" checked>
+                            <input type="radio" name="java_env" checked v-on:click="radio_click($index)">
                             <span class="circle"></span><span class="check"></span>
                             <span class="_sys_name _float">${item.name}</span> <br>
                             <span class="_sys_dir _float">${item.dir}</span>

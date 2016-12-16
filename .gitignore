@@ -1,5 +1,5 @@
 _draft/
-draft.py
+_draft.py
 *.pyc
 env/
 config.py
@@ -7,3 +7,4 @@ config.py
 __pycache__/
 app/__pycache__/
 .obsidian_panel.ini
+ob-panel.log

@@ -178,7 +178,7 @@ class DownloaderEventHandler(MessageEventHandler):
                             "bin_directory" : os.path.join(root_dir, binary_dir),
                             "install_time" : int(datetime.now().timestamp()) # timestamp format, a number
                         }
-                        java_bin_arr = gc.get("_temp_java_binary")
+                        java_bin_arr = gc.get("temp_java_binary")
                         logger.debug("temp db: %s" % java_bin_arr)
                         if java_bin_arr == None:
                             java_bin_arr = "[]"
@@ -189,7 +189,7 @@ class DownloaderEventHandler(MessageEventHandler):
                         java_bin_arr = json.loads(java_bin_arr)
                         java_bin_arr.append(_model)
                         # write back to db
-                        gc.set("_temp_java_binary", json.dumps(java_bin_arr))
+                        gc.set("temp_java_binary", json.dumps(java_bin_arr))
                 except:
                     # writing database error
                     logging.error(traceback.format_exc())
@@ -230,7 +230,7 @@ class DownloaderEventHandler(MessageEventHandler):
             inst.set_force_singlethread(True)
             # global config
             gc = GlobalConfig.getInstance()
-            logger.debug(gc.get("_temp_java_binary"))
+            logger.debug(gc.get("temp_java_binary"))
             root_dir = gc.get("lib_bin_dir")
 
             # add hook

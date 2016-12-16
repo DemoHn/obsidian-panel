@@ -71,7 +71,7 @@ def migrate_superadmin():
     _email    = gc.get("temp_superadmin_email")
     _hash     = gc.get("temp_superadmin_hash")
 
-    _java_bin_arr = gc.get("_temp_java_binary")
+    _java_bin_arr = gc.get("temp_java_binary")
 
     #for superadmin, privilege = 1
     try:
@@ -95,6 +95,8 @@ def migrate_superadmin():
             )
             db.session.add(j)
         db.session.commit()
+
+        gc.set("temp_java_binary","")
         return True
     except:
         return False
