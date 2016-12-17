@@ -50,7 +50,6 @@ class GlobalConfigDatabase(object):
             for key in default_values:
                 _key = key
                 _val = str(default_values.get(key))
-
                 if self.read(_key) == None:
                     insert_str = "INSERT OR REPLACE into config (conf_key, conf_value) VALUES (?,?)"
                     c.execute(insert_str,(_key,_val))
