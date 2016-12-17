@@ -168,6 +168,7 @@ class GlobalConfig(metaclass=Singleton):
             "database_uri" : "",
 
             "_RESTART_LOCK" : "False",
+            "_unit_test_col" : None
         }
 
         self.gdb.init_data(self.default_values)
