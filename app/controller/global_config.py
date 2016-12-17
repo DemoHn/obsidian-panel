@@ -100,7 +100,9 @@ class GlobalConfigDatabase(object):
         c = self.conn.cursor()
         try:
             sel_str = "update config set conf_value = ? where conf_key = ?"
-            c.execute(sel_str, [new_value, key])
+            if new_value != None:
+                new_value = str(new_value)
+            c.execute(sel_str, (new_value, key))
             self.conn.commit()
         except self.conn.Error:
             self.logger.error(traceback.format_exc())
@@ -168,7 +170,6 @@ class GlobalConfig(metaclass=Singleton):
             "database_uri" : "",
 
             "_RESTART_LOCK" : "False",
-            "_unit_test_col" : None
         }
 
         self.gdb.init_data(self.default_values)
@@ -195,12 +196,3 @@ class GlobalConfig(metaclass=Singleton):
 
     def delete(self, key):
         self.gdb.delete(key)
-    # ob_init_flag
-    def enableInitFlag(self):
-        self.gdb.update("ob_init_flag","True")
-
-    def disableInitFlag(self):
-        self.gdb.update("ob_init_flag","False")
-
-    def getInitFlag(self):
-        self.get("ob_init_flag")
