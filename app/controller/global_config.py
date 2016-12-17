@@ -49,7 +49,10 @@ class GlobalConfigDatabase(object):
             #c.execute("begin")
             for key in default_values:
                 _key = key
-                _val = str(default_values.get(key))
+                _val = default_values.get(key)
+                if _val != None:
+                    _val = str(_val)
+
                 if self.read(_key) == None:
                     insert_str = "INSERT OR REPLACE into config (conf_key, conf_value) VALUES (?,?)"
                     c.execute(insert_str,(_key,_val))
@@ -110,6 +113,7 @@ class GlobalConfigDatabase(object):
             data = c.fetchone()
             if data == None:
                 return None
+
             return data[1]
         except self.conn.Error:
             self.logger.error(traceback.format_exc())
