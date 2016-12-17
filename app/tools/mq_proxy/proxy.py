@@ -1,9 +1,6 @@
 __author__ = "Nigshoxiz"
 
-import redis
-import pickle
-import inspect
-import threading
+import redis, pickle, inspect, threading, time
 from uuid import uuid4
 from . import Singleton, WS_TAG, MessageUserStatusPool
 from .event_handler import MessageEventHandler
@@ -15,7 +12,7 @@ logger = Logger("MsgQ", debug=True)
 class MessageQueueProxy(metaclass=Singleton):
     '''
     What is a .. Message Queue Proxy?
-    A message queue proxy is responsible for receiving message from message queue
+    A message queue proxy takes responsibility for receiving message from message queue
     and send message to it.
     Because we use a standalone websocket server, we use message queue to delegate
     websocket server to send websocket message, instead of sending message directly.
@@ -34,6 +31,8 @@ class MessageQueueProxy(metaclass=Singleton):
         self.pool = MessageUserStatusPool()
         self.handlers = {}
 
+        # for send_sync()
+        self._sync_event = {}
     def _get_flag(self, flag):
         '''
         get flag. If flag is None, it will return an automatically generated uuid-like
@@ -49,7 +48,6 @@ class MessageQueueProxy(metaclass=Singleton):
     def _listen(self):
         channel = self.channel.encode()
         for msg in self.pub_sub.listen():
-
             if msg["type"] == "message" and msg["channel"] == channel:
                 msg_json = pickle.loads(msg['data'])
                 flag = self._get_flag(msg_json.get("flag"))
@@ -59,10 +57,15 @@ class MessageQueueProxy(metaclass=Singleton):
                 uid,sid,src,dest = self.pool.get(flag)
 
                 if dest == self.ws_tag and event_name != None and values != None:
+                    # set sync dict
+                    if self._sync_event.get(event_name) == "WAITING":
+                        self._sync_event[event_name] = values
 
                     if self.handlers.get(event_name) != None:
                         handler = self.handlers.get(event_name)
                         try:
+                            logger.debug(dest)
+                            logger.debug(event_name)
                             handler(flag, values)
                         except:
                             logger.debug(traceback.format_exc())

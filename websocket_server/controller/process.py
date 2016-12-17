@@ -15,7 +15,7 @@ class ProcessEventHandler(MessageEventHandler):
         #self.proxy = MessageQueueProxy(WS_TAG.CONTROL)
         MessageEventHandler.__init__(self)
 
-    def start(self, flag, values):
+    def start(self, flag, values, restart=False):
         # _inst_running_sig = signals.signal("inst")
         # hook functions
         inst_id = values.get("inst_id")
@@ -40,7 +40,10 @@ class ProcessEventHandler(MessageEventHandler):
             }
             _port = int(item.listening_port)
 
-            watcher_event = "process.add_and_start"
+            if restart:
+                watcher_event = "process.restart_instance"
+            else:
+                watcher_event = "process.add_and_start"
 
             inst_values = {
                 "inst_id": inst_id,
@@ -55,6 +58,9 @@ class ProcessEventHandler(MessageEventHandler):
             "inst_id" : values.get("inst_id")
         }
         self.proxy.send(flag, watcher_event, inst_values, WS_TAG.MPW)
+
+    def restart(self, flag, values):
+        self.start(flag, values, restart=True)
 
     def send_command(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)
@@ -108,7 +114,6 @@ class ProcessEventHandler(MessageEventHandler):
 
     def get_instance_status(self, flag, values):
         inst_id = values.get("inst_id")
-
         _values = {
             "inst_id" : int(inst_id)
         }

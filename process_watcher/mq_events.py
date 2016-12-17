@@ -1,10 +1,28 @@
 from app import db
 from app.model import ServerInstance
 from app.controller.global_config import GlobalConfig
-from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy
+from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy, Singleton
 
 from . import SERVER_STATE
 from .watchdog import Watchdog
+
+import time
+
+class RestartFlag(metaclass=Singleton):
+    def __init__(self):
+        self.flag = {}
+
+    def set(self, inst_id, val):
+        self.flag[inst_id] = val
+
+    def get(self, inst_id):
+        if self.flag.get(inst_id) == None:
+            return False
+
+        if self.flag.get(inst_id) == False:
+            return False
+
+        return True
 
 class WatcherEvents(MessageEventHandler):
     '''
@@ -32,6 +50,7 @@ class WatcherEvents(MessageEventHandler):
         '''
         # TODO proxy
         self.watcher = Watchdog.getWDInstance()
+        self._restart_flag = RestartFlag()
         MessageEventHandler.__init__(self)
 
     def get_instance_status(self, flag, values):
@@ -265,6 +284,10 @@ class WatcherEvents(MessageEventHandler):
         self.add_instance(flag, values,send_ack=False)
         self.start_instance(flag, values,send_ack=False)
 
+    def restart_instance(self, flag, values):
+        self.stop_instance(flag, values, send_ack=False)
+        self._restart_flag.set(int(values.get("inst_id")), True)
+
     def send_command(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)
         inst_id = values.get("inst_id")
@@ -351,7 +374,6 @@ class EventSender(object):
         pass
 
     def on_inst_terminate(self, inst_id, p):
-        print(inst_id)
         self.send(inst_id, "status_change", SERVER_STATE.HALT)
 
     def on_inst_player_login(self, inst_id ,p):

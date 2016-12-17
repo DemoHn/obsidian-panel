@@ -459,8 +459,8 @@ var Dashboard = function () {
 
             },
             "restart_inst" : function (e) {
-                // TODO
-                //self.restart_inst();
+                self.inst_ctrl_vm.btn_disable = true;
+                self.restart_inst();
             }
         }
     });
@@ -764,6 +764,28 @@ Dashboard.prototype.stop_inst = function () {
         }
     };
     self.socket.emit("message", stop_instance_msg);
+};
+
+Dashboard.prototype.restart_inst = function () {
+    var self = this;
+    /*$.post("/server_inst/dashboard/start_inst",{"inst_id": self.inst_id}, function (data) {
+        try{
+            var dt = JSON.parse(data);
+            if(dt.status == "success"){
+                callback(dt.info);
+            }
+        }catch(e){
+            callback(null);
+        }
+    })*/
+    var restart_instance_msg = {
+        "event" : "process.restart",
+        "flag" : self._generate_flag(32),
+        "props":{
+            "inst_id" : self.inst_id
+        }
+    };
+    self.socket.emit("message", restart_instance_msg);
 };
 
 Dashboard.prototype._generate_flag = function (num) {

@@ -4,8 +4,9 @@ import unittest
 
 # sync tests
 test_modules = [
-    'proxy.test_event_handler',
-    'proxy.test_mq_proxy'
+    #'proxy.test_event_handler',
+    #'proxy.test_mq_proxy'
+    'test_hello'
 ]
 
 suite = unittest.TestSuite()
