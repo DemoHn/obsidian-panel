@@ -8,3 +8,4 @@ __pycache__/
 app/__pycache__/
 .obsidian_panel.ini
 ob-panel.log
+tests/.cache/
