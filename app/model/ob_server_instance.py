@@ -28,7 +28,9 @@ class ServerInstance(db.Model):
     # star (one user could star only one instance)
     # if this instance is starred, it will be shown by default
     star  = db.Column(db.Boolean, default=False)
-
+    # auto restart flag
+    auto_restart = db.Column(db.Boolean, default=True)
+    
     def __repr__(self):
         return "<id=%s, port=%s, max_RAM=%s>" % (self.inst_id,
                                                  self.listening_port,
