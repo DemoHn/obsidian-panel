@@ -14,9 +14,9 @@ class MCProcess(MCProcessCallback):
         self._loop = loop
         self._proc = None
         # pipes
-        self._stdin_pipe = pyuv.Pipe(self._loop, True)
-        self._stdout_pipe = pyuv.Pipe(self._loop, True)
-        self._stderr_pipe = pyuv.Pipe(self._loop, True)
+        self._stdin_pipe = None
+        self._stdout_pipe = None
+        self._stderr_pipe = None
         # inst_id
         # You know, one MC instance only ownes one process class
         self.inst_id = inst_id
@@ -65,9 +65,19 @@ class MCProcess(MCProcessCallback):
 
     def on_exit(self, proc_handle, status, signal):
         self._pid = None
-        proc_handle.close()
+        # close pipes
+        if not self._stdin_pipe.closed:
+            self._stdin_pipe.close()
+        if not self._stdout_pipe.closed:
+            self._stdout_pipe.close()
+        if not self._proc.closed:
+            self._proc.close()
+
         inst_daemon = self._proc_pool.get_daemon(self.inst_id)
         inst_daemon.add_crash_count()
+        # decr active count
+        self._proc_pool.decr_active_count()
+
         self.on_instance_stop(self.inst_id, status, signal)
 
     def load_config(self, mc_w_config):
@@ -89,6 +99,12 @@ class MCProcess(MCProcessCallback):
 
         self._init_env(mc_w_config.proc_cwd, mc_w_config.port)
         logger.debug("cmd args: %s" % cmd_args)
+
+        # init pipes
+        self._stdin_pipe = pyuv.Pipe(self._loop, True)
+        self._stdout_pipe = pyuv.Pipe(self._loop, True)
+        self._stderr_pipe = pyuv.Pipe(self._loop, True)
+
         # set pipes
         stdin  = pyuv.StdIO(stream=self._stdin_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
         stdout = pyuv.StdIO(stream=self._stdout_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)

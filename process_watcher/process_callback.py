@@ -46,6 +46,7 @@ class MCProcessCallback(metaclass=Singleton):
         # if restart is asked
         inst_daemon = self._proc_pool.get_daemon(inst_id)
         inst_proc   = self._proc_pool.get_proc(inst_id)
+
         if inst_daemon.get_restart_flag():
             logger.debug("restart inst (%s)" % inst_id)
 

@@ -174,7 +174,6 @@ class WatcherEvents(MessageEventHandler):
         inst_info = self.proc_pool.get_info(inst_id)
 
         if inst_info.get_owner() == int(uid):
-            logger.debug("L")
             self.watcher.start_instance(inst_id)
 
     def stop_instance(self, flag, values):
@@ -210,6 +209,9 @@ class WatcherEvents(MessageEventHandler):
         self.start_instance(flag, values)
 
     def restart_instance(self, flag, values):
+        uid, sid, src, dest = self.pool.get(flag)
+        inst_id = values.get("inst_id")
+
         inst_info = self.proc_pool.get_info(inst_id)
         inst_daemon = self.proc_pool.get_daemon(inst_id)
 
@@ -220,7 +222,7 @@ class WatcherEvents(MessageEventHandler):
             inst_daemon.set_normal_exit(True)
             # restart flag
             inst_daemon.set_restart_flag(True)
-            self.stop_instance(flag, values)
+            self.watcher.stop_instance(inst_id)
 
     def send_command(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)

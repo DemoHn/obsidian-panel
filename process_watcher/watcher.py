@@ -91,6 +91,7 @@ class Watcher(metaclass=Singleton):
             return None
         _proc    = inst_obj.get("proc")
         _status  = inst_obj.get("status")
+        _daemon  = inst_obj.get("daemon")
         mc_w_config  = inst_obj.get("config")
 
         # reload config
@@ -105,11 +106,15 @@ class Watcher(metaclass=Singleton):
         if _proc.start_process():
             # add active count
             self.proc_pool.incr_active_count()
+
             # set status
-            self.callback.on_instance_start(inst_id)
             # TODO add callback
             # loop.run
             self._launch_loop()
+
+            # reset daemon
+            _daemon.reset_crash_count()
+            self.callback.on_instance_start(inst_id)
 
     def stop_instance(self, inst_id):
         inst_obj = self.proc_pool.get(inst_id)
