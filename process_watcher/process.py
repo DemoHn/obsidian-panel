@@ -1,4 +1,4 @@
-from . import SERVER_STATE, logger
+from . import PipeNo, logger
 from .parser import ServerPropertiesParser
 from .process_callback import MCProcessCallback
 
@@ -6,20 +6,20 @@ import traceback, os
 import pyuv
 
 class MCProcess(MCProcessCallback):
-    def __init__(self, inst_id, loop=None, mc_w_config=None):
+    def __init__(self, inst_id, loop, mc_w_config=None):
         MCProcessCallback.__init__(self)
         self._pid = None
         self._proc_config =  mc_w_config
         # event loop
-        if loop == None:
-            self._loop = pyuv.Loop()
-        else:
-            self._loop = loop
+        self._loop = loop
         # pipes
         self._stdin_pipe = pyuv.Pipe(self._loop, True)
         self._stdout_pipe = pyuv.Pipe(self._loop, True)
+        self._stderr_pipe = pyuv.Pipe(self._loop, True)
         # inst_id
         # You know, one MC instance only ownes one process class
+        self.inst_id = inst_id
+
     def _init_env(self, proc_cwd, port):
         if not os.path.isdir(proc_cwd):
             os.makedirs(proc_cwd)
@@ -44,15 +44,23 @@ class MCProcess(MCProcessCallback):
         parser.dumps()
 
     # process events
-    def on_read(self, pipe_handle, data, error):
-        logger.debug(data)
-        pass
+    def on_stdout_read(self, pipe_handle, data, error):
+        if error != None:
+            logger.error("stdout read error no: %s" % error)
+        else:
+            self.on_log_update(self.inst_id, PipeNo.STDOUT, data.decode())
+
+    def on_stderr_read(self, pipe_handle, data, error):
+        if error != None:
+            logger.error("stdeerr read error no: %s" % error)
+        else:
+            self.on_log_update(self.inst_id, PipeNo.STDERR, data.decode())
 
     # TODO
     def on_terminate(self, timer_handle):
         self._pid = None
 
-    def on_exit(self, status, signal):
+    def on_exit(self, proc_handle, status, signal):
         self._pid = None
 
     def load_config(self, mc_w_config):
@@ -77,7 +85,7 @@ class MCProcess(MCProcessCallback):
         # set pipes
         stdin  = pyuv.StdIO(stream=self._stdin_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
         stdout = pyuv.StdIO(stream=self._stdout_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
-        stderr = pyuv.StdIO(stream=self._stdout_pipe)
+        stderr = pyuv.StdIO(stream=self._stderr_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
 
         # spawn process
         proc = pyuv.Process.spawn(self._loop,
@@ -91,7 +99,8 @@ class MCProcess(MCProcessCallback):
         logger.info("Start Process pid=(%s)" % self._pid)
 
         # on read
-        self._stdout_pipe.start_read(self.on_read)
+        self._stdout_pipe.start_read(self.on_stdout_read)
+        self._stderr_pipe.start_read(self.on_stderr_read)
         return True
 
     def stop_process(self):

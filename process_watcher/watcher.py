@@ -1,65 +1,21 @@
 __author__ = "Nigshoxiz"
 
-from . import logger, SERVER_STATE
-from app.controller.global_config import GlobalConfig
-
+from . import logger, SERVER_STATE, Singleton
+from .process_pool import MCProcessPool
 from .process import MCProcess
 from .daemon_manager import MCDaemonManager
 from .instance_info import MCInstanceInfo
 from .mc_config import MCWrapperConfig
+from .process_callback import MCProcessCallback
+
+from app.controller.global_config import GlobalConfig
 
 import pyuv, os, threading, math
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-class MCProcessPool(metaclass=Singleton):
-    def __init__(self):
-        """
-        Process Pool
-        key -> <inst id>
-        value -> {
-            "config" : MCWrapperConfig(**) | None,
-            "status" : {SERVER_STATE.HALT | STARTING | RUNNING},
-            "daemon" : MCDaemonManager(**),
-            "info"   : MCInstanceInfo(**),
-            "proc"   : MCProcess(**)
-        }
-        """
-        self._proc_pool = {}
-
-    def add(self, inst_id, val):
-        self._proc_pool[inst_id] = val
-
-    def get(self, inst_id):
-        return self._proc_pool.get(inst_id)
-
-    def set_status(self, inst_id, status):
-        if self._proc_pool.get(inst_id) != None:
-            self._proc_pool.get(inst_id)["status"] = status
-
-    def set_config(self, inst_id, mc_w_config):
-        if self._proc_pool.get(inst_id) != None:
-            self._proc_pool.get(inst_id)["config"] = mc_w_config
 
 class Watcher(metaclass=Singleton):
     def __init__(self):
         self._loop = pyuv.Loop()
 
-        """
-        EventLoop Active Handle Count
-        This number counts how many active instances are running,
-        i.e. handles that required event loop to monitor.
-
-        When Active Count = 0, that means no process needs to monitor.
-        There's no need to execute `self._loop.run()`
-        """
-        self._active_count = 0
         """
         Is Event Loop running?
         If not, and _active_count > 0 (i.e. some processes need loop to handle!)
@@ -68,7 +24,7 @@ class Watcher(metaclass=Singleton):
         self._loop_running = False
 
         self.proc_pool = MCProcessPool()
-
+        self.callback  = MCProcessCallback()
         self._init_proc_pool()
         pass
 
@@ -78,9 +34,10 @@ class Watcher(metaclass=Singleton):
         # first, we have to make sure that database has been
         # initialized.
         if gc.get("init_super_admin") == True:
-            # import server inst
+            # import dependencies here to prevent circular import
             from app import db
             from app.model import ServerInstance, JavaBinary, ServerCORE
+
             # search
             _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE).all()
             if _q == None:
@@ -96,13 +53,19 @@ class Watcher(metaclass=Singleton):
                     "port": item.listening_port
                 }
 
+                info = {
+                    "total_RAM": item.max_RAM,
+                    "total_player": item.max_user,
+                    "owner": item.owner_id
+                }
+
                 # adding initial data into proc_pool
                 _model = {
                     "config" : MCWrapperConfig(**mc_w_config),
                     "status" : SERVER_STATE.HALT,
                     "daemon" : MCDaemonManager(item.auto_restart),
-                    "info"   : MCInstanceInfo(),
-                    "proc"   : MCProcess(item.inst_id)
+                    "info"   : MCInstanceInfo(**info),
+                    "proc"   : MCProcess(item.inst_id, self._loop)
                 }
                 self.proc_pool.add(item.inst_id, _model)
             return True
@@ -116,7 +79,7 @@ class Watcher(metaclass=Singleton):
             # after all processes finish
             self._loop_running = False
 
-        if self._active_count > 0 and self._loop_running == False:
+        if self.proc_pool.get_active_count() > 0 and self._loop_running == False:
             t = threading.Thread(target=_run_loop)
             t.setDaemon(True)
             t.start()
@@ -140,10 +103,10 @@ class Watcher(metaclass=Singleton):
 
         # start process
         if _proc.start_process():
-            # add active coun
-            self._active_count += 1
+            # add active count
+            self.proc_pool.incr_active_count()
             # set status
-            self.proc_pool.set_status(inst_id, SERVER_STATE.STARTING)
+            self.callback.on_instance_start(inst_id)
             # TODO add callback
             # loop.run
             self._launch_loop()

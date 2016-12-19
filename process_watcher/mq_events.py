@@ -5,8 +5,7 @@ from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy, S
 
 from . import SERVER_STATE
 from .watcher import Watcher
-
-import time
+from .process_pool import MCProcessPool
 
 class WatcherEvents(MessageEventHandler):
     '''
@@ -17,6 +16,7 @@ class WatcherEvents(MessageEventHandler):
     __prefix__ = "process"
     def __init__(self):
         self.watcher = Watcher()
+        self.proc_pool = MCProcessPool()
         MessageEventHandler.__init__(self)
 
     def get_instance_status(self, flag, values):
@@ -45,23 +45,13 @@ class WatcherEvents(MessageEventHandler):
         uid, sid, src, dest = self.pool.get(flag)
         EVENT_NAME = "process.response"
 
-        def _get_status(inst_obj):
-            return inst_obj.get_status()
-
-        def _get_owner_uid(inst_id):
-            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == int(inst_id)).first()
-            if _q  == None:
-                return None
-            else:
-                return _q.owner_id
-
         inst_id = int(values.get("inst_id"))
 
         if inst_id == None:
             rtn_data = {
                 "status" : "error",
                 "inst_id" : inst_id,
-                "val" : "INST_ID_NULL"
+                "val" : None
             }
             # send error msg
             self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
@@ -74,37 +64,27 @@ class WatcherEvents(MessageEventHandler):
             "val": None
         }
 
-        if _get_owner_uid(inst_id) == int(uid):
+        inst_info = self.proc_pool.get_info(inst_id)
+        if inst_info.get_owner() == int(uid):
+            _curr_player = -1
+            _RAM = -1
+            if inst_info.get_current_player() != None:
+                _curr_player = inst_info.get_current_player()
+
+            if inst_info.get_RAM() != None:
+                _RAM = inst_info.get_RAM()
+
             _model = {
                 "inst_id": inst_id,
-                "current_player": -1,
-                "total_player": None,
-                "RAM": -1,
-                "total_RAM": None,
-                "status": SERVER_STATE.HALT
+                "current_player": _curr_player,
+                "total_player": inst_info.get_total_player(),
+                "RAM": _RAM,
+                "total_RAM": inst_info.get_total_RAM(),
+                "status": self.proc_pool.get_status(inst_id)
             }
             rtn_data["val"] = _model
 
-            _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
-
-            if _q != None:
-                _model["total_player"] = _q.max_user
-                _model["total_RAM"] = _q.max_RAM
-                '''
-                if self.watcher.just_get(inst_id) != None:
-                    _i_obj = self.watcher.just_get(inst_id)
-
-                    if _i_obj.get("inst") != None:
-                        _model["status"] = _i_obj.get("inst").get_status()
-
-                    _model["current_player"] = _i_obj.get("current_player")
-                    _model["RAM"] = _i_obj.get("RAM")
-                '''
-                self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
-            else:
-                rtn_data["status"] = "error"
-                self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
-
+            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
         else:
             rtn_data["status"] = "error"
             self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)

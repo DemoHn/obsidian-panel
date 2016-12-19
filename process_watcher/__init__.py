@@ -8,6 +8,18 @@ class SERVER_STATE(object):
     STARTING = 1
     RUNNING = 2
 
+class PipeNo(object):
+    STDIN = 0
+    STDOUT = 1
+    STDERR = 2
+
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
 def start_process_watcher(debug=True):
     logger.set_debug(debug)
 #    from .watchdog import Watchdog
