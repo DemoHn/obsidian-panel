@@ -3,7 +3,7 @@ from app.model import ServerInstance
 from app.controller.global_config import GlobalConfig
 from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy, Singleton
 
-from . import SERVER_STATE
+from . import SERVER_STATE, logger
 from .watcher import Watcher
 from .process_pool import MCProcessPool
 
@@ -168,12 +168,13 @@ class WatcherEvents(MessageEventHandler):
         :param values: { "inst_id" : <inst_id> }
         :return:
         '''
-        inst_id = values.get("inst_id")
+        inst_id = int(values.get("inst_id"))
         uid, sid, src, dest = self.pool.get(flag)
 
         inst_info = self.proc_pool.get_info(inst_id)
 
-        if inst_info.get_owner() == uid:
+        if inst_info.get_owner() == int(uid):
+            logger.debug("L")
             self.watcher.start_instance(inst_id)
 
     def stop_instance(self, flag, values):
@@ -192,7 +193,14 @@ class WatcherEvents(MessageEventHandler):
             return None
 
         inst_info = self.proc_pool.get_info(inst_id)
+        inst_daemon = self.proc_pool.get_daemon(inst_id)
+
+        if inst_info == None:
+            return None
+
         if inst_info.get_owner() == uid:
+            # normal exit, do not restart the instance anymore
+            inst_daemon.set_normal_exit(True)
             self.watcher.stop_instance(inst_id)
 
     def _test(self, flag, values):
@@ -202,8 +210,17 @@ class WatcherEvents(MessageEventHandler):
         self.start_instance(flag, values)
 
     def restart_instance(self, flag, values):
-        self.stop_instance(flag, values)
-        self._restart_flag.set(int(values.get("inst_id")), True)
+        inst_info = self.proc_pool.get_info(inst_id)
+        inst_daemon = self.proc_pool.get_daemon(inst_id)
+
+        if inst_info == None:
+            return None
+
+        if inst_info.get_owner() == uid:
+            inst_daemon.set_normal_exit(True)
+            # restart flag
+            inst_daemon.set_restart_flag(True)
+            self.stop_instance(flag, values)
 
     def send_command(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)

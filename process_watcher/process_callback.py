@@ -39,8 +39,21 @@ class MCProcessCallback(metaclass=Singleton):
         self._proc_pool.set_status(inst_id, SERVER_STATE.RUNNING)
         self.broadcast(inst_id, "status_change", SERVER_STATE.RUNNING)
 
-    def on_instance_stop(self, inst_id):
-        pass
+    def on_instance_stop(self, inst_id, status, signal):
+        self._proc_pool.set_status(inst_id, SERVER_STATE.HALT)
+        self.broadcast(inst_id, "status_change", SERVER_STATE.HALT)
+
+        # if restart is asked
+        inst_daemon = self._proc_pool.get_daemon(inst_id)
+        inst_proc   = self._proc_pool.get_proc(inst_id)
+        if inst_daemon.get_restart_flag():
+            logger.debug("restart inst (%s)" % inst_id)
+
+            from .watcher import Watcher
+            Watcher().start_instance(inst_id)
+
+        inst_daemon.set_restart_flag(True)
+        inst_daemon.set_normal_exit(False)
 
     def on_instance_unexpectedly_exit(self, inst_id):
         pass

@@ -12,6 +12,7 @@ class MCProcess(MCProcessCallback):
         self._proc_config =  mc_w_config
         # event loop
         self._loop = loop
+        self._proc = None
         # pipes
         self._stdin_pipe = pyuv.Pipe(self._loop, True)
         self._stdout_pipe = pyuv.Pipe(self._loop, True)
@@ -63,8 +64,11 @@ class MCProcess(MCProcessCallback):
         self._pid = None
 
     def on_exit(self, proc_handle, status, signal):
-        logger.debug("status %s" % status)
         self._pid = None
+        proc_handle.close()
+        inst_daemon = self._proc_pool.get_daemon(self.inst_id)
+        inst_daemon.add_crash_count()
+        self.on_instance_stop(self.inst_id, status, signal)
 
     def load_config(self, mc_w_config):
         self._proc_config = mc_w_config
@@ -91,14 +95,14 @@ class MCProcess(MCProcessCallback):
         stderr = pyuv.StdIO(stream=self._stderr_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
 
         # spawn process
-        proc = pyuv.Process.spawn(self._loop,
+        self._proc = pyuv.Process.spawn(self._loop,
                                   args=cmd_args,
                                   exit_callback=self.on_exit,
                                   stdio=[stdin, stdout, stderr],
                                   cwd=mc_w_config.proc_cwd,
                                   flags=pyuv.UV_PROCESS_DETACHED)
         # set pid
-        self._pid = proc.pid
+        self._pid = self._proc.pid
         logger.info("Start Process pid=(%s)" % self._pid)
 
         # on read
