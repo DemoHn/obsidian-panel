@@ -13,9 +13,8 @@ class MCDaemonManager(object):
             self._restart_flag = False
 
     def reset_crash_count(self):
-        if self._crash_count > MCDaemonManager.MAX_CRASH:
-            self._crash_count = 0
-            self._restart_flag = True
+        self._crash_count = 0
+        self._restart_flag = True
 
     def set_normal_exit(self, val):
         '''

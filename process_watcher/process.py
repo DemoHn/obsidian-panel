@@ -107,8 +107,8 @@ class MCProcess(MCProcessCallback):
 
         # set pipes
         stdin  = pyuv.StdIO(stream=self._stdin_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
-        stdout = pyuv.StdIO(stream=self._stdout_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
-        stderr = pyuv.StdIO(stream=self._stderr_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
+        stdout = pyuv.StdIO(stream=self._stdout_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_WRITABLE_PIPE)
+        stderr = pyuv.StdIO(stream=self._stderr_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_WRITABLE_PIPE)
 
         # spawn process
         self._proc = pyuv.Process.spawn(self._loop,
@@ -120,6 +120,7 @@ class MCProcess(MCProcessCallback):
         # set pid
         self._pid = self._proc.pid
         logger.info("Start Process pid=(%s)" % self._pid)
+
 
         # on read
         self._stdout_pipe.start_read(self.on_stdout_read)

@@ -5,7 +5,7 @@ from .process_pool import MCProcessPool
 
 from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
 
-class MCProcessCallback(metaclass=Singleton):
+class MCProcessCallback():
     def __init__(self):
         self._proc_pool = MCProcessPool()
 

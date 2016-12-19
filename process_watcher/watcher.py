@@ -15,7 +15,6 @@ import pyuv, os, threading, math
 class Watcher(metaclass=Singleton):
     def __init__(self):
         self._loop = pyuv.Loop()
-
         """
         Is Event Loop running?
         If not, and _active_count > 0 (i.e. some processes need loop to handle!)
@@ -107,6 +106,7 @@ class Watcher(metaclass=Singleton):
             # add active count
             self.proc_pool.incr_active_count()
 
+            logger.debug("active count = %s, running = %s" % (self.proc_pool.get_active_count(), self._loop_running))
             # set status
             # TODO add callback
             # loop.run
