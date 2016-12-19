@@ -41,7 +41,6 @@ class WatcherEvents(MessageEventHandler):
             "status" : "error"
         }
         '''
-        # ===== TODO TODO TODO =====
         uid, sid, src, dest = self.pool.get(flag)
         EVENT_NAME = "process.response"
 
@@ -109,6 +108,8 @@ class WatcherEvents(MessageEventHandler):
         pass
 
     def add_instance(self, flag, values, send_ack=True):
+        return None
+        #========= TODO TODO TODO ==============
         '''
         DESCRIPTION: add instance. But not activate it immediately.
 
@@ -158,11 +159,7 @@ class WatcherEvents(MessageEventHandler):
         self.watcher.del_instance(inst_id)
         rtn_data["inst_id"] = inst_id
 
-        if sender == WS_TAG.APP:
-            self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
-        pass
-
-    def start_instance(self, flag, values, send_ack=True):
+    def start_instance(self, flag, values):
         '''
         DESCRIPTION: start a instance.
 
@@ -171,16 +168,13 @@ class WatcherEvents(MessageEventHandler):
         :param values: { "inst_id" : <inst_id> }
         :return:
         '''
-        rtn_data = {
-            "status": "success",
-            "inst_id": None
-        }
-
         inst_id = values.get("inst_id")
+        uid, sid, src, dest = self.pool.get(flag)
 
-        self.watcher.start_instance(inst_id)
-        rtn_data["inst_id"] = inst_id
+        inst_info = self.proc_pool.get_info(inst_id)
 
+        if inst_info.get_owner() == uid:
+            self.watcher.start_instance(inst_id)
 
     def stop_instance(self, flag, values):
         '''
@@ -191,31 +185,21 @@ class WatcherEvents(MessageEventHandler):
         :param values: { "inst_id" : <inst_id> }
         :return:
         '''
-        EVENT_NAME = "process.stop_instance"
         uid, sid, src, dest = self.pool.get(flag)
-
         inst_id = values.get("inst_id")
 
         if inst_id == None:
             return None
-        rtn_data = {
-            "status": "success",
-            "event" : EVENT_NAME,
-            "inst_id": inst_id
-        }
 
-        if self.watcher.just_get(inst_id) == None:
-            rtn_data["status"] = "error"
-            self.proxy.send(flag, "process.response", rtn_data, WS_TAG.CONTROL)
-
-        self.watcher.stop_instance(inst_id)
-        rtn_data["inst_id"] = inst_id
+        inst_info = self.proc_pool.get_info(inst_id)
+        if inst_info.get_owner() == uid:
+            self.watcher.stop_instance(inst_id)
 
     def _test(self, flag, values):
         print("[MPW] Roger. flag =%s, values= %s, info = %s" % (flag, values, self.pool.get(flag)))
 
     def add_and_start(self, flag, values):
-        self.start_instance(flag, values,send_ack=False)
+        self.start_instance(flag, values)
 
     def restart_instance(self, flag, values):
         self.stop_instance(flag, values)
@@ -227,107 +211,7 @@ class WatcherEvents(MessageEventHandler):
         command = values.get("command")
         if inst_id == None:
             return None
-        self.watcher.send_command(inst_id, command)
 
-class EventSender(object):
-    '''
-    EventSender takes responsibility for sending instance events to
-    websocket client (in order notifying the browser).
-
-    Actually, it has been initialized when watcher starts to launch.
-    (see launch.py for details)
-    '''
-    def __init__(self, watcher_obj):
-        self.add_hook_func = watcher_obj.add_hook
-        self.watcher_obj   = watcher_obj
-
-        # KEY : <inst_id>
-        # VALUE : <uid>
-        self._inst_uid_cache = {}
-
-        _names = ("inst_starting", "inst_running",
-                  "log_update",
-                  "connection_lost", "inst_terminate",
-                  "inst_player_login", "inst_player_logout",
-                  "inst_player_change","inst_memory_change")
-
-        gc = GlobalConfig.getInstance()
-
-        # add hook function
-        for item in _names:
-            _method = getattr(self, "on_%s" % item)
-            self.add_hook_func(item, _method)
-
-        # add inst_id -> uid cache from database
-        if gc.get("init_super_admin") == True:
-            # refresh cache the first time
-            self._get_uid_from_inst_id(0)
-
-    def _get_uid_from_inst_id(self, inst_id):
-        inst_key = "inst_%s" % inst_id
-        if self._inst_uid_cache.get(inst_key) != None:
-            return self._inst_uid_cache.get(inst_key)
-        else:
-            # read from database
-            owners = db.session.query(ServerInstance).all()
-            for serv_inst in owners:
-                inst_key = "inst_%s" % serv_inst.inst_id
-                self._inst_uid_cache[inst_key] = serv_inst.owner_id
-
-            return self._inst_uid_cache.get(inst_key)
-
-    # event name : inst_event
-    def send(self, inst_id, event_name, value):
-        proxy = MessageQueueProxy(WS_TAG.MPW)
-        event_prefix = "process"
-        event_type   = "broadcast"
-
-        _name   = "%s.%s" % (event_prefix, event_type)
-        values = {
-            "inst_id" : inst_id,
-            "event" : event_name,
-            "val" : value
-        }
-        uid = self._get_uid_from_inst_id(inst_id)
-        proxy.send(None, _name, values, WS_TAG.CONTROL, uid = uid)
-
-    # event listeners
-    def on_inst_starting(self, inst_id, p):
-        self.send(inst_id, "status_change", SERVER_STATE.STARTING)
-
-    def on_inst_running(self, inst_id, p):
-        self.send(inst_id, "status_change", SERVER_STATE.RUNNING)
-
-    def on_log_update(self, inst_id, p):
-        log_str = p
-        if len(log_str) > 0: # prevent sending empty string
-            self.send(inst_id, "log_update", log_str)
-
-    def on_connection_lost(self, inst_id, p):
-        pass
-
-    def on_inst_terminate(self, inst_id, p):
-        self.send(inst_id, "status_change", SERVER_STATE.HALT)
-
-    def on_inst_player_login(self, inst_id ,p):
-        inst_obj = self.watcher_obj.just_get(inst_id)
-        if inst_obj != None:
-            players_num = inst_obj.get("current_player")
-            self.send(inst_id, "player_change", players_num)
-
-    def on_inst_player_logout(self, inst_id, p):
-        inst_obj = self.watcher_obj.just_get(inst_id)
-        if inst_obj != None:
-            players_num = inst_obj.get("current_player")
-            self.send(inst_id, "player_change", players_num)
-
-
-    def on_inst_player_change(self, inst_id, p):
-        online, total = p
-        self.send(inst_id, "player_change", online)
-        #print("<inst %s> online player: %s" % (inst_id, online))
-
-    def on_inst_memory_change(self, inst_id, p):
-        mem = p
-        self.send(inst_id, "memory_change", mem)
-        #print("<inst %s> memory : %s" % (inst_id, mem))
+        inst_info = self.proc_pool.get_info(inst_id)
+        if inst_info.get_owner() == uid:
+            self.watcher.send_command(inst_id, command)
