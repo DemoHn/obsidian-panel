@@ -4,53 +4,19 @@ from app.controller.global_config import GlobalConfig
 from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy, Singleton
 
 from . import SERVER_STATE
-from .watchdog import Watchdog
+from .watcher import Watcher
 
 import time
-
-class RestartFlag(metaclass=Singleton):
-    def __init__(self):
-        self.flag = {}
-
-    def set(self, inst_id, val):
-        self.flag[inst_id] = val
-
-    def get(self, inst_id):
-        if self.flag.get(inst_id) == None:
-            return False
-
-        if self.flag.get(inst_id) == False:
-            return False
-
-        return True
 
 class WatcherEvents(MessageEventHandler):
     '''
     This class handles control events from other side (app,websocket and so on).
     Of course, since the watcher is an independent process, we use message queue
     to control it.
-    DON'T FORGET SEND AN 'ACK' message after finishing!
     '''
     __prefix__ = "process"
     def __init__(self):
-        '''
-        self.proxy   = MessageQueueProxy.getInstance()
-
-        methods_dict = WatcherEvents.__dict__
-        # register all methods into proxy
-        for method_name in methods_dict:
-            try:
-                # to filter python's internal method (magical method)
-                if method_name.find("__") != 0:
-                    method = getattr(self, method_name)
-                    event_name = "process.%s" % method_name
-                    self.proxy.register_handler(event_name, method)
-            except:
-                continue
-        '''
-        # TODO proxy
-        self.watcher = Watchdog.getWDInstance()
-        self._restart_flag = RestartFlag()
+        self.watcher = Watcher()
         MessageEventHandler.__init__(self)
 
     def get_instance_status(self, flag, values):
@@ -75,7 +41,7 @@ class WatcherEvents(MessageEventHandler):
             "status" : "error"
         }
         '''
-
+        # ===== TODO TODO TODO =====
         uid, sid, src, dest = self.pool.get(flag)
         EVENT_NAME = "process.response"
 
@@ -92,7 +58,6 @@ class WatcherEvents(MessageEventHandler):
         inst_id = int(values.get("inst_id"))
 
         if inst_id == None:
-            print("inst_ID_NONE")
             rtn_data = {
                 "status" : "error",
                 "inst_id" : inst_id,
@@ -125,7 +90,7 @@ class WatcherEvents(MessageEventHandler):
             if _q != None:
                 _model["total_player"] = _q.max_user
                 _model["total_RAM"] = _q.max_RAM
-
+                '''
                 if self.watcher.just_get(inst_id) != None:
                     _i_obj = self.watcher.just_get(inst_id)
 
@@ -134,7 +99,7 @@ class WatcherEvents(MessageEventHandler):
 
                     _model["current_player"] = _i_obj.get("current_player")
                     _model["RAM"] = _i_obj.get("RAM")
-
+                '''
                 self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
             else:
                 rtn_data["status"] = "error"
@@ -233,18 +198,11 @@ class WatcherEvents(MessageEventHandler):
 
         inst_id = values.get("inst_id")
 
-        # prevent running the same instance multi times.
-        if self.watcher.get_instance(inst_id) != None:
-            _s = self.watcher.get_instance(inst_id).get_status()
-
-            if _s == SERVER_STATE.STARTING or _s == SERVER_STATE.RUNNING:
-                return None
-
         self.watcher.start_instance(inst_id)
         rtn_data["inst_id"] = inst_id
 
 
-    def stop_instance(self, flag, values, send_ack=True):
+    def stop_instance(self, flag, values):
         '''
         DESCRIPTION: stop a instance.
 
@@ -273,19 +231,14 @@ class WatcherEvents(MessageEventHandler):
         self.watcher.stop_instance(inst_id)
         rtn_data["inst_id"] = inst_id
 
-        if send_ack:
-            self.proxy.send(flag, "process.response", rtn_data, WS_TAG.CONTROL)
-            #self.proxy.send(EVENT_NAME, WS_TAG.CLIENT, flag, rtn_data, uid=uid)
-
     def _test(self, flag, values):
         print("[MPW] Roger. flag =%s, values= %s, info = %s" % (flag, values, self.pool.get(flag)))
 
     def add_and_start(self, flag, values):
-        self.add_instance(flag, values,send_ack=False)
         self.start_instance(flag, values,send_ack=False)
 
     def restart_instance(self, flag, values):
-        self.stop_instance(flag, values, send_ack=False)
+        self.stop_instance(flag, values)
         self._restart_flag.set(int(values.get("inst_id")), True)
 
     def send_command(self, flag, values):

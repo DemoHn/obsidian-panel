@@ -8,7 +8,7 @@ from .daemon_manager import MCDaemonManager
 from .instance_info import MCInstanceInfo
 from .mc_config import MCWrapperConfig
 
-import pyuv, os, threading
+import pyuv, os, threading, math
 
 class Singleton(type):
     _instances = {}
@@ -31,13 +31,21 @@ class MCProcessPool(metaclass=Singleton):
             "proc"   : MCProcess(**)
         }
         """
-        self.proc_pool = {}
+        self._proc_pool = {}
 
     def add(self, inst_id, val):
-        self.proc_pool[inst_id] = val
+        self._proc_pool[inst_id] = val
 
     def get(self, inst_id):
-        return self.proc_pool.get(inst_id)
+        return self._proc_pool.get(inst_id)
+
+    def set_status(self, inst_id, status):
+        if self._proc_pool.get(inst_id) != None:
+            self._proc_pool.get(inst_id)["status"] = status
+
+    def set_config(self, inst_id, mc_w_config):
+        if self._proc_pool.get(inst_id) != None:
+            self._proc_pool.get(inst_id)["config"] = mc_w_config
 
 class Watcher(metaclass=Singleton):
     def __init__(self):
@@ -72,7 +80,7 @@ class Watcher(metaclass=Singleton):
         if gc.get("init_super_admin") == True:
             # import server inst
             from app import db
-            from app.model import ServerInstance
+            from app.model import ServerInstance, JavaBinary, ServerCORE
             # search
             _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE).all()
             if _q == None:
@@ -84,23 +92,24 @@ class Watcher(metaclass=Singleton):
                     "java_bin": item.ob_java_bin.bin_directory,
                     "max_RAM": int(item.max_RAM),
                     "min_RAM": math.floor(int(item.max_RAM) / 2),
-                    "proc_cwd": item.inst_dir
+                    "proc_cwd": item.inst_dir,
+                    "port": item.listening_port
                 }
 
                 # adding initial data into proc_pool
                 _model = {
-                    "config" : MCWrapperConfig(mc_w_config),
+                    "config" : MCWrapperConfig(**mc_w_config),
                     "status" : SERVER_STATE.HALT,
-                    "daemon" : MCDaemonManager(item.auto_start),
+                    "daemon" : MCDaemonManager(item.auto_restart),
                     "info"   : MCInstanceInfo(),
                     "proc"   : MCProcess(item.inst_id)
                 }
-                self.proc_pool.add(_model)
+                self.proc_pool.add(item.inst_id, _model)
             return True
         else:
             return None
 
-    def launch_loop(self):
+    def _launch_loop(self):
         def _run_loop():
             self._loop_running = True
             self._loop.run()
@@ -111,3 +120,54 @@ class Watcher(metaclass=Singleton):
             t = threading.Thread(target=_run_loop)
             t.setDaemon(True)
             t.start()
+
+    def start_instance(self, inst_id):
+        inst_obj = self.proc_pool.get(inst_id)
+
+        if inst_obj == None:
+            return None
+        _proc    = inst_obj.get("proc")
+        _status  = inst_obj.get("status")
+        mc_w_config  = inst_obj.get("config")
+
+        # reload config
+        _proc.load_config(mc_w_config)
+
+        # make sure status is HALT, or just skip it because
+        # there's already an running instance.
+        if _status != SERVER_STATE.HALT:
+            return None
+
+        # start process
+        if _proc.start_process():
+            # add active coun
+            self._active_count += 1
+            # set status
+            self.proc_pool.set_status(inst_id, SERVER_STATE.STARTING)
+            # TODO add callback
+            # loop.run
+            self._launch_loop()
+
+    def stop_instance(self, inst_id):
+        inst_obj = self.proc_pool.get(inst_id)
+
+        if inst_obj == None:
+            return None
+        _proc    = inst_obj.get("proc")
+        _status  = inst_obj.get("status")
+
+        # the stop callback shall do the work of marking the new status (HALT)
+        # and deduct active count. Don't do them HERE!
+        _proc.stop_process()
+
+    def send_command(self, inst_id, command):
+        inst_obj = self.proc_pool.get(inst_id)
+
+        if inst_obj == None:
+            return None
+        _proc    = inst_obj.get("proc")
+        _status  = inst_obj.get("status")
+
+        # limit max command length to send
+        if _status == SERVER_STATE.RUNNING and len(command) < 10000:
+            _proc.send_command(command)

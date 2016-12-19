@@ -1,7 +1,8 @@
 from . import SERVER_STATE, logger
 from .parser import ServerPropertiesParser
 from .process_callback import MCProcessCallback
-import traceback
+
+import traceback, os
 import pyuv
 
 class MCProcess(MCProcessCallback):
@@ -19,7 +20,7 @@ class MCProcess(MCProcessCallback):
         self._stdout_pipe = pyuv.Pipe(self._loop, True)
         # inst_id
         # You know, one MC instance only ownes one process class
-    def _init_env(self, proc_cwd):
+    def _init_env(self, proc_cwd, port):
         if not os.path.isdir(proc_cwd):
             os.makedirs(proc_cwd)
         # init eula.txt
@@ -38,12 +39,13 @@ class MCProcess(MCProcessCallback):
             open(s_p_file,"a").close()
 
         parser = ServerPropertiesParser(s_p_file)
-        parser.set_server_port(self.port)
+        parser.set_server_port(port)
         # write config to the file
         parser.dumps()
 
     # process events
     def on_read(self, pipe_handle, data, error):
+        logger.debug(data)
         pass
 
     # TODO
@@ -70,7 +72,7 @@ class MCProcess(MCProcessCallback):
                     mc_w_config.jar_file,
                     "nogui"]
 
-        self._init_env(mc_w_config.proc_cwd)
+        self._init_env(mc_w_config.proc_cwd, mc_w_config.port)
         logger.debug("cmd args: %s" % cmd_args)
         # set pipes
         stdin  = pyuv.StdIO(stream=self._stdin_pipe, flags=pyuv.UV_CREATE_PIPE | pyuv.UV_READABLE_PIPE)
@@ -81,14 +83,16 @@ class MCProcess(MCProcessCallback):
         proc = pyuv.Process.spawn(self._loop,
                                   args=cmd_args,
                                   exit_callback=self.on_exit,
-                                  stdio=[stdin, stdout, stdeerr],
-                                  cwd=mc_w_config.proc_cwd)
+                                  stdio=[stdin, stdout, stderr],
+                                  cwd=mc_w_config.proc_cwd,
+                                  flags=pyuv.UV_PROCESS_DETACHED)
         # set pid
         self._pid = proc.pid
         logger.info("Start Process pid=(%s)" % self._pid)
 
         # on read
         self._stdout_pipe.start_read(self.on_read)
+        return True
 
     def stop_process(self):
         if self._pid != None:
