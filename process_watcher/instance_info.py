@@ -26,6 +26,16 @@ class MCInstanceInfo(object):
     def set_current_player(self, current_player):
         self.current_player = current_player
 
+    def incr_current_player(self):
+        if self.current_player == None:
+            self.current_player = 0
+        self.current_player += 1
+
+    def decr_current_player(self):
+        if self.current_player == None:
+            self.current_player = 0
+        self.current_player -= 1
+
     def get_RAM(self):
         return self.RAM
 

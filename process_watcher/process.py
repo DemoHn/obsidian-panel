@@ -47,12 +47,14 @@ class MCProcess(MCProcessCallback):
     def on_stdout_read(self, pipe_handle, data, error):
         if error != None:
             logger.error("stdout read error no: %s" % error)
+            pipe_handle.close()
         else:
             self.on_log_update(self.inst_id, PipeNo.STDOUT, data.decode())
 
     def on_stderr_read(self, pipe_handle, data, error):
         if error != None:
-            logger.error("stdeerr read error no: %s" % error)
+            logger.error("stderr read error no: %s" % error)
+            pipe_handle.close()
         else:
             self.on_log_update(self.inst_id, PipeNo.STDERR, data.decode())
 
@@ -61,6 +63,7 @@ class MCProcess(MCProcessCallback):
         self._pid = None
 
     def on_exit(self, proc_handle, status, signal):
+        logger.debug("status %s" % status)
         self._pid = None
 
     def load_config(self, mc_w_config):
