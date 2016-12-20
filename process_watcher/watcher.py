@@ -125,7 +125,14 @@ class Watcher(metaclass=Singleton):
             return None
         _proc    = inst_obj.get("proc")
         _status  = inst_obj.get("status")
+        _daemon  = inst_obj.get("daemon")
 
         # limit max command length to send
         if _status == SERVER_STATE.RUNNING and len(command) < 10000:
+
+            # if input 'stop', just stop it, do not restart the server.
+            # Because this command is surely propmted by user.
+            if command == "stop":
+                _daemon.set_normal_exit(True)
+
             _proc.send_command(command)

@@ -202,9 +202,6 @@ class WatcherEvents(MessageEventHandler):
             inst_daemon.set_normal_exit(True)
             self.watcher.stop_instance(inst_id)
 
-    def _test(self, flag, values):
-        print("[MPW] Roger. flag =%s, values= %s, info = %s" % (flag, values, self.pool.get(flag)))
-
     def add_and_start(self, flag, values):
         self.start_instance(flag, values)
 
