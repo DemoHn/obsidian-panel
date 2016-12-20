@@ -83,7 +83,7 @@ class MCProcess(MCProcessCallback):
     def load_config(self, mc_w_config):
         self._proc_config = mc_w_config
 
-    def start_process(self):
+    def _start_process_async(self, async_handle):
         # check config
         if self._proc_config == None:
             raise TypeError
@@ -121,11 +121,21 @@ class MCProcess(MCProcessCallback):
         self._pid = self._proc.pid
         logger.info("Start Process pid=(%s)" % self._pid)
 
-
         # on read
         self._stdout_pipe.start_read(self.on_stdout_read)
         self._stderr_pipe.start_read(self.on_stderr_read)
+
+        # incr active count, reset crash count, run callbacks and so on
+        self._proc_pool.incr_active_count()
+        logger.debug("active count = %s" % self._proc_pool.get_active_count())
+
+        # run callback
+        self.on_instance_start(self.inst_id)
         return True
+
+    def start_process(self):
+        self.async = pyuv.Async(self._loop, self._start_process_async)
+        self.async.send()
 
     def stop_process(self):
         if self._pid != None:

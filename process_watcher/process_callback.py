@@ -46,12 +46,14 @@ class MCProcessCallback():
         # if restart is asked
         inst_daemon = self._proc_pool.get_daemon(inst_id)
         inst_proc   = self._proc_pool.get_proc(inst_id)
+        inst_config = self._proc_pool.get_config(inst_id)
 
         if inst_daemon.get_restart_flag():
             logger.debug("restart inst (%s)" % inst_id)
 
-            from .watcher import Watcher
-            Watcher().start_instance(inst_id)
+            # reload config and start again
+            inst_proc.load_config(inst_config)
+            inst_proc.start_process()
 
         inst_daemon.set_restart_flag(True)
         inst_daemon.set_normal_exit(False)

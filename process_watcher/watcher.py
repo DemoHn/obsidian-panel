@@ -10,7 +10,7 @@ from .process_callback import MCProcessCallback
 
 from app.controller.global_config import GlobalConfig
 
-import pyuv, os, threading, math
+import pyuv, os, threading, math, signal
 
 class Watcher(metaclass=Singleton):
     def __init__(self):
@@ -20,11 +20,17 @@ class Watcher(metaclass=Singleton):
         If not, and _active_count > 0 (i.e. some processes need loop to handle!)
         Just create a thread execute `loop.run()`
         """
-        self._loop_running = False
 
         self.proc_pool = MCProcessPool()
         self.callback  = MCProcessCallback()
         self._init_proc_pool()
+
+        self._signal_handle = pyuv.Signal(self._loop)
+        pass
+
+    def _signal_callback(self, handle, signum):
+        # TODO close server properly
+        logger.debug("recv quit signal %s" % signum)
         pass
 
     def _init_proc_pool(self):
@@ -71,17 +77,11 @@ class Watcher(metaclass=Singleton):
         else:
             return None
 
-    def _launch_loop(self):
-        def _run_loop():
-            self._loop_running = True
-            self._loop.run()
-            # after all processes finish
-            self._loop_running = False
-
-        if self.proc_pool.get_active_count() > 0 and self._loop_running == False:
-            t = threading.Thread(target=_run_loop)
-            t.setDaemon(True)
-            t.start()
+    def launch_loop(self):
+        # add handle
+        self._signal_handle.start(self._signal_callback, signal.SIGINT)
+        self._loop.run()
+        logger.info("Loop Finish!")
 
     def start_instance(self, inst_id):
         inst_obj = self.proc_pool.get(inst_id)
@@ -102,19 +102,9 @@ class Watcher(metaclass=Singleton):
             return None
 
         # start process
-        if _proc.start_process():
-            # add active count
-            self.proc_pool.incr_active_count()
-
-            logger.debug("active count = %s, running = %s" % (self.proc_pool.get_active_count(), self._loop_running))
-            # set status
-            # TODO add callback
-            # loop.run
-            self._launch_loop()
-
-            # reset daemon
-            _daemon.reset_crash_count()
-            self.callback.on_instance_start(inst_id)
+        _proc.start_process()
+        # reset crash count
+        _daemon.reset_crash_count()
 
     def stop_instance(self, inst_id):
         inst_obj = self.proc_pool.get(inst_id)
