@@ -17,7 +17,6 @@ from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 import traceback
 
-
 rtn = returnModel("string")
 
 @server_inst_page.route("/new_inst", methods=["GET"])

@@ -1,5 +1,5 @@
 from app import db
-from app.model import ServerInstance
+from app.model import ServerInstance, JavaBinary, ServerCORE
 from app.controller.global_config import GlobalConfig
 from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy, Singleton
 
@@ -18,6 +18,17 @@ class WatcherEvents(MessageEventHandler):
         self.watcher = Watcher()
         self.proc_pool = MCProcessPool()
         MessageEventHandler.__init__(self)
+
+    # Any methods begin with '__' will be ignored from registering handlers.
+    # So this kind of method is suitable to be used as internal method.
+    # Nigshoxiz
+    # 21/12/2016
+    def __update_pool(self):
+        _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE).all()
+        # if instances has not been added yet, then it's time to add!
+        for item in _q:
+            if self.proc_pool.get(item.inst_id) == None:
+                self.watcher._add_instance_to_pool(item)
 
     def get_instance_status(self, flag, values):
         '''
@@ -56,6 +67,9 @@ class WatcherEvents(MessageEventHandler):
             self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
             return None
 
+        # update pool
+        self.__update_pool()
+
         rtn_data = {
             "status": "success",
             "event" : "process.get_instance_status",
@@ -65,6 +79,7 @@ class WatcherEvents(MessageEventHandler):
 
         inst_info = self.proc_pool.get_info(inst_id)
         if inst_info.get_owner() == int(uid):
+
             _curr_player = -1
             _RAM = -1
             if inst_info.get_current_player() != None:
@@ -107,38 +122,36 @@ class WatcherEvents(MessageEventHandler):
         '''
         pass
 
-    def add_instance(self, flag, values, send_ack=True):
+    def add_instance(self, flag, values):
         return None
-        #========= TODO TODO TODO ==============
         '''
         DESCRIPTION: add instance. But not activate it immediately.
 
         EVENT_NAME: process.add_instance
-        :param values: {"inst_id": <inst_id>, "port": <port>, "config": <config json>}
+        :param values: {"inst_id": <inst_id>}
         :return:
         '''
-        EVENT_NAME = "process.add_instance.callback"
+        inst_id = values.get("inst_id")
+        uid, sid, src, dest = self.pool.get(flag)
 
-        rtn_data = {
-            "status": "success",
-            "inst_id": None
-        }
+        if inst_id == None:
+            return None
 
-        _inst_id = values.get("inst_id")
-        _port = values.get("port")
-        _config = values.get("config")
+        _q = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE).filter(ServerInstance.inst_id == inst_id).first()
+        # inst doesn't exists
+        if _q == None:
+            return None
 
-        sender = values.get("_from")
+        # has added
+        if self.proc_pool.get(inst_id) != None:
+            return None
 
-        self.watcher.register_instance(_inst_id, _port, _config)
-        rtn_data["inst_id"] = _inst_id
-
-        if send_ack:
-            # we only recv message from app
-            if sender == WS_TAG.APP:
-                self.proxy.send(EVENT_NAME, WS_TAG.APP, flag, rtn_data)
+        # then add it into proc_pool!
+        self.watcher._add_instance_to_pool(_q)
 
     def remove_instance(self, flag, values):
+        # TODO
+        return
         '''
         DESCRIPTION: remove instance from process pool.
 
@@ -170,7 +183,7 @@ class WatcherEvents(MessageEventHandler):
         '''
         inst_id = int(values.get("inst_id"))
         uid, sid, src, dest = self.pool.get(flag)
-
+        self.__update_pool()
         inst_info = self.proc_pool.get_info(inst_id)
 
         if inst_info.get_owner() == int(uid):
@@ -203,6 +216,7 @@ class WatcherEvents(MessageEventHandler):
             self.watcher.stop_instance(inst_id)
 
     def add_and_start(self, flag, values):
+        #self.add_instance(flag, values)
         self.start_instance(flag, values)
 
     def restart_instance(self, flag, values):

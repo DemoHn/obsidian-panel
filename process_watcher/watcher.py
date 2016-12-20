@@ -33,6 +33,36 @@ class Watcher(metaclass=Singleton):
         logger.debug("recv quit signal %s" % signum)
         pass
 
+    def _add_instance_to_pool(self, db_item):
+        # db_item = db.session.query(ServerInstance).join(JavaBinary).join(ServerCORE).filter(**).first()
+        # init config
+        item = db_item
+        mc_w_config = {
+            "jar_file": os.path.join(item.ob_server_core.file_dir, item.ob_server_core.file_name),
+            "java_bin": item.ob_java_bin.bin_directory,
+            "max_RAM": int(item.max_RAM),
+            "min_RAM": math.floor(int(item.max_RAM) / 2),
+            "proc_cwd": item.inst_dir,
+            "port": item.listening_port
+        }
+
+        info = {
+            "total_RAM": item.max_RAM,
+            "total_player": item.max_user,
+            "owner": item.owner_id
+        }
+
+        # adding initial data into proc_pool
+        _model = {
+            "config" : MCWrapperConfig(**mc_w_config),
+            "status" : SERVER_STATE.HALT,
+            "daemon" : MCDaemonManager(item.auto_restart),
+            "info"   : MCInstanceInfo(**info),
+            "proc"   : MCProcess(item.inst_id, self._loop)
+        }
+
+        self.proc_pool.add(item.inst_id, _model)
+
     def _init_proc_pool(self):
         gc = GlobalConfig()
 
@@ -48,31 +78,7 @@ class Watcher(metaclass=Singleton):
             if _q == None:
                 return None
             for item in _q:
-                # init config
-                mc_w_config = {
-                    "jar_file": os.path.join(item.ob_server_core.file_dir, item.ob_server_core.file_name),
-                    "java_bin": item.ob_java_bin.bin_directory,
-                    "max_RAM": int(item.max_RAM),
-                    "min_RAM": math.floor(int(item.max_RAM) / 2),
-                    "proc_cwd": item.inst_dir,
-                    "port": item.listening_port
-                }
-
-                info = {
-                    "total_RAM": item.max_RAM,
-                    "total_player": item.max_user,
-                    "owner": item.owner_id
-                }
-
-                # adding initial data into proc_pool
-                _model = {
-                    "config" : MCWrapperConfig(**mc_w_config),
-                    "status" : SERVER_STATE.HALT,
-                    "daemon" : MCDaemonManager(item.auto_restart),
-                    "info"   : MCInstanceInfo(**info),
-                    "proc"   : MCProcess(item.inst_id, self._loop)
-                }
-                self.proc_pool.add(item.inst_id, _model)
+                self._add_instance_to_pool(item)
             return True
         else:
             return None
