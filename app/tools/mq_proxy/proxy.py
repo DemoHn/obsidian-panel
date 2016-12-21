@@ -64,8 +64,6 @@ class MessageQueueProxy(metaclass=Singleton):
                     if self.handlers.get(event_name) != None:
                         handler = self.handlers.get(event_name)
                         try:
-                            logger.debug(dest)
-                            logger.debug(event_name)
                             handler(flag, values)
                         except:
                             logger.debug(traceback.format_exc())

@@ -36,6 +36,8 @@ class MessageUserStatusPool(metaclass=Singleton):
         src = _empty_to_None(_obj[2])
         dest = _empty_to_None(_obj[3])
 
+        if uid != None:
+            uid = int(uid)
         return (uid, sid, src, dest)
 
     def exists(self, flag):

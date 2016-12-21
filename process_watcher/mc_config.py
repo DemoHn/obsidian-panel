@@ -1,6 +1,6 @@
 __author__ = "Nigshoxiz"
 import os
-class MCWrapperConfig():
+class MCWrapperConfig:
 
     __counter = 0
     """MC Wrapper Configurations.
@@ -67,6 +67,14 @@ class MCWrapperConfig():
 
         self._proc_cwd = _tmp_dir
 
+    @property
+    def port(self):
+        return self._port
+
+    @port.setter
+    def port(self, port):
+        self._port = int(port)
+
     def __init__(self,**kwargs):
         """Config entries:
                 java_bin : java executable location. (On Linux with java installed, it's /usr/bin/java)
@@ -84,10 +92,12 @@ class MCWrapperConfig():
         self._max_RAM  = None
         self._jar_file = None
         self._proc_cwd = None
+        self._port     = None
 
         self.java_bin = kwargs.get("java_bin")
         self.min_RAM  = kwargs.get("min_RAM")
         self.max_RAM  = kwargs.get("max_RAM")
         self.jar_file = kwargs.get("jar_file")
         self.proc_cwd = kwargs.get("proc_cwd")
+        self.port     = kwargs.get("port")
         pass

@@ -151,7 +151,7 @@ var NewInstance = function () {
                }
            },
            "ftp_account_fs" : function () {
-               this.ftp_account_assert = -1;         
+               this.ftp_account_assert = -1;
            },
            "finish": function () {
                var that = this;
@@ -604,6 +604,17 @@ Dashboard.prototype.init_embeded_console = function(callback){
         // then clear input bar
         jq_input_cmd.val("");
     }
+
+    function _init_history_log(){
+        var msg = {
+            "event":"process.get_instance_log",
+            "flag" : self._generate_flag(32),
+            "props":{
+                "inst_id" : CURRENT_INSTANCE
+            }
+        };
+        self.socket.emit("message", msg);
+    }
     // init input bar
     jq_input_cmd.on('keyup', function (e) {
         if(e.keyCode == 13){ // enter
@@ -634,6 +645,7 @@ Dashboard.prototype.init_embeded_console = function(callback){
     editor.session.setOption('indentedSoftWrap', false);
     editor.session.setUseWrapMode(true);
 
+    _init_history_log();
     return editor;
 };
 
@@ -848,6 +860,18 @@ Dashboard.prototype._add_socket_listener = function (socket) {
                 // keep the cursor in the last line
                 var row = self.editor.session.getLength();
                 self.editor.gotoLine(row+1, 0);
+            }
+        }else if(msg.event == "process.get_instance_log"){
+            if(msg.status == "success"){
+                log_obj = msg.val;
+
+                if(log_obj["log"] != null){
+                    log_arr = log_obj["log"];
+                    self.editor.setValue(log_arr.join(""), 1);
+                    // keep the cursor in the last line
+                    var row = self.editor.session.getLength();
+                    self.editor.gotoLine(row+1, 0);
+                }
             }
         }
     })
