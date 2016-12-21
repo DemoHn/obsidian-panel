@@ -120,7 +120,28 @@ class WatcherEvents(MessageEventHandler):
             "log" : [<Array>]
         }
         '''
-        pass
+        inst_id = values.get("inst_id")
+        uid, sid, src, dest = self.pool.get(flag)
+
+        EVENT_NAME = "process.response"
+
+        if inst_id == None:
+            return None
+
+        rtn_data = {
+            "status": "success",
+            "event" : "process.get_instance_log",
+            "inst_id" : inst_id,
+            "val": {
+                "log" : None
+            }
+        }
+
+        inst_info = self.proc_pool.get_info(inst_id)
+        if inst_info.get_owner() == int(uid):
+            rtn_data["val"]["log"] = inst_info.get_log()
+
+            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
 
     def add_instance(self, flag, values):
         return None

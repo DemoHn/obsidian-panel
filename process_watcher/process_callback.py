@@ -28,6 +28,9 @@ class MCProcessCallback():
     def on_log_update(self, inst_id, pipe, log):
         # broadcast raw log
         # TODO handle different situation
+
+        inst_info = self._proc_pool.get_info(inst_id)
+        inst_info.append_log(pipe, log)
         self._log_string_analyse(inst_id, log)
         self.broadcast(inst_id, "log_update", log)
 

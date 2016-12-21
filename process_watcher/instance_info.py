@@ -17,7 +17,8 @@ class MCInstanceInfo(object):
         self.RAM = None
         self.current_player = None
 
-    def append_log(self, data):
+    def append_log(self, pipe, log_data):
+        self.log.append(log_data)
         pass
 
     def set_RAM(self, RAM):
@@ -52,4 +53,4 @@ class MCInstanceInfo(object):
         return self.total_RAM
 
     def get_log(self):
-        pass
+        return self.log

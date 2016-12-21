@@ -118,3 +118,10 @@ class ProcessEventHandler(MessageEventHandler):
             "inst_id" : int(inst_id)
         }
         self.proxy.send(flag, "process.get_instance_status", _values, WS_TAG.MPW)
+
+    def get_instance_log(self, flag, values):
+        inst_id = values.get("inst_id")
+        _values = {
+            "inst_id" : int(inst_id)
+        }
+        self.proxy.send(flag, "process.get_instance_log", _values, WS_TAG.MPW)
