@@ -1,7 +1,6 @@
 class MCDaemonManager(object):
     MAX_CRASH = 5
-    def __init__(self, auto_restart=True):
-        self.start_onboot  = auto_restart
+    def __init__(self):
         self._crash_count  = 0
         self._restart_flag = True
         self._normal_exit  = False

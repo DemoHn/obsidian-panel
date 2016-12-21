@@ -59,7 +59,7 @@ class Watcher(metaclass=Singleton):
         _model = {
             "config" : MCWrapperConfig(**mc_w_config),
             "status" : SERVER_STATE.HALT,
-            "daemon" : MCDaemonManager(item.auto_restart),
+            "daemon" : MCDaemonManager(),
             "info"   : MCInstanceInfo(**info),
             "proc"   : MCProcess(item.inst_id, self._loop)
         }
