@@ -50,6 +50,9 @@ class MCProcessPool(metaclass=Singleton):
     def get_config(self, inst_id):
         if self._proc_pool.get(inst_id) != None:
             return self._proc_pool.get(inst_id).get("config")
+
+    def get_insts(self):
+        return self._proc_pool.keys()
     # set methods
     def set(self, inst_id, key, val):
         if self._proc_pool.get(inst_id) != None:

@@ -7,6 +7,7 @@ from .daemon_manager import MCDaemonManager
 from .instance_info import MCInstanceInfo
 from .mc_config import MCWrapperConfig
 from .process_callback import MCProcessCallback
+from .info_monitor import MCInstanceInfoMonitor
 
 from app.controller.global_config import GlobalConfig
 
@@ -23,6 +24,8 @@ class Watcher(metaclass=Singleton):
 
         self.proc_pool = MCProcessPool()
         self.callback  = MCProcessCallback()
+        self.info_monitor = MCInstanceInfoMonitor(self._loop)
+
         self._init_proc_pool()
 
         self._signal_handle = pyuv.Signal(self._loop)
@@ -111,6 +114,9 @@ class Watcher(metaclass=Singleton):
         _proc.start_process()
         # reset crash count
         _daemon.reset_crash_count()
+
+        # start timer
+        self.info_monitor.start_timer()
 
     def stop_instance(self, inst_id):
         inst_obj = self.proc_pool.get(inst_id)
