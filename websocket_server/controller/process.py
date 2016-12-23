@@ -41,9 +41,9 @@ class ProcessEventHandler(MessageEventHandler):
             _port = int(item.listening_port)
 
             if restart:
-                watcher_event = "process.restart_instance"
+                watcher_event = "_process.restart_instance"
             else:
-                watcher_event = "process.add_and_start"
+                watcher_event = "_process.start_instance"
 
             inst_values = {
                 "inst_id": inst_id,
@@ -53,7 +53,7 @@ class ProcessEventHandler(MessageEventHandler):
             self.proxy.send(flag, watcher_event, inst_values, WS_TAG.MPW)
 
     def stop(self, flag, values):
-        watcher_event = "process.stop_instance"
+        watcher_event = "_process.stop_instance"
         inst_values = {
             "inst_id" : values.get("inst_id")
         }
@@ -72,7 +72,7 @@ class ProcessEventHandler(MessageEventHandler):
             "inst_id" : inst_id,
             "command" : command
         }
-        self.proxy.send(flag, "process.send_command", _values, WS_TAG.MPW)
+        self.proxy.send(flag, "_process.send_command", _values, WS_TAG.MPW)
 
     def broadcast(self, flag, values):
         uid, sid, src, dest = self.pool.get(flag)
@@ -117,11 +117,11 @@ class ProcessEventHandler(MessageEventHandler):
         _values = {
             "inst_id" : int(inst_id)
         }
-        self.proxy.send(flag, "process.get_instance_status", _values, WS_TAG.MPW)
+        self.proxy.send(flag, "_process.get_instance_status", _values, WS_TAG.MPW)
 
     def get_instance_log(self, flag, values):
         inst_id = values.get("inst_id")
         _values = {
             "inst_id" : int(inst_id)
         }
-        self.proxy.send(flag, "process.get_instance_log", _values, WS_TAG.MPW)
+        self.proxy.send(flag, "_process.get_instance_log", _values, WS_TAG.MPW)

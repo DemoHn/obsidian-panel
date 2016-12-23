@@ -13,7 +13,7 @@ class WatcherEvents(MessageEventHandler):
     Of course, since the watcher is an independent process, we use message queue
     to control it.
     '''
-    __prefix__ = "process"
+    __prefix__ = "_process"
     def __init__(self):
         self.watcher = Watcher()
         self.proc_pool = MCProcessPool()
