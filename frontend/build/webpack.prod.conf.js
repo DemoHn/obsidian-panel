@@ -17,8 +17,8 @@ var webpackConfig = merge(baseWebpackConfig, {
   devtool: config.build.productionSourceMap ? '#source-map' : false,
   output: {
     path: config.build.assetsRoot,
-    filename: utils.assetsPath('js/[name].[chunkhash].js'),
-    chunkFilename: utils.assetsPath('js/[id].[chunkhash].js')
+    filename: utils.assetsPath('js/[name].build.js'),
+    chunkFilename: utils.assetsPath('js/[id].js')
   },
   vue: {
     loaders: utils.cssLoaders({
@@ -38,7 +38,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     }),
     new webpack.optimize.OccurenceOrderPlugin(),
     // extract css into its own file
-    new ExtractTextPlugin(utils.assetsPath('css/[name].[contenthash].css')),
+    new ExtractTextPlugin(utils.assetsPath('css/[name].css')),
     // generate dist index.html with correct asset hash for caching.
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
@@ -58,8 +58,9 @@ var webpackConfig = merge(baseWebpackConfig, {
       // necessary to consistently work with multiple chunks via CommonsChunkPlugin
       chunksSortMode: 'dependency'
     }),
+      new webpack.optimize.CommonsChunkPlugin({name:"vendors",minChunks: Infinity}),
     // split vendor js into its own file
-    new webpack.optimize.CommonsChunkPlugin({
+/*    new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
       minChunks: function (module, count) {
         // any required modules inside node_modules are extracted to vendor
@@ -77,7 +78,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     new webpack.optimize.CommonsChunkPlugin({
       name: 'manifest',
       chunks: ['vendor']
-    })
+    })*/
   ]
 })
 

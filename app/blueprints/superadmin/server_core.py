@@ -30,7 +30,8 @@ def render_server_core_page(uid, priv):
         else:
             _file_info = []
 
-        return render_template('superadmin/server_core.html',mc_files=_file_info)
+        return render_template("superadmin/index.html")
+            #return render_template('superadmin/server_core.html',mc_files=_file_info)
     except TemplateNotFound:
         abort(404)
 

@@ -6,15 +6,15 @@ var webpack = require("webpack");
 var env = process.env.NODE_ENV;
 // check env & config/index.js to decide weither to enable CSS Sourcemaps for the
 // various preprocessor loaders added to vue-loader at the end of this file
-var cssSourceMapDev = (env === 'development' && config.dev.cssSourceMap)
-var cssSourceMapProd = (env === 'production' && config.build.productionSourceMap)
-var useCssSourceMap = cssSourceMapDev || cssSourceMapProd
+var cssSourceMapDev = (env === 'development' && config.dev.cssSourceMap);
+var cssSourceMapProd = (env === 'production' && config.build.productionSourceMap);
+var useCssSourceMap = cssSourceMapDev || cssSourceMapProd;
 
 module.exports = {
   entry: {
-      app: './src/main.js',
+      "super_admin.app": './src/main.js',
       vendors: [
-          "./static/js/plugins/jQuery/jquery-3.1.1.js",
+          "./static/js/plugins/jQuery/jquery.js",
           "./static/js/plugins/bootstrap/bootstrap.js",
           "./static/js/plugins/AdminLTE/app.js",
           "./static/js/plugins/pace/pace.js",
@@ -23,9 +23,8 @@ module.exports = {
     plugins:[
         new webpack.ProvidePlugin({
             $: "jquery",
-            jQuery: "jquery",
+            jQuery: "jquery"
         }),
-        new webpack.optimize.CommonsChunkPlugin({name:"vendors",filename:"vendor.bundle.js",minChunks: Infinity}),
     ],
   output: {
     path: config.build.assetsRoot,

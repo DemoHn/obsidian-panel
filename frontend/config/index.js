@@ -4,8 +4,8 @@ var path = require('path')
 module.exports = {
   build: {
     env: require('./prod.env'),
-    index: path.resolve(__dirname, '../dist/index.html'),
-    assetsRoot: path.resolve(__dirname, '../dist'),
+    index: path.resolve(__dirname, '../../app/templates/superadmin/index.html'),
+    assetsRoot: path.resolve(__dirname, '../../app'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     productionSourceMap: true,
@@ -17,11 +17,12 @@ module.exports = {
     productionGzipExtensions: ['js', 'css']
   },
   dev: {
-    env: require('./dev.env'),
-    port: 8080,
-    assetsSubDirectory: 'static',
-    assetsPublicPath: '/',
-    proxyTable: {},
+      env: require('./dev.env'),
+      port: 8080,
+      assetsSubDirectory: 'static',
+      assetsPublicPath: '/',
+      proxyTable: {
+      },
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README
     // (https://github.com/webpack/css-loader#sourcemaps)

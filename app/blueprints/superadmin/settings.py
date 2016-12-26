@@ -22,7 +22,7 @@ rtn = returnModel("string")
 @super_admin_only
 def render_settings_page(uid, priv):
     try:
-        return render_template('superadmin/settings.html')
+        return render_template('superadmin/index.html')
     except TemplateNotFound:
         abort(404)
 

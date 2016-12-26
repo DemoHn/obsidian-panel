@@ -18,8 +18,6 @@ rtn = returnModel("string")
 @super_admin_only
 def render_info_page(uid, priv):
     try:
-        #proxy = MessageQueueProxy.getInstance()
-        #proxy.send("process._test", WS_TAG.MPW, "123456", {"a":"b"})
-        return render_template('superadmin/info.html')
+        return render_template('superadmin/index.html')
     except TemplateNotFound:
         abort(404)
