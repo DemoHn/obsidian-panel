@@ -9,3 +9,4 @@ app/__pycache__/
 .obsidian_panel.ini
 ob-panel.log
 tests/.cache/
+frontend/node_modules/
