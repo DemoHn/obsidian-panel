@@ -1,4 +1,4 @@
-<template>
+<template lang="html">
     <section class="content">
         <div class="row">
             <div class="col-md-5">
@@ -20,11 +20,11 @@
 
                             <div class="col-xs-6">
                                 <input
-                                        type="password"
-                                        class="form-control"
-                                        id="old_password"
-                                        name="old_password"
-                                        v-model="ori_passwd">
+                                    type="password"
+                                    class="form-control"
+                                    id="old_password"
+                                    name="old_password"
+                                    v-model="ori_passwd">
                             </div>
                         </div>
                         <br/><br/>
@@ -35,11 +35,11 @@
 
                             <div class="col-xs-6">
                                 <input
-                                        type="password"
-                                        class="form-control"
-                                        id="old_password"
-                                        name="old_password"
-                                        v-model="new_passwd">
+                                    type="password"
+                                    class="form-control"
+                                    id="old_password"
+                                    name="old_password"
+                                    v-model="new_passwd">
                             </div>
                         </div>
                         <br><br>

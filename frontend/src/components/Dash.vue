@@ -131,6 +131,9 @@ module.exports = {
 </script>
 
 <style>
+[v-cloak]{
+  display: none;
+}
 .user-panel {
   height: 4em;
 }
@@ -139,5 +142,31 @@ hr.visible-xs-block {
   background-color: rgba(0, 0, 0, 0.17);
   height: 1px;
   border-color: transparent;
+}
+
+@media(min-width: 1201px){
+    div.content-wrapper{
+        padding-left:15px;
+        padding-right:15px;
+        padding-top:18px;
+    }
+    div.box{
+        max-width: 600px;
+    }
+}
+
+/*Hide logo on mobile device*/
+@media (max-width: 767px) {
+    header.main-header a.logo{
+        display: none;
+    }
+
+    .fixed div.content-wrapper{
+        padding-top:50px !important;
+    }
+
+    .main-sidebar, .left-side{
+        padding-top:50px !important;
+    }
 }
 </style>
