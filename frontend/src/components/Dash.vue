@@ -63,7 +63,7 @@
 
     <!-- Main Footer -->
     <footer class="main-footer">
-      <strong>Copyright &copy; {{year}} <a href="javascript:;">CoPilot</a>.</strong> All rights reserved.
+      <strong>Copyright &copy; {{year}} <a href="javascript:;">Obsidian Panel</a>.</strong> All rights reserved.
     </footer>
   </div>
   <!-- ./wrapper -->
@@ -72,6 +72,7 @@
 <script>
 import faker from 'faker'
 import $ from 'jquery'
+
 require('hideseek')
 
 module.exports = {
@@ -125,7 +126,6 @@ module.exports = {
     }
   },
   mounted: function () {
-    // Page is ready. Let's load our functions!
   }
 }
 </script>

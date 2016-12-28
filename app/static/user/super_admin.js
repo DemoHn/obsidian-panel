@@ -1,4 +1,4 @@
-// javascript file for super_admin
+3// javascript file for super_admin
 Vue.config.delimiters = ['${','}'];
 
 $(document).ready(function(){
@@ -109,7 +109,6 @@ var JavaBinary = function () {
         methods:{
             "dw_click" : function (index, event) {
                 var btn_status = self.list_vm.versions[index].btn_status;
-                
                 switch(btn_status.status){
                     case FAIL:
                     case EXTRACT_FAIL:

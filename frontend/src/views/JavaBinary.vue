@@ -23,42 +23,42 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                <tr v-for="version in versions">
-                                    <td>{{ $index + 1 }}</td>
+                                <tr v-for="(version,index) in versions">
+                                    <td>{{ index + 1 }}</td>
                                     <td>{{ version.major +"u" + version.minor}}</td>
                                     <td>
                                         <button class="btn btn-primary btn-sm"
                                                 type="button"
                                                 v-if="version.btn_status.status == 1"
-                                                @click="dw_click($index, $event)">&nbsp;&nbsp;下载&nbsp;&nbsp;</button>
+                                                @click="dw_click(index, event)">&nbsp;&nbsp;下载&nbsp;&nbsp;</button>
 
                                         <button class="btn btn-primary btn-sm"
                                                 type="button"
                                                 v-else-if="version.btn_status.status == 2"
                                                 disabled
-                                                @click="dw_click($index, $event)">&nbsp;{{version.btn_status.progress.toFixed(1)+"%"}}&nbsp;</button>
+                                                @click="dw_click(index, event)">&nbsp;{{version.btn_status.progress.toFixed(1)+"%"}}&nbsp;</button>
 
                                         <button class="btn btn-primary btn-sm"
                                                 type="button"
                                                 v-else-if="version.btn_status.status == 3"
                                                 disabled
-                                                @click="dw_click($index, $event)">解压中</button>
+                                                @click="dw_click(index, event)">解压中</button>
 
                                         <button class="btn btn-primary btn-sm"
                                                 type="button"
                                                 v-else-if="version.btn_status.status == 4"
                                                 disabled
-                                                @click="dw_click($index, $event)">已下载</button>
+                                                @click="dw_click(index, event)">已下载</button>
 
                                         <button class="btn btn-danger btn-sm"
                                                 type="button"
                                                 v-else-if="version.btn_status.status == 5"
-                                                @click="dw_click($index, $event)">下载失败</button>
+                                                @click="dw_click(index, event)">下载失败</button>
 
                                         <button class="btn btn-danger btn-sm"
                                                 type="button"
                                                 v-else-if="version.btn_status.status == 6"
-                                                @click="dw_click($index, $event)">解压失败</button>
+                                                @click="dw_click(index, event)">解压失败</button>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -88,29 +88,128 @@ export default {
     },
     methods: {
         dw_click(index, event) {
-            let btn_status = this.versions[index].btn_status;
+            let btn_status = this.versions[index]["btn_status"];
             switch(btn_status.status){
             case FAIL:
             case EXTRACT_FAIL:
                 // clear and restart
                 btn_status.status = DOWNLOADING;
-                var _major = this.versions[index].major;
-                var _minor = this.versions[index].minor;
-                self._start_downloading(_major, _minor, index);
+                var _major = this.versions[index]["major"];
+                var _minor = this.versions[index]["minor"];
+                this.start_downloading(_major, _minor, index);
                 break;
             case WAIT:
                 btn_status.status = DOWNLOADING;
-                var _major = this.versions[index].major;
-                var _minor = this.versions[index].minor;
-                self._start_downloading(_major, _minor, index);
+                var _major = this.versions[index]["major"];
+                var _minor = this.versions[index]["minor"];
+                this.start_downloading(_major, _minor, index);
                 break;
             default:
                 break;
             }
+        },
+
+        _find_index_by_hash(_hash){
+            var list = this.versions;
+            for(var i=0;i<list.length;i++){
+                if(list[i]["dw_hash"] == _hash){
+                    return i;
+                }
+            }
+            return null;
+        },
+
+        init_download_list(result){
+            let data = result;
+
+            for(let item in data){
+                var _status_model = {
+                    "status":data[item]["dw"]["status"],
+                    "progress" : data[item]["dw"]["progress"] * 100
+                };
+
+                let dw_hash = data[item]["dw"]["current_hash"];
+                this.versions.push({
+                    "minor" : data[item].minor,
+                    "major" : data[item].major,
+                    "link"  : data[item].link,
+                    "dw_hash" : dw_hash,
+                    "btn_status" : _status_model
+                });
+            }
+        },
+
+        start_downloading(major, minor, _index){
+            let app = this.$parent.$parent;
+            let socket = app.ws;
+
+            let props = {
+                "major" : major,
+                "minor" : minor
+            };
+
+            socket.send("downloader.add_download_java_task", props, (msg)=>{
+                // on download start
+                let dw_hash = msg['hash'];
+                let _hash = msg["hash"];
+                let _total = msg["result"][1];
+                let _dw = msg["result"][0];
+
+                let _index = this._find_index_by_hash(_hash);
+                if (_total !== null && _dw !== null && _total > 0) {
+                    this.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
+                }
+            });
+        },
+        // events
+        on_get_progress(msg){
+            msg["value"] = msg["result"];
+            let _hash = msg["hash"];
+            let _total = msg["result"][1];
+            let _dw = msg["result"][0];
+
+            let _index = this._find_index_by_hash(_hash);
+            if (_total !== null && _dw !== null && _total > 0) {
+                this.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
+            }
+        },
+
+        on_download_finish(msg){
+            let _hash = msg["hash"];
+            let _result = msg["result"];
+
+            let _index = this._find_index_by_hash(_hash);
+            if(_result){
+                this.versions[_index]["btn_status"]["status"] = EXTRACTING;
+            }else{
+                this.versions[_index]["btn_status"]["status"] = FAIL;
+            }
+        },
+
+        on_extract_finish(msg){
+            let _hash = msg["hash"];
+            let _result = msg["result"];
+            let _index = this._find_index_by_hash(_hash);
+            if(_result){
+                this.versions[_index]["btn_status"]["status"] = FINISH; //extract success
+            }else{
+                this.versions[_index]["btn_status"]["status"] = EXTRACT_FAIL;
+            }
         }
+    },
+
+    mounted(){
+        let app = this.$parent.$parent;
+        let socket = app.ws;
+
+        socket.send("downloader.init_download_list",{}, (msg)=>{
+            this.init_download_list(msg.result);
+        })
+        socket.bind("_extract_finish", this.on_extract_finish);
+        socket.bind("_get_progress", this.on_get_progress);
+        socket.bind("_download_finish", this.on_download_finish);
     }
 }
 </script>
-
 <style>
 </style>

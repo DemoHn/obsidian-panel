@@ -3,7 +3,6 @@ import LoginView from './components/Login.vue'
 import NotFoundView from './components/404.vue'
 
 // Import Views - Dash
-import DashboardView from './components/dash/Dashboard.vue'
 import JavaBinaryView from './views/JavaBinary.vue'
 import SettingsView from './views/Settings.vue'
 import ServerCoreView from './views/ServerCore.vue'
