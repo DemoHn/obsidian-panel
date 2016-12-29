@@ -35,7 +35,7 @@ def render_server_core_page(uid, priv):
     except TemplateNotFound:
         abort(404)
 
-@super_admin_page.route("/get_core_file_info")
+@super_admin_page.route("/api/get_core_file_info")
 @ajax_super_admin_only
 def get_core_file_info(uid, priv):
 
@@ -54,6 +54,7 @@ def get_core_file_info(uid, priv):
 
         for item in info:
             _model = {
+                "core_id" : item.core_id,
                 "file_name" : item.file_name,
                 "core_type" : item.core_type,
                 "core_version" : item.core_version,
@@ -62,16 +63,63 @@ def get_core_file_info(uid, priv):
                 "note" : item.note
             }
             _model_arr.append(_model)
-
         return rtn.success(_model_arr)
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
 
+### Edit operations
+@super_admin_page.route("/api/edit_core_file_params/<core_file_id>", methods=["POST"])
+@ajax_super_admin_only
+def edit_core_file_params(uid, priv, core_file_id):
+    # params to edit: description, core_type, mc_version, file_version, filename
+    F = request.form
+
+    mc_version = F.get("mc_version")
+    file_version = F.get("file_version")
+    description = F.get("description")
+    core_type = F.get("core_type")
+    file_name = F.get("file_name")
+    # update
+    u = ServerCORE.query.filter_by(core_id = core_file_id).first()
+
+    if u == None:
+        return rtn.error(411)
+    else:
+        if description != None:
+            u.note = description
+        if file_version != None:
+            u.core_version = file_version
+        if core_type != None:
+            u.core_type = core_type
+        if mc_version != None:
+            u.minecraft_version = mc_version
+
+        if file_name != None:
+            ori_filename = u.file_name
+            upload_dir   = u.file_dir
+            u.file_name  = file_name
+            os.rename(os.path.join(upload_dir, ori_filename), os.path.join(upload_dir, file_name))
+        db.session.commit()
+        return rtn.success(200)
+
+
+### Delete Core File
+@super_admin_page.route("/api/delete_core_file/<core_file_id>")
+@ajax_super_admin_only
+def delete_core_file(uid, priv, core_file_id):
+    u = ServerCORE.query.filter_by(core_id = core_file_id).first()
+    if u == None:
+        return rtn.error(411)
+    else:
+        db.session.delete(u)
+        db.session.commit()
+        return rtn.success(200)
+
 # upload user-customized server core file
 #
 #########################################
-@super_admin_page.route("/upload_core_file", methods=["POST"])
+@super_admin_page.route("/api/upload_core_file", methods=["POST"])
 @ajax_super_admin_only
 def upload_core_file(uid, priv):
 

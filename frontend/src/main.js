@@ -11,7 +11,7 @@ import { domain, count, prettyDate, pluralize } from './filters';
 
 // Import Views - Top level
 
-import AppView from './components/App.vue';
+import AppView from './views/App.vue';
 
 // Import Install and register helper items
 Vue.filter('count', count);

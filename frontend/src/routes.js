@@ -1,6 +1,6 @@
-import DashView from './components/Dash.vue'
-import LoginView from './components/Login.vue'
-import NotFoundView from './components/404.vue'
+import DashView from './views/Dash.vue'
+import LoginView from './views/Login.vue'
+import NotFoundView from './views/404.vue'
 
 // Import Views - Dash
 import JavaBinaryView from './views/JavaBinary.vue'
