@@ -28,7 +28,7 @@ class WebSocket {
             this.socket = io.connect(this._get_current_host()+":"+this.socket_port);
 
             this.socket.on("connect",(e)=>{
-                console.log("hello");
+
             });
 
             this.socket.on("message", (msg)=>{

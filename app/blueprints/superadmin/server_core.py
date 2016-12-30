@@ -73,7 +73,7 @@ def get_core_file_info(uid, priv):
 @ajax_super_admin_only
 def edit_core_file_params(uid, priv, core_file_id):
     # params to edit: description, core_type, mc_version, file_version, filename
-    F = request.form
+    F = request.json
 
     mc_version = F.get("mc_version")
     file_version = F.get("file_version")
@@ -82,24 +82,27 @@ def edit_core_file_params(uid, priv, core_file_id):
     file_name = F.get("file_name")
     # update
     u = ServerCORE.query.filter_by(core_id = core_file_id).first()
+    update_dict = {}
 
     if u == None:
         return rtn.error(411)
     else:
         if description != None:
-            u.note = description
+            update_dict["note"] = description
         if file_version != None:
-            u.core_version = file_version
+            update_dict["core_version"] = file_version
         if core_type != None:
-            u.core_type = core_type
+            update_dict["core_type"] = core_type
         if mc_version != None:
-            u.minecraft_version = mc_version
+            update_dict["minecraft_version"] = mc_version
 
         if file_name != None:
             ori_filename = u.file_name
             upload_dir   = u.file_dir
-            u.file_name  = file_name
+            update_dict["file_name"]  = file_name
             os.rename(os.path.join(upload_dir, ori_filename), os.path.join(upload_dir, file_name))
+
+        db.session.query(ServerCORE).filter(ServerCORE.core_id == core_file_id).update(update_dict)
         db.session.commit()
         return rtn.success(200)
 

@@ -39,7 +39,7 @@
                                     <div class="list_row">
                                         <div class="half">
                                             <span class="ttl">类型: </span>
-                                            <span class="default-text" v-if="core_item.core_type.toLowerCase() == 'others'">其他</span>
+                                            <span class="default-text" v-if="core_item.core_type == 'other'">其他</span>
                                             <span class="text" v-else>{{ core_item.core_type }}</span>
                                         </div><div class="half">
                                             <span class="ttl">文件大小: </span>
@@ -74,16 +74,78 @@
             </div>
         </div>
 
-        <add-modal v-if="showAddModal" @close="showAddModal = false">
+        <!-- add core file-->
+        <add-modal v-if="showAddModal" @cancel="showAddModal = false">
             <span slot="header">添加核心</span>
         </add-modal>
 
-        <edit-modal v-if="showEditModal" @close="showEditModal = false">
+        <!-- edit core file -->
+        <edit-modal v-if="showEditModal" @cancel="showEditModal = false" @confirm="confirm_edit">
             <span slot="header">编辑</span>
+            <div slot="body" class="edit_model_content">
+                <div class="form_group">
+                    <div class="form_label">
+                        文件名：
+                    </div>
+                    <div class="form_input">
+                        <input type="text" class="form-control" v-model="edit_form.file_name"/>
+                    </div>
+                </div>
+                <div class="form_group">
+                    <div class="form_label">
+                        类型：
+                    </div>
+                    <div class="form_input">
+                        <select name="" class="form-control" v-model="edit_form.core_type">
+                            <option :value="'bukkit'">Bukkit</option>
+                            <option :value="'spigot'">Spigot</option>
+                            <option :value="'vanilla'">Vanilla</option>
+                            <option :value="'forge'">Forge</option>
+                            <option :value="'mcpc'">MCPC+</option>
+                            <option :value="'kcauldron'">KCauldron</option>
+                            <option :value="'thermos'">Thermos</option>
+                            <option :value="'torch'">Torch</option>
+                            <option :value="'other'">其他</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form_group">
+                    <div class="form_label">MC版本：</div>
+                    <div class="form_input">
+                        <input type="text" class="form-control" v-model="edit_form.minecraft_version"/>
+                    </div>
+                </div>
+                <div class="form_group">
+                    <div class="form_label">
+                        文件版本：
+                    </div>
+                    <div class="form_input">
+                        <input type="text" class="form-control" v-model="edit_form.core_version"/>
+                    </div>
+                </div>
+                <div class="form_group">
+                    <div class="form_label">
+                        备注：
+                    </div>
+                    <div class="form_input">
+                        <textarea class="form-control" v-model="edit_form.note"></textarea>
+                    </div>
+                </div>
+                <div class="error-hint" v-show="edit_modal_error">
+                    编辑失败，请重试
+                </div>
+            </div>
         </edit-modal>
 
-        <del-modal v-if="showDeleteModal" @close="showDeleteModal = false">
+        <!-- delete confrim prompt -->
+        <del-modal v-if="showDeleteModal" @cancel="showDeleteModal = false" @confirm="confirm_delete">
             <span slot="header">删除</span>
+            <div slot="body">
+                确认删除「 <b>{{ delete_file_name }}</b> 」？此操作将不可逆，及可能影响以此为核心的服务器！
+                <div class="error-hint" v-show="delete_modal_error">
+                    删除失败，请重试
+                </div>
+            </div>
         </del-modal>
     </section>
 </template>
@@ -110,8 +172,23 @@ export default {
         return {
             core_list : [],
             status: LOADING,
+            edit_form:{
+                file_name: "",
+                core_type: 'vanilla',
+                minecraft_version: "",
+                core_version: "",
+                note: ""
+            },
             showEditModal : false,
+            _edit_index: null,
+            edit_modal_error: false,
+            // delete modal
             showDeleteModal: false,
+            _delete_index: null,
+            delete_file_name: null,
+            delete_modal_error: false,
+
+            // add modal
             showAddModal: false
         }
     },
@@ -123,13 +200,62 @@ export default {
         },
         // click methods
         edit_serv_core(index){
+            this.edit_form["file_name"] = this.core_list[index]["file_name"];
+            this.edit_form["core_type"] = this.core_list[index]["core_type"];
+            this.edit_form["minecraft_version"] = this.core_list[index]["minecraft_version"];
+            this.edit_form["core_version"] = this.core_list[index]["core_version"];
+            this.edit_form["note"] = this.core_list[index]["note"];
+            // init modal params
             this.showEditModal = true;
+            this._edit_index = index;
+            this.edit_modal_error = false;
+        },
+        // on confirm
+        confirm_edit(){
+            let app = this.$parent.$parent;
+            const ajax_data = {
+                "file_name" : this.edit_form.file_name,
+                "file_version" : this.edit_form.core_version,
+                "description" : this.edit_form.note,
+                "core_type" : this.edit_form.core_type,
+                "mc_version" : this.edit_form.minecraft_version
+            }
+
+            let _index = this._edit_index;
+            let core_file_id = this.core_list[_index]["core_id"];
+            let v = this;
+            app.ajax("POST", "/super_admin/api/edit_core_file_params/"+core_file_id, ajax_data, (msg)=>{
+                for(let key in v.edit_form)
+                    v.core_list[_index][key] = v.edit_form[key];
+                v.showEditModal = false;
+                v.edit_modal_error = false;
+            },(code)=>{
+                v.edit_modal_error = true;
+            })
         },
 
         delete_serv_core(index){
             this.showDeleteModal = true;
+            this._delete_index = index;
+            this.delete_modal_error = false;
+            this.delete_file_name = this.core_list[index]["file_name"];
         },
 
+        confirm_delete(){
+            let app = this.$parent.$parent;
+            let _index = this._delete_index;
+            let core_file_id = this.core_list[_index]["core_id"];
+            let v = this;
+            app.ajax("GET", "/super_admin/api/delete_core_file/"+core_file_id, (msg)=>{
+                // on success
+                v.showDeleteModal = false;
+                v.core_list.splice(_index, 1);
+                v.delete_modal_error = false;
+            },(code)=>{
+                // on error
+                v.delete_modal_error = true;
+            })
+        },
         add_serv_core(){
             this.showAddModal = true;
         },
@@ -230,5 +356,40 @@ div.core_nothing{
 
         span.default-text{
             color: #999;
+        }
+
+        input.form-control,
+        select.form-control{
+            width: 75%;
+        }
+
+        div.form_input textarea{
+            width: 75%;
+            height: 8rem;
+        }
+
+        div.edit_model_content div.form_group{
+            line-height: 2em;
+            font-size: 1.5rem;
+            margin-top: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+
+        div.edit_model_content div.form_label{
+            position: relative;
+            float:left;
+            min-width: 8rem;
+            width: 25%;
+        }
+
+        div.edit_model_content div.form_input{
+            width: 100%;
+            padding-left: 25%;
+        }
+
+        div.error-hint{
+            font-size: 1.25rem;
+            text-align: right;
+            color: red;
         }
 </style>

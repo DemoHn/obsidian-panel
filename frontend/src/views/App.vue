@@ -6,6 +6,7 @@
 
 <script>
     import WebSocket from "../lib/websocket.js";
+    import BodyParser from '../lib/body-parser.js';
     export default {
         name: 'App',
         data: function () {
@@ -24,15 +25,21 @@
                 const ajax_info = {
                     url: url,
                     method: method,
-                    data: data
+                    body: data
                 };
 
                 if(typeof(data) == "function"){
                     on_fail    = on_success;
                     on_success = data;
                 }
-                this.caller(ajax_info).then((response)=>{
-                    // on success
+
+                let vs = null;
+                if(method == "GET"){
+                    vs = this.caller.get(url)
+                }else if(method == "POST"){
+                    vs = this.caller.post(url, data);
+                }
+                vs.then((response)=>{
                     try{
                         let body = JSON.parse(response.body);
                         if(body.status == "success"){

@@ -17,12 +17,12 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button class="btn btn-default pull-left" @click="$emit('close')">
+                        <button class="btn btn-default pull-left" @click="$emit('cancel')" :disabled="cancel_btn_disabled">
                             <slot name="cancel_text">
                                 Cancel
                             </slot>
                         </button>
-                        <button class="btn btn-primary pull-right" @click="$emit('close')">
+                        <button class="btn btn-primary pull-right" @click="$emit('confirm')" :disabled="confirm_btn_disabled">
                             <slot name="confirm_text">
                                 OK
                             </slot>
@@ -35,7 +35,14 @@
 </template>
 <script>
     export default {
-        name : "c-modal",
+        props: {
+            "cancel_btn_disabled":{
+                default: false
+            },
+            "confirm_btn_disabled":{
+                default: false
+            }
+        },
         data(){
             return {
                 showModal : false
@@ -87,10 +94,6 @@
 .modal-header h3 {
     margin-top: 0;
     color: #42b983;
-}
-
-.modal-body {
-    margin: 20px 0;
 }
 
 /*
