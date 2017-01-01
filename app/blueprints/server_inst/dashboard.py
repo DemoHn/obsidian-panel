@@ -62,7 +62,6 @@ def render_dashboard_page(uid, priv, inst_id = None):
         user_list = []
         user_insts_dict = {}
         user_insts = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).all()
-
         if user_insts != None:
             if len(user_insts) > 0:
                 current_inst_id = user_insts[0].inst_id
@@ -93,10 +92,8 @@ def render_dashboard_page(uid, priv, inst_id = None):
                     current_inst_obj  = user_insts_dict[inst_id]["obj"]
 
                 # get info
-                serv_core_obj = db.session.query(ServerInstance).join(ServerCORE).filter(ServerInstance.inst_id == current_inst_id).first()
-
+                serv_core_obj = db.session.query(ServerInstance).join(ServerCORE).filter(ServerInstance.inst_id == int(current_inst_id)).first()
                 mc_version = serv_core_obj.ob_server_core.minecraft_version
-
                 # get server properties and motd
                 file_server_properties = os.path.join(current_inst_obj.inst_dir,"server.properties")
                 motd_string = ""

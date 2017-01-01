@@ -37,9 +37,11 @@
     export default {
         props: {
             "cancel_btn_disabled":{
+                type: Boolean,
                 default: false
             },
             "confirm_btn_disabled":{
+                type: Boolean,
                 default: false
             }
         },

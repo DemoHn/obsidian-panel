@@ -75,8 +75,22 @@
         </div>
 
         <!-- add core file-->
-        <add-modal v-if="showAddModal" @cancel="showAddModal = false">
+        <add-modal v-if="showAddModal"
+                   @cancel="showAddModal = false"
+                   @confirm="confirm_add"
+                   :confirm_btn_disabled="!enable_upload">
             <span slot="header">添加核心</span>
+            <div slot="body">
+                <div>
+                    <c-upload-file
+                        @uploadFinish="closeAddFileModal"
+                        @allowUpload="onAllowUpload"
+                        ref="FileUploader"
+                        ></c-upload-file>
+                </div>
+            </div>
+            <span slot="cancel_text">取消</span>
+            <span slot="confirm_text">上传</span>
         </add-modal>
 
         <!-- edit core file -->
@@ -155,17 +169,21 @@ const LOADING = 0;
 const ERROR   = 2;
 const SUCCESS = 1;
 
+const TYPE_UPLOAD = 16;
+const TYPE_FROM_SOURCE = 32;
+
 import Loading from '../components/c-loading.vue';
 import LoadError from '../components/c-error.vue';
 import cModal from '../components/c-modal.vue';
-
+import UploadFile from '../components/server_core/upload-file.vue';
 export default {
     components: {
         'c-loading': Loading,
         'load-error': LoadError,
         'edit-modal': cModal,
         'del-modal': cModal,
-        'add-modal': cModal
+        'add-modal': cModal,
+        'c-upload-file' : UploadFile
     },
     name : "ServerCore",
     data(){
@@ -189,7 +207,9 @@ export default {
             delete_modal_error: false,
 
             // add modal
-            showAddModal: false
+            showAddModal: false,
+            add_core_type: TYPE_UPLOAD,
+            enable_upload: false
         }
     },
     methods: {
@@ -256,8 +276,21 @@ export default {
                 v.delete_modal_error = true;
             })
         },
+
+        // add modal
         add_serv_core(){
             this.showAddModal = true;
+        },
+        onAllowUpload(value){
+            this.enable_upload = value;
+        },
+        confirm_add(){
+            this.$refs.FileUploader.uploadItem();
+        },
+        // triggered after file finish
+        closeAddFileModal(){
+            this.aj_load_core_list();
+            this.showAddModal = false;
         },
         // init list
         init_core_list(data){
