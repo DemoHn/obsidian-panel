@@ -1,9 +1,12 @@
+const MAX_RETRY = 10;
+
 class WebSocket {
     constructor(socket_port=5001){
         this.socket_port = socket_port;
         this._init();
 
         this.socketQueue = {};
+        this.pendingFlags = {};
         this.bindEvents  = {};
     }
 
@@ -34,6 +37,11 @@ class WebSocket {
             this.socket.on("message", (msg)=>{
                 if(this.socketQueue[msg.flag] != null){
                     let execFunc = this.socketQueue[msg.flag];
+
+                    if(this.pendingFlags[msg.flag] != null){
+                        this.pendingFlags[msg.flag] = -1;
+                    }
+
                     execFunc(msg);
                     delete this.socketQueue[msg.flag];
                 }
@@ -64,7 +72,25 @@ class WebSocket {
 
         // if callback success is a function
         if(typeof(callback_success) == "function"){
+            // if callback is set, that means this socket is waiting for response,
+            // so auto-resending is considered when there is no response.
+            this.pendingFlags[flag] = 0;
             this.socketQueue[flag] = callback_success;
+
+            let v = this;
+            let _f = flag;
+            let interval_flag = setInterval(()=>{
+                if(v.pendingFlags[_f] == -1){
+                    clearInterval(interval_flag);
+                    return ;
+                }else if(v.pendingFlags[_f] < MAX_RETRY){
+                    console.debug("resending msg: "+JSON.stringify(send_json));
+                    v.socket.emit("message", send_json);
+                    v.pendingFlags[_f] += 1;
+                }else{
+                    clearInterval(interval_flag);
+                }
+            },5000);
         }
     }
 

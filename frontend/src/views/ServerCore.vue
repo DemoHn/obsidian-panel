@@ -29,7 +29,11 @@
 
                                 </div>
                                 <div class="server_core_avatar">
-
+                                    <img v-if="core_item.core_type=='vanilla'" class="proj_avatar" src="/static/img/minecraft.png"/>
+                                    <img v-else-if="core_item.core_type=='spigot'" class="proj_avatar" src="/static/img/spigot.png"/>
+                                    <img v-else-if="core_item.core_type=='torch'" class="proj_avatar" src="/static/img/torch.png"/>
+                                    <img v-else-if="core_item.core_type=='bukkit'" class="proj_avatar" src="/static/img/bukkit.png"/>
+                                    <div class="no-pic" v-else>暂无图片</div>
                                 </div>
 
                                 <div class="server_core_info">
@@ -357,6 +361,23 @@ div.core_nothing{
             float: left;
         }
 
+        div.server_core_avatar div.no-pic{
+            position:absolute;
+            width: 5.8rem;
+            height: 5.8rem;
+            font-size:1.3rem;
+            text-align: center;
+            padding-top:0.6rem;
+            color: gray;
+        }
+        div.server_core_avatar img.proj_avatar{
+            display: block;
+            position: absolute;
+            left: 0.12rem;
+            top: 0.12rem;
+            width:5.6rem;
+            height: 5.6rem;
+        }
         div.server_core_info{
             padding-left: 8rem;
             width: 100%;
