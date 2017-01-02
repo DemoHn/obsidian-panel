@@ -19,9 +19,10 @@ console.log(
 var spinner = ora('building for production...')
 spinner.start()
 
-var assetsPath = path.join(config.build.assetsRoot, config.build.assetsSubDirectory)
+var assetsPath = path.join(config.build.assetsRoot, config.build.assetsSubDirectory);
 //rm("-R", assetsPath)
-mkdir('-p', assetsPath)
+cp('-R','server_inst.index.html',assetsPath+"/../templates/server_inst/index.html");
+cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html");
 //cp('-R', 'static/css/*', assetsPath +"/css/")
 //cp('-R', 'static/img/*', assetsPath+ "/img/")
 

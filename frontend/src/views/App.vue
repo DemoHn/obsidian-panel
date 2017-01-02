@@ -46,6 +46,11 @@
                             if(typeof(on_success) == "function")
                                 on_success(body["info"]);
                         }else{
+                            // not login
+                            if(body.code == 403){
+                                window.location.href = "/super_admin/login";
+                                return ;
+                            }
                             if(typeof(on_fail) == "function")
                                 on_fail(body["code"]);
                         }
@@ -60,26 +65,6 @@
                         on_fail(500);
                     }
                 })
-            },
-            callAPI: function (method, url, data) {
-                this.callingAPI = true
-                url = url || this.serverURI // if no url is passed then inheret local server URI
-                return this.caller({
-                    url: url,
-                    method: method,
-                    data: data
-                })
-            },
-            logout: function () {
-                this.$store.dispatch('SET_USER', null)
-                this.$store.dispatch('SET_TOKEN', null)
-
-                if (window.localStorage) {
-                    window.localStorage.setItem('user', null)
-                    window.localStorage.setItem('token', null)
-                }
-
-                this.$router.push('/login')
             }
         }
     }

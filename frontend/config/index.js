@@ -22,9 +22,19 @@ module.exports = {
       assetsSubDirectory: 'static',
       assetsPublicPath: '/',
       proxyTable: {
-          "/super_admin/api": {
+          "/super_admin/**": {
               target: 'http://localhost:5000',
               changeOrigin: true
+          },
+          "/server_inst/**":{
+              target: 'http://localhost:5000',
+              changeOrigin: true
+          },
+          "_":{
+              rule:["/static/js/**"
+                   ],
+              target:"http://localhost:5000"
+
           }
       },
     // CSS Sourcemaps off by default because relative paths are "buggy"

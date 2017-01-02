@@ -12,8 +12,16 @@ var useCssSourceMap = cssSourceMapDev || cssSourceMapProd;
 
 module.exports = {
   entry: {
-      "super_admin.app": './src/main.js',
-      vendors: [
+      "super_admin.app": './src/super_admin.main.js',
+      "server_inst.app":'./src/server_inst.main.js',
+      "server_inst.vendors": [
+          "./static/js/plugins/jQuery/jquery.js",
+          "./static/js/plugins/bootstrap/bootstrap.js",
+          "./static/js/plugins/AdminLTE/app.js",
+          "./static/js/plugins/pace/pace.js",
+          "./static/js/plugins/vivus/vivus.js"
+      ],
+      "super_admin.vendors": [
           "./static/js/plugins/jQuery/jquery.js",
           "./static/js/plugins/bootstrap/bootstrap.js",
           "./static/js/plugins/AdminLTE/app.js",

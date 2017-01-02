@@ -57,6 +57,11 @@ rtn = returnModel("string")
 
 @server_inst_page.route("/dashboard", methods=["GET"])
 @check_login
+def render_new_dashboard(uid, priv):
+    return render_template("/server_inst/index.html")
+
+@server_inst_page.route("/_dashboard", methods=["GET"])
+@check_login
 def render_dashboard_page(uid, priv, inst_id = None):
     try:
         user_list = []
@@ -141,6 +146,37 @@ def render_dashboard_page_II(uid, priv, inst_id):
         return render_dashboard_page(inst_id=int(inst_id))
     except TemplateNotFound:
         abort(404)
+
+@server_inst_page.route("/api/get_inst_list", methods=["GET"])
+@ajax_check_login
+def get_inst_list(uid, priv):
+    user_list = {
+        "current_id" : None,
+        "list": []
+    }
+
+    user_insts = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).all()
+    if user_insts != None:
+        if len(user_insts) > 0:
+            user_list["current_id"] = user_insts[0].inst_id
+            star_flag = False
+            for item in user_insts:
+                _model = {
+                    "inst_name": item.inst_name,
+                    "star": item.star,
+                    "inst_id": item.inst_id
+                }
+
+                user_list["list"].append(_model)
+                # get starred instance
+                if item.star == True and star_flag == False:
+                    user_list["current_id"] = item.inst_id
+                    star_flag = True
+            return rtn.success(user_list)
+        else:
+            return rtn.success(user_list)
+    else:
+        return rtn.success(user_list)
 
 @server_inst_page.route("/dashboard/logo_src/<inst_id>", methods=["GET"])
 @check_login

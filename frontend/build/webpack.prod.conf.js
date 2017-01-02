@@ -43,7 +43,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     // generate dist index.html with correct asset hash for caching.
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
-    new HtmlWebpackPlugin({
+/*    new HtmlWebpackPlugin({
       filename: process.env.NODE_ENV === 'testing'
         ? 'index.html'
         : config.build.index,
@@ -61,7 +61,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     }),
       new webpack.optimize.CommonsChunkPlugin({name:"vendors",minChunks: Infinity}),
     // split vendor js into its own file
-/*    new webpack.optimize.CommonsChunkPlugin({
+      new webpack.optimize.CommonsChunkPlugin({
       name: 'vendor',
       minChunks: function (module, count) {
         // any required modules inside node_modules are extracted to vendor
@@ -81,24 +81,24 @@ var webpackConfig = merge(baseWebpackConfig, {
       chunks: ['vendor']
     })*/
   ]
-})
+});
 
 if (config.build.productionGzip) {
-  var CompressionWebpackPlugin = require('compression-webpack-plugin')
+    var CompressionWebpackPlugin = require('compression-webpack-plugin');
 
-  webpackConfig.plugins.push(
-    new CompressionWebpackPlugin({
-      asset: '[path].gz[query]',
-      algorithm: 'gzip',
-      test: new RegExp(
-        '\\.(' +
-        config.build.productionGzipExtensions.join('|') +
-        ')$'
-      ),
-      threshold: 10240,
-      minRatio: 0.8
-    })
-  )
+    webpackConfig.plugins.push(
+        new CompressionWebpackPlugin({
+            asset: '[path].gz[query]',
+            algorithm: 'gzip',
+            test: new RegExp(
+                '\\.(' +
+                    config.build.productionGzipExtensions.join('|') +
+                    ')$'
+            ),
+            threshold: 10240,
+            minRatio: 0.8
+        })
+    );
 }
 
 module.exports = webpackConfig

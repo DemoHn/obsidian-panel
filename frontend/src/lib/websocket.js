@@ -1,13 +1,29 @@
+import Vue from "vue";
+import Resource from 'vue-resource';
+
+Vue.use(Resource);
+
 const MAX_RETRY = 10;
+
+// this is a hackable way to make a global
+//window.WS_INSTANCE = null;
+let instance = null;
 
 class WebSocket {
     constructor(socket_port=5001){
-        this.socket_port = socket_port;
-        this._init();
+        if(!instance){
+            instance = this;
 
-        this.socketQueue = {};
-        this.pendingFlags = {};
-        this.bindEvents  = {};
+            this.socket = null;
+            this.socket_port = socket_port;
+            this._init();
+
+            this.socketQueue = {};
+            this.pendingFlags = {};
+            this.bindEvents  = {};
+            this.connected = false;
+        }
+        return instance;
     }
 
     _generate_flag(num=16){
@@ -28,10 +44,16 @@ class WebSocket {
 
     _init(){
         if(io !== undefined){
-            this.socket = io.connect(this._get_current_host()+":"+this.socket_port);
+            if(this.socket === null){
+                this.socket = io.connect(this._get_current_host()+":"+this.socket_port);
+            }
 
             this.socket.on("connect",(e)=>{
+                this.connected = true;
+            });
 
+            this.socket.on("disconnect",(e)=>{
+                this.connected = false;
             });
 
             this.socket.on("message", (msg)=>{
@@ -98,6 +120,52 @@ class WebSocket {
         if(typeof(bind_func) == "function"){
             this.bindEvents[event_name] = bind_func;
         }
+    }
+
+    ajax(method, url, data, on_success, on_fail){
+        const ajax_info = {
+            url: url,
+            method: method,
+            body: data
+        };
+
+        if(typeof(data) == "function"){
+            on_fail    = on_success;
+            on_success = data;
+        }
+
+        let vs = null;
+        if(method == "GET"){
+            vs = Vue.http.get(url);
+        }else if(method == "POST"){
+            vs = Vue.http.post(url, data);
+        }
+        vs.then((response)=>{
+            try{
+                let body = JSON.parse(response.body);
+                if(body.status == "success"){
+                    if(typeof(on_success) == "function")
+                        on_success(body["info"]);
+                }else{
+                    // not login
+                    if(body.code == 403){
+                        window.location.href = "/super_admin/login";
+                        return ;
+                    }
+                    if(typeof(on_fail) == "function")
+                        on_fail(body["code"]);
+                }
+            }catch(e){
+                if(typeof(on_fail) == "function"){
+                    const error_code = 500;
+                    on_fail(500);
+                }
+            }
+        },(response)=>{
+            if(typeof(on_fail) == "function"){
+                on_fail(500);
+            }
+        })
     }
 }
 

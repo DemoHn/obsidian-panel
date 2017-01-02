@@ -101,6 +101,7 @@ class ProcessEventHandler(MessageEventHandler):
 
         _values = {
             "event": _event,
+            "flag" : flag,
             "status" : values.get("status"),
             "inst_id": values.get("inst_id"),
             "val": values.get("val")

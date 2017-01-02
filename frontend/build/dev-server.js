@@ -38,12 +38,21 @@ compiler.plugin('compilation', function (compilation) {
 
 // proxy api requests
 Object.keys(proxyTable).forEach(function (context) {
-  var options = proxyTable[context]
-  if (typeof options === 'string') {
-    options = { target: options }
-  }
-  app.use(proxyMiddleware(context, options))
-})
+    var options = proxyTable[context];
+
+    if(proxyTable[context]["rule"] != null){
+        var _context = proxyTable[context]["rule"];
+        if (typeof options === 'string') {
+            options = { target: options };
+        }
+        app.use(proxyMiddleware(_context, options));
+    }else{
+        if (typeof options === 'string') {
+            options = { target: options };
+        }
+        app.use(proxyMiddleware(context, options));
+    }
+});
 
 // handle fallback for HTML5 history API
 app.use(require('connect-history-api-fallback')())

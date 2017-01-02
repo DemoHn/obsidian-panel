@@ -489,8 +489,6 @@ var Dashboard = function () {
             self.inst_ctrl_vm.btn_status = "pause";
             dvm.current_player = 0;
         }
-
-
     });
 
     this._add_socket_listener(self.socket);
