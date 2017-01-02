@@ -522,7 +522,7 @@ Dashboard.prototype.encodeMOTD = function(motd_string){
             return "";
         }
     }
-    
+
     // decode into utf-mode
     var motd_string = motd_string.replace(/\\u([0-9a-fA-F]{4})/g, function(match, p1){
         return String.fromCharCode(parseInt(p1, 16));

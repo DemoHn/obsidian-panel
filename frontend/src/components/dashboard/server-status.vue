@@ -4,31 +4,33 @@
     <c-error v-if="loading_status == 7"></c-error>
     <ul class="progress" v-if="loading_status == 6"><li id="progress-status">
             <div class="pg-title" style="color: #27b427;">运行状态</div>
-            <div class="pg-main" v-if="work_status == 2" v-cloak>
-                <svg id="svg-running" viewBox="-10 -10 220 220">
-                    <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="#27b427"></path>
-                    <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="#27b427"></path>
-                </svg>
-            </div>
-            <div class="pg-main" v-if="work_status == 0" v-cloak>
+
+            <div class="pg-main" v-if="work_status == 0">
                 <svg id="svg-halt" viewBox="-10 -10 220 220">
                     <path d="M 184 100 A 84 84 0 1 1 184 99" stroke-width="3" stroke="#27b427"></path>
                     <path d="M 50 100 L 150 100" stroke="#27b427" stroke-width="3"></path>
                 </svg>
             </div>
-            <div class="pg-main" v-if="work_status == 1" v-cloak>
-                <svg id="stop" viewBox="-10 -10 220 220">
-                    <circle r="85" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                    <circle r="15" cx="50" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                    <circle r="15" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                    <circle r="15" cx="150" cy="100" stroke="#27b427" stroke-width="3"></circle>
-                </svg>
-
-                <svg id="stop-rev" viewBox="-10 -10 220 220">
-                    <circle r="85" cx="100" cy="100" stroke="#fff" stroke-width="6"></circle>
-                    <circle r="15" cx="50" cy="100" stroke="#fff" stroke-width="6"></circle>
-                    <circle r="15" cx="100" cy="100" stroke="#fff" stroke-width="6"></circle>
-                    <circle r="15" cx="150" cy="100" stroke="#fff" stroke-width="6"></circle>
+            <div class="pg-main" v-else-if="work_status == 1">
+                <div>
+                    <svg id="stop" viewBox="-10 -10 220 220">
+                        <circle r="85" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                        <circle r="15" cx="50" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                        <circle r="15" cx="100" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                        <circle r="15" cx="150" cy="100" stroke="#27b427" stroke-width="3"></circle>
+                    </svg>
+                    <svg id="stop-rev" viewBox="-10 -10 220 220">
+                        <circle r="85" cx="100" cy="100" stroke="#fff" stroke-width="6"></circle>
+                        <circle r="15" cx="50" cy="100" stroke="#fff" stroke-width="6"></circle>
+                        <circle r="15" cx="100" cy="100" stroke="#fff" stroke-width="6"></circle>
+                        <circle r="15" cx="150" cy="100" stroke="#fff" stroke-width="6"></circle>
+                    </svg>
+                </div>
+            </div>
+            <div class="pg-main" v-else-if="work_status == 2">
+                <svg id="svg-running" viewBox="-10 -10 220 220">
+                    <path d="M 184 100 A 84 84 0 1 1 142 27.25386608210715" stroke-width="3" stroke="#27b427"></path>
+                    <path d="M 60 90 L 100 135 L 200 20 " stroke-width="3" stroke="#27b427"></path>
                 </svg>
             </div>
 
@@ -119,7 +121,6 @@ export default {
         // val = msg.val
         // $ref API
         init_status_list(val){
-            console.log(val);
             this.loading_status = LOAD_SUCCESS;
             //$watch function will help us do some update work
             this.work_status = val.status;
@@ -164,7 +165,7 @@ export default {
 
         // $ ref API
         set_RAM(RAM){
-            this.current_RAM = (RAM / 2014).toFixed(2);
+            this.current_RAM = (RAM / 1024).toFixed(2);
             if(Number.isInteger(this.max_RAM)){
                 let ratio = ((RAM / 1024) / this.max_RAM);
                 this.RAM_percent = (ratio*100).toFixed(0);
@@ -207,24 +208,24 @@ export default {
             this.circle_paths[index] = describeArc(100, 100, 85, 0, 360 * ratio);
         },
         _UI_animation(work_status){
-            let wa;
-            let tr;
-            function trig_rev() {
-                setTimeout(function () {
-                    tr.play();
-                },400);
-            }
-            function trig_wait() {
-                tr.reset();
-                wa.reset();
-                wa.play();
-            }
-
             switch (work_status){
             case 0:
                 new Vivus('svg-halt', {duration: 30 , type:"sync"});
                 break;
             case 1:
+                let wa;
+                let tr;
+                function trig_rev() {
+                    setTimeout(function () {
+                        tr.play();
+                    },400);
+                }
+                function trig_wait() {
+                    tr.reset();
+                    wa.reset();
+                    wa.play();
+                }
+
                 wa = new Vivus('stop', {duration: 30 , type:"sync", start:"manual"}, trig_rev);
                 tr = new Vivus('stop-rev', {duration: 30 , type:"sync", start:"manual"}, trig_wait);
                 trig_wait();
@@ -232,17 +233,18 @@ export default {
             case 2:
                 new Vivus('svg-running', {duration: 30 , type:"sync"});
                 break;
+            default:
+                break;
             }
         }
     },
     mounted(){
         this.$watch('work_status',(newVal, oldVal)=>{
-            this.work_status = newVal;
             this._UI_animation(newVal);
-
             if(newVal == HALT){
                 this.reset();
             }else if(newVal == RUNNING){
+                this.set_online_player(0);
             }
         });
     }

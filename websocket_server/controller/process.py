@@ -81,7 +81,7 @@ class ProcessEventHandler(MessageEventHandler):
         _values = {
             "event": _event,
             "inst_id": values.get("inst_id"),
-            "value": values.get("val")
+            "value": values.get("val"),
         }
 
         if _event == None:
