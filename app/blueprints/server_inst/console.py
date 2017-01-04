@@ -10,6 +10,7 @@ from app import db
 from app.model import ServerInstance
 rtn = returnModel("string")
 
+# WARNING : This Code IS DEPRECATED!!!
 @server_inst_page.route("/console", methods=["GET"])
 @check_login
 def render_console_page(uid, priv, inst_id = None):

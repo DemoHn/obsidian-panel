@@ -135,9 +135,6 @@ hr.visible-xs-block {
         padding-right:15px;
         padding-top:18px;
     }
-    div.box{
-        max-width: 600px;
-    }
 }
 
 /*Hide logo on mobile device*/

@@ -168,7 +168,7 @@ class GlobalConfig(metaclass=Singleton):
             "temp_server_core" : "", # records of server core
 
             "database_uri" : "",
-
+            "my_ip_address" : "",
             "_RESTART_LOCK" : "False",
         }
 
