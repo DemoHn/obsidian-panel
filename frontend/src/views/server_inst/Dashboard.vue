@@ -1,7 +1,10 @@
 <template lang="html">
     <div>
         <div class="ctrl-bar">
-            <inst-select ref="SelectF"></inst-select>
+            <inst-select ref="SelectF"
+                         @click="toggle_inst"
+                         :inst_id="inst_id"
+                         ></inst-select>
             <ctrl-button ref="CtrlF"
                          @start_inst="inst_cmd('start')"
                          @stop_inst="inst_cmd('stop')"
@@ -148,7 +151,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </template>
@@ -221,6 +223,17 @@ export default {
                 }
                 ws.send("process.send_command", props)
             }
+        },
+
+        toggle_inst(inst_id){
+            // toggle inst_id
+            this.inst_id = inst_id;
+            let Status = this.$refs.StatusF;
+
+            Status.set_loading_status(true);
+            this.aj_get_properties();
+            this.ws_init_status();
+            this.ws_init_console_log();
         },
         // events originally from MPW
         on_status_change(msg){
@@ -296,7 +309,9 @@ export default {
             let ws = new WebSocket();
             ws.ajax("GET","/server_inst/api/get_inst_list", (msg)=>{
                 Select.init_inst_list(msg);
-                this.inst_id = msg.current_id;
+
+                if(this.inst_id == null)
+                    this.inst_id = msg.current_id;
 
                 this.aj_get_properties();
                 this.ws_init_status();
@@ -330,10 +345,18 @@ export default {
             },(msg)=>{
                 // on error
             })
-
         }
     },
     mounted(){
+        // init with hash
+        let hash = window.location.hash;
+        if(hash !== ""){
+            try{
+                this.inst_id = parseInt(hash.substr(1));
+            }catch(e){
+                this.inst_id = null;
+            }
+        }
         this.aj_get_list();
         this.aj_get_ip_address();
     }

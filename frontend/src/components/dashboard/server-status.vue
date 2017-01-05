@@ -174,6 +174,14 @@ export default {
                 this._update_loop(1, 0);
             }
         },
+        // status: "loading"
+        set_loading_status(is_loading){
+            if(is_loading){
+                this.loading_status = LOADING;
+            }else{
+                this.loading_status = LOAD_SUCCESS;
+            }
+        },
         reset(){
             this.work_status = HALT;
             this.current_player = "-";
@@ -333,6 +341,7 @@ div#total-num{
 div.pg-info span.hint-text{
     color:gray;
     font-size: 13px;
+    margin-top: 0;
 }
 div#RAM-percent{
     position: absolute;

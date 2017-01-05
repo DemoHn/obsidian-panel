@@ -15,7 +15,7 @@
     export default {
         name:"simple-console",
         components:{
-            "vue-editor": require("vue2-ace-editor")
+            "vue-editor": require("../vue2-ace-editor")
         },
         data(){
             return {
@@ -26,7 +26,7 @@
         },
         methods:{
             editorInit:function () {
-                require('vue2-ace-editor/node_modules/brace/theme/dawn');
+                require('brace/theme/dawn');
                 this._init_editor_config(this.$refs.editorComponent.editor);
             },
 

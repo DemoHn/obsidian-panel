@@ -70,10 +70,7 @@
 </template>
 
 <script>
-import faker from 'faker'
 import $ from 'jquery'
-
-require('hideseek')
 
 module.exports = {
   name: 'Dash',
@@ -97,21 +94,6 @@ module.exports = {
     state: function () {
       return this.store.state
     },
-    callAPI: function () {
-      return this.$parent.callAPI
-    },
-    demo: function () {
-      return {
-        displayName: faker.name.findName(),
-        avatar: faker.image.avatar(),
-        email: faker.internet.email(),
-        randomCard: faker.helpers.createCard()
-      }
-    },
-    year: function () {
-      var y = new Date()
-      return y.getFullYear()
-    }
   },
   methods: {
     changeloading: function () {

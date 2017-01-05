@@ -27,6 +27,12 @@ cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html
 //cp('-R', 'static/img/*', assetsPath+ "/img/")
 
 webpack(webpackConfig, function (err, stats) {
+/*    console.log(stats.toString({
+        modules: true,
+        reasons: false,
+        colors: true,
+        modulesSort : "size"
+    })); */
   spinner.stop()
   if (err) throw err
   process.stdout.write(stats.toString({

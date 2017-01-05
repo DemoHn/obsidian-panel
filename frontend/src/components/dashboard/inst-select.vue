@@ -7,9 +7,9 @@
                 <div class="dropdown " v-bind:class="{expand: dropdownExpand}">
                     <div class="padding"></div>
                     <div v-for="inst_item in user_list">
-                        <a v-bind:href="'#'+inst_item.inst_id">{{ inst_item.inst_name }}</a>
+                        <a @click="click_menu(inst_item.inst_id)" v-bind:href="'#'+inst_item.inst_id">{{ inst_item.inst_name }}</a>
                     </div>
-                    <a href="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></a>
+                    <router-link to="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></router-link>
                     <div class="padding"></div>
                 </div>
             </span>
@@ -23,12 +23,12 @@
                     <i class="ion-android-star" v-if="inst_item.star == true"></i>
                     <i class="ion-android-star-outline" v-else></i>
                 </span>
-                <a :href="'#'+inst_item.inst_id" :class="{selected: inst_item.is_selected}">{{ inst_item.inst_name }}</a>
+                <a :href="'#'+inst_item.inst_id" :class="{selected: inst_item.is_selected}" @click="click_menu(inst_item.inst_id)">{{ inst_item.inst_name }}</a>
             </div>
             <!--new instance-->
             <div>
                 <span class="star"> </span>
-                <a href="/server_inst/new_inst"><i class="ion-plus"></i>&nbsp;&nbsp;&nbsp;<span class="new_inst_txt">新的世界</span></a>
+                <router-link to="/server_inst/new_inst"><i class="ion-plus"></i>&nbsp;&nbsp;&nbsp;<span class="new_inst_txt">新的世界</span></router-link>
             </div>
         </div>
     </div>
@@ -37,6 +37,7 @@
 <script>
     export default {
         name: "inst-select",
+        props: ['inst_id'],
         data(){
             return {
                 user_list:[],
@@ -47,6 +48,17 @@
             }
         },
         methods:{
+            click_menu(inst_id){
+                for(let i in this.user_list){
+                    if(this.user_list[i]["inst_id"] == inst_id){
+                        this.current_instance_name = this.user_list[i]["inst_name"];
+                        this.user_list[i]["is_selected"] = true;
+                    }else{
+                        this.user_list[i]["is_selected"] = false;
+                    }
+                }
+                this.$emit('click', inst_id);
+            },
             menu_toggle(){
                 this.markRotate = !this.markRotate;
                 this.dropdownExpand = !this.dropdownExpand;
@@ -56,7 +68,13 @@
                 this.current_instance_id = msg.current_id;
 
                 for(let i in msg.list){
-                    if(msg.list[i]["inst_id"] == msg.current_id){
+                    if(this.inst_id != null){
+                        if(msg.list[i]['inst_id'] === this.inst_id){
+                            this.current_instance_name = msg.list[i]["inst_name"];
+                            this.user_list[i]["is_selected"] = true;
+                            break;
+                        }
+                    }else if(msg.list[i]["inst_id"] == msg.current_id){
                         this.current_instance_name = msg.list[i]["inst_name"];
                         this.user_list[i]["is_selected"] = true;
                         break;

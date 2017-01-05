@@ -4,7 +4,7 @@ import NotFoundView from './views/404.vue'
 // Import Views - Dash
 import DashView from './views/server_inst/Dash.vue'
 import DashboardView from './views/server_inst/Dashboard.vue'
-
+import NewInstanceView from './views/server_inst/NewInstance.vue'
 
 // Routes
 const routes = [
@@ -13,12 +13,18 @@ const routes = [
         component: DashView,
         auth: false,
         children: [
-      {
-          path: 'dashboard',
-          component: DashboardView,
-          name: '控制台',
-          description: 'Overview of environment'
-      }
+            {
+                path: 'dashboard',
+                component: DashboardView,
+                name: '控制台',
+                description: 'Overview of environment'
+            },
+            {
+                path: 'new_inst',
+                component: NewInstanceView,
+                name: "新的世界",
+                description: "create new world"
+            }
     ]
   }, {
     // not found handler

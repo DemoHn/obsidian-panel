@@ -264,7 +264,7 @@ NewInstance.prototype.init_image_upload = function () {
         add: function (e, data) {
             // init mask
             $("#upload-mask").css("height", 64 + "px");
-
+            
             if (data.files && data.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
