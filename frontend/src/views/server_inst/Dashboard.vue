@@ -364,9 +364,9 @@ export default {
     </script>
 
 <style>
-@media(min-width: 1201px){
+    @media(min-width: 1201px){
         div.inst-content{
-            position: relative;
+            position: absolute;
             padding-left:250px;
             width:100%;
             z-index: 10;
@@ -385,10 +385,10 @@ export default {
         }
     }
 
-    @media(max-width: 767px){
+    @media(max-width: 1201px){
         div.inst-content{
-            padding-left: 1rem;
-            padding-right: 1rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
             padding-top: 2rem;
         }
     }

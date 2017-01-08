@@ -83,6 +83,10 @@
             }
         },
         methods:{
+            // $ref API
+            getImageURL(){
+                return this.preview_target;
+            },
             onAddItem(files){
                 this.file = files[files.length-1];
             },
@@ -91,6 +95,7 @@
                     let url = "/server_inst/preview_logo/" + name;
                     this.preview_target = url;
                     this.load_status = UPLOAD_SUCCESS;
+                    this.$emit("upload_finish", url);
                 }else{
                     this.load_status = UPLOAD_FAIL;
                 }

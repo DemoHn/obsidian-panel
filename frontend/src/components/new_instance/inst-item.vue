@@ -14,7 +14,6 @@
             </h3>
             <div class="timeline-body">
                 <slot name="control">
-                    <input type="text" :placeholder="input_placeholder" @blur="$emit('blur')" @focus="$emit('focus')" v-model="model_data"/>
                 </slot>
             </div>
         </div>
@@ -33,14 +32,8 @@
             required : {
                 default: true,
             },
-            input_placeholder :{
-                default: "input something"
-            },
             JR_result : {
                 default : null
-            },
-            model : {
-                default : ""
             }
         },
         computed:{

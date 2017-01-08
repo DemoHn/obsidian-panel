@@ -144,26 +144,32 @@ class WebSocket {
             try{
                 let body = JSON.parse(response.body);
                 if(body.status == "success"){
-                    if(typeof(on_success) == "function")
+                    if(typeof(on_success) == "function"){
                         on_success(body["info"]);
+                        return ;
+                    }
                 }else{
                     // not login
                     if(body.code == 403){
                         window.location.href = "/super_admin/login";
                         return ;
                     }
-                    if(typeof(on_fail) == "function")
+                    if(typeof(on_fail) == "function"){
                         on_fail(body["code"]);
+                        return ;
+                    }
                 }
             }catch(e){
                 if(typeof(on_fail) == "function"){
                     const error_code = 500;
                     on_fail(500);
+                    return ;
                 }
             }
         },(response)=>{
             if(typeof(on_fail) == "function"){
                 on_fail(500);
+                return ;
             }
         })
     }
