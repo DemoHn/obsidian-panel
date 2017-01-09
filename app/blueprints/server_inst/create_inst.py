@@ -21,6 +21,11 @@ rtn = returnModel("string")
 
 @server_inst_page.route("/new_inst", methods=["GET"])
 @check_login
+def render_index_page():
+    return render_template("/server_inst/index.html")
+
+@server_inst_page.route("/api/new_inst", methods=["GET"])
+@ajax_check_login
 def new_Minecraft_instance(uid, priv):
     '''
     create a new MC Server instance.
@@ -54,15 +59,20 @@ def new_Minecraft_instance(uid, priv):
             java_versions.append(_model)
 
         # get all info of server core
-        server_cores = {}
+        server_cores = []
         server_cores_obj = db.session.query(ServerCORE).all()
 
         for item in server_cores_obj:
             if item.core_version != None and item.core_version != "":
-                server_cores[item.core_id] = "%s-%s-%s" % (item.core_type, item.core_version, item.minecraft_version)
+                _name = "%s-%s-%s" % (item.core_type, item.core_version, item.minecraft_version)
             else:
-                server_cores[item.core_id] = "%s-%s" % (item.core_type, item.minecraft_version)
+                _name = "%s-%s" % (item.core_type, item.minecraft_version)
+            _model = {
+                "name" : _name,
+                "index" : item.core_id
+            }
 
+            server_cores.append(_model)
         # ...and generate an FTP account.
         user_name_obj = db.session.query(Users).filter(Users.id == uid).first()
 
@@ -73,18 +83,18 @@ def new_Minecraft_instance(uid, priv):
             if db.session.query(FTPAccount).filter(FTPAccount.username == ftp_user_name).first() == None:
                 break
 
-        return render_template("server_inst/new_inst.html",
-                               java_versions = java_versions,
-                               server_cores = server_cores,
-                               FTP_account_name = ftp_user_name
-                               )
-    except TemplateNotFound:
-        abort(404)
+        rtn_model = {
+            "java_versions" : java_versions,
+            "server_cores" : server_cores,
+            "FTP_account_name" : ftp_user_name
+        }
+        return rtn.success(rtn_model)
+    except:
+        return rtn.error(500)
 
-@server_inst_page.route("/new_inst/assert_input", methods=["GET"])
+@server_inst_page.route("/api/new_inst/assert_input", methods=["GET"])
 @ajax_check_login
 def assert_input(uid, priv):
-    rtn = returnModel("string")
     try:
         G = request.args
         type = G.get("type")
@@ -106,20 +116,51 @@ def assert_input(uid, priv):
             q = db.session.query(ServerInstance).filter(ServerInstance.inst_name == data and ServerInstance.owner_id == uid).first()
 
             if q == None:
-                return rtn.success(True)
+                if data == "" or data == None:
+                    return rtn.success(False)
+                else:
+                    return rtn.success(True)
             else:
                 return rtn.success(False)
 
         elif type == "ftp_account":
             q = db.session.query(FTPAccount).filter(FTPAccount.username == data).first()
             if q == None:
-                return rtn.success(True)
+                if data == "" or data == None:
+                    return rtn.success(False)
+                else:
+                    return rtn.success(True)
             else:
                 return rtn.success(False)
+        elif type == "_all":
+            _model = {
+                "port" : False,
+                "inst_name" : False,
+                "ftp_account" : False
+            }
+            d = data.split(",")
+            # port
+            p = db.session.query(ServerInstance).filter(ServerInstance.listening_port == int(d[0])).first()
+            if p == None:
+                _model["port"] = True
+            # inst_name
+            q = db.session.query(ServerInstance).filter(ServerInstance.inst_name == d[1] and ServerInstance.owner_id == uid).first()
+            if q == None:
+                _model["inst_name"] = True
+            if d[1] == "" or d[1] == None:
+                _model["inst_name"] = False
+            # ftp_account
+            r = db.session.query(FTPAccount).filter(FTPAccount.username == d[2]).first()
+            if r == None:
+                _model["ftp_account"] = True
+            if d[2] == "" or d[2] == None:
+                _model["ftp_account"] = False
+
+            return rtn.success(_model)
         else:
             return rtn.error(500)
     except:
-        abort(500)
+        return rtn.error(500)
 
 # upload image
 @server_inst_page.route("/upload_logo", methods=["POST"])
@@ -162,7 +203,7 @@ def preview_server_logo(uid, priv, logo):
     else:
         abort(404)
 
-@server_inst_page.route("/new_inst", methods=["POST"])
+@server_inst_page.route("/api/new_inst", methods=["POST"])
 @ajax_check_login
 def submit_new_inst(uid, priv):
 
@@ -187,7 +228,7 @@ def submit_new_inst(uid, priv):
     rtn = returnModel("string")
     gc = GlobalConfig.getInstance()
     try:
-        F = request.form
+        F = request.json
 
         inst_name    = F.get("inst_name")
         core_file_id = F.get("core_file_id")
@@ -237,7 +278,7 @@ def submit_new_inst(uid, priv):
                 logo_file_name = os.path.join(gc.get("uploads_dir"), logo_url)
                 if os.path.exists(logo_file_name):
                     shutil.move(logo_file_name, os.path.join(_inst_directory(inst_id), "server-icon.png"))
-            # create FTP account
+            # create FTP accountx
             ftp_controller = FTPController()
 
             if not FTP_default_password:

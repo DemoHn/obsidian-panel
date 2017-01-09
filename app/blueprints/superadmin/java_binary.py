@@ -23,7 +23,7 @@ class _utils:
 @super_admin_only
 def render_java_binary_page(uid, priv):
     try:
-        return render_template('superadmin/java_binary.html')
+        return render_template('superadmin/index.html')
     except TemplateNotFound:
         abort(404)
 

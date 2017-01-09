@@ -2,12 +2,14 @@ __author__ = "Nigshoxiz"
 
 from flask import render_template, abort, request, redirect, send_file
 from jinja2 import TemplateNotFound
+from urllib.request import urlopen, Request
 
 from app import db, logger
 from app.utils import returnModel
 
 from app.model import ServerInstance, ServerCORE, FTPAccount
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
+from app.controller.global_config import GlobalConfig
 
 from . import server_inst_page
 import os, re, traceback
@@ -57,48 +59,23 @@ rtn = returnModel("string")
 
 @server_inst_page.route("/dashboard", methods=["GET"])
 @check_login
-def render_dashboard_page(uid, priv, inst_id = None):
+def render_new_dashboard(uid, priv):
+    return render_template("/server_inst/index.html")
+
+# miscellaneouses, including basic LOGO, FTP status, server properties, etc.
+@server_inst_page.route("/api/get_miscellaneous_info/<inst_id>", methods=["GET"])
+@check_login
+def render_dashboard_page(uid, priv, inst_id):
     try:
-        user_list = []
-        user_insts_dict = {}
-        user_insts = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).all()
+        # get info
+        serv_core_obj = db.session.query(ServerInstance).join(ServerCORE).filter(ServerInstance.inst_id == int(inst_id)).first()
 
-        if user_insts != None:
-            if len(user_insts) > 0:
-                current_inst_id = user_insts[0].inst_id
-                current_inst_name = user_insts[0].inst_name
-                current_inst_obj  = user_insts[0]
-                star_flag = False
-                for item in user_insts:
-                    _model = {
-                        "inst_name": item.inst_name,
-                        "star": item.star,
-                        "inst_id": item.inst_id,
-                        "obj" : item,
-                        "link": "/server_inst/dashboard/" + str(item.inst_id)
-                    }
-                    user_insts_dict[item.inst_id] = _model
-                    user_list.append(_model)
-                    # get starred instance
-                    if item.star == True and star_flag == True:
-                        current_inst_id = item.inst_id
-                        current_inst_name = item.inst_name
-                        current_inst_obj = item
-                        star_flag = True
-
-                # if inst_id is assigned (e.g. GET /dashboard/2)
-                if inst_id != None:
-                    current_inst_id = inst_id
-                    current_inst_name = user_insts_dict[inst_id]["inst_name"]
-                    current_inst_obj  = user_insts_dict[inst_id]["obj"]
-
-                # get info
-                serv_core_obj = db.session.query(ServerInstance).join(ServerCORE).filter(ServerInstance.inst_id == current_inst_id).first()
-
+        # first, make sure this operation is only allowed by its owner
+        if serv_core_obj != None:
+            if serv_core_obj.owner_id == uid:
                 mc_version = serv_core_obj.ob_server_core.minecraft_version
-
                 # get server properties and motd
-                file_server_properties = os.path.join(current_inst_obj.inst_dir,"server.properties")
+                file_server_properties = os.path.join(serv_core_obj.inst_dir,"server.properties")
                 motd_string = ""
                 server_properties = {}
                 if os.path.exists(file_server_properties):
@@ -106,29 +83,38 @@ def render_dashboard_page(uid, priv, inst_id = None):
                     server_properties = parser.conf_items
                     motd_string = server_properties.get("motd")
 
+                # LOGO src
+                image_source = ""
+                inst_dir = serv_core_obj.inst_dir
+                logo_file_name = os.path.join(inst_dir, "server-icon.png")
+                if os.path.exists(logo_file_name):
+                    image_source = "/server_inst/dashboard/logo_src/%s" % inst_id
                 # ftp account name
                 ftp_account_name = ""
                 default_ftp_password = True
-                ftp_obj = db.session.query(FTPAccount).filter(FTPAccount.inst_id == current_inst_id).first()
+                ftp_obj = db.session.query(FTPAccount).filter(FTPAccount.inst_id == inst_id).first()
 
                 if ftp_obj != None:
                     ftp_account_name = ftp_obj.username
                     default_ftp_password = ftp_obj.default_password
-                return render_template("server_inst/dashboard.html",
-                                       user_list=user_list, current_instance=current_inst_id,
-                                       current_instance_name=current_inst_name,
-                                       image_source="/server_inst/dashboard/logo_src/%s" % inst_id,
-                                       motd = motd_string,
-                                       str_ip_port = "127.0.0.1:%s" % current_inst_obj.listening_port,
-                                       mc_version = mc_version,
-                                       ftp_account_name = ftp_account_name,
-                                       default_ftp_password = default_ftp_password,
-                                       server_properties = server_properties
-                )
+
+                    properties_params = {
+                        "motd":motd_string,
+                        "image_source": image_source,
+                        "mc_version": mc_version,
+                        "listen_port": serv_core_obj.listening_port,
+                        "ftp_account_name": ftp_account_name,
+                        "default_ftp_password": default_ftp_password,
+                        "server_properties": server_properties
+                    }
+
+                    return rtn.success(properties_params)
+                else:
+                    return rtn.error(404)
             else:
-                # there is no any instance for this user,
-                # thus it is better to create another one
-                return redirect("server_inst/new_inst")
+                return rtn.error(403)
+        else:
+            return rtn.error(500)
 
     except TemplateNotFound:
         abort(404)
@@ -136,7 +122,7 @@ def render_dashboard_page(uid, priv, inst_id = None):
         logger.error(traceback.format_exc())
     pass
 
-
+'''
 @server_inst_page.route("/dashboard/<inst_id>", methods=["GET"])
 @check_login
 def render_dashboard_page_II(uid, priv, inst_id):
@@ -144,6 +130,38 @@ def render_dashboard_page_II(uid, priv, inst_id):
         return render_dashboard_page(inst_id=int(inst_id))
     except TemplateNotFound:
         abort(404)
+'''
+
+@server_inst_page.route("/api/get_inst_list", methods=["GET"])
+@ajax_check_login
+def get_inst_list(uid, priv):
+    user_list = {
+        "current_id" : None,
+        "list": []
+    }
+
+    user_insts = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).all()
+    if user_insts != None:
+        if len(user_insts) > 0:
+            user_list["current_id"] = user_insts[0].inst_id
+            star_flag = False
+            for item in user_insts:
+                _model = {
+                    "inst_name": item.inst_name,
+                    "star": item.star,
+                    "inst_id": item.inst_id
+                }
+
+                user_list["list"].append(_model)
+                # get starred instance
+                if item.star == True and star_flag == False:
+                    user_list["current_id"] = item.inst_id
+                    star_flag = True
+            return rtn.success(user_list)
+        else:
+            return rtn.success(user_list)
+    else:
+        return rtn.success(user_list)
 
 @server_inst_page.route("/dashboard/logo_src/<inst_id>", methods=["GET"])
 @check_login
@@ -162,3 +180,22 @@ def server_logo_source(uid, priv, inst_id):
             return send_file(logo_file_name)
         else:
             abort(404)
+
+# get the external IP address of this server.
+# The easiest way is to ask Internet for help!
+@server_inst_page.route("/api/get_my_ip", methods=["GET"])
+@check_login
+def get_my_ip(uid, priv):
+    gc = GlobalConfig()
+    _url = "http://whatismyip.akamai.com/"
+
+    if gc.get("my_ip_address") == "":
+        req = Request(url = _url)
+        resp = urlopen(req)
+
+        ip_addr = resp.read().decode()
+        # store ip address into cache
+        gc.set("my_ip_address", ip_addr)
+        return rtn.success(ip_addr)
+    else:
+        return rtn.success(gc.get("my_ip_address"))
