@@ -21,7 +21,7 @@ rtn = returnModel("string")
 
 @server_inst_page.route("/new_inst", methods=["GET"])
 @check_login
-def render_index_page():
+def render_index_page(uid, priv):
     return render_template("/server_inst/index.html")
 
 @server_inst_page.route("/api/new_inst", methods=["GET"])

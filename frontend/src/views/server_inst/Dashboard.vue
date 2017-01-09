@@ -335,7 +335,6 @@ export default {
                 for(let key in msg){
                     this.miscellaneous[key] = msg[key];
                 }
-
             },(msg)=>{
                 // on error
             })
