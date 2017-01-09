@@ -1,6 +1,6 @@
 from app import app
 from app.controller.global_config import GlobalConfig
-from flask import render_template, redirect
+from flask import render_template, redirect, send_file
 
 @app.route("/")
 def index():
@@ -11,6 +11,22 @@ def index():
         return redirect("/startup")
     else:
         return redirect("/server_inst/dashboard")
+
+# proxies
+@app.route("/vendors.js")
+def proxy_vendors_js():
+    return send_file("static/js/vendors.build.js")
+    pass
+
+@app.route("/super_admin.app.js")
+def proxy_sa():
+    return send_file("static/js/super_admin.app.build.js")
+    pass
+
+@app.route("/server_inst.app.js")
+def proxy_inst():
+    return send_file("static/js/server_inst.app.build.js")
+    pass
 
 @app.route("/__test")
 def __draft():
