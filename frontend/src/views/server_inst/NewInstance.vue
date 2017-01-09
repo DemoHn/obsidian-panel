@@ -4,8 +4,8 @@
 
             <!-- timeline time label -->
             <li class="time-label">
-                <span class="bg-red">
-                    BASIC SETTING
+                <span class="bg-green">
+                    &nbsp;&nbsp;基本设置&nbsp;&nbsp;
                 </span>
             </li>
             <!-- /.timeline-label -->
@@ -116,8 +116,8 @@
             </inst-item>
 
             <li class="time-label">
-                <span class="bg-red">
-                    BASIC SETTING
+                <span class="bg-blue">
+                    &nbsp;&nbsp;世界属性&nbsp;&nbsp;
                 </span>
             </li>
             <!-- server properties-->
@@ -152,6 +152,16 @@
                             </select>
                         </span>
                     </div>
+                    
+                    <div class="setting-item"><span class="item-text">游戏模式</span>
+                        <span class="input-element">
+                            <select  class="form-control" v-model="s_gamemode">
+                                <option :value="0">0</option>
+                                <option :value="1">1</option>
+                                <option :value="2">2</option>
+                            </select>
+                        </span>
+                    </div>
 
                     <div class="setting-item"><span class="item-text">怪物生成</span>
                         <span class="input-element">
@@ -179,8 +189,8 @@
             </inst-item>
 
             <li class="time-label">
-                <span class="bg-red">
-                    BASIC SETTING
+                <span class="bg-green">
+                    &nbsp;&nbsp;杂项&nbsp;&nbsp;
                 </span>
             </li>
 
@@ -293,7 +303,7 @@
                 "s_difficulty" : 1,
                 "s_spawn_monsters" : "true",
                 "s_allow_nether" : "true",
-
+                "s_gamemode" : 0,
                 /*button*/
                 "button_status" : 0
             }
@@ -305,7 +315,8 @@
                     "pvp": this.s_pvp,
                     "difficulty" : this.s_difficulty,
                     "spawn-monsters": this.s_spawn_monsters,
-                    "allow-nether": this.s_allow_nether
+                    "allow-nether": this.s_allow_nether,
+                    "gamemode" : this.s_gamemode
                 }
                 return JSON.stringify(json_data);
             }

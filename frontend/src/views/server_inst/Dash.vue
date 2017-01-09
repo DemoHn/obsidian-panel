@@ -1,4 +1,4 @@
-<template>
+<template lang="html">
   <div class="wrapper">
     <header class="main-header">
       <a href="/" class="logo">
@@ -29,11 +29,10 @@
       <section class="sidebar">
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu">
-          <li class="header"><i class="fa fa-map">&nbsp;&nbsp;我的世界</i></li>
-          <li class="active pageLink" v-on:click="toggleMenu"><router-link to="/server_inst/dashboard"> <i class="fa fa-dashboard"></i> 仪表盘</router-link></li>
-
-          <li class="header"><i class="fa fa-gear"></i>&nbsp;&nbsp;服务器设置</li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/info"> <i class="fa fa-info-circle"></i> 基本信息</router-link></li>
+            <br><br>
+            <li class="active pageLink" v-on:click="toggleMenu"><router-link to="/server_inst/dashboard"> <i class="fa fa-dashboard"></i><span class="link-text">仪表盘</span></router-link></li>
+            <br>
+            <li class="pageLink" v-on:click="toggleMenu"><a href="/super_admin/info"><i class="fa fa-arrow-circle-right"></i><span class="link-text">前往管理员界面</span></a></li>
         </ul>
         <!-- /.sidebar-menu -->
       </section>
@@ -97,6 +96,10 @@ module.exports = {
 <style>
 [v-cloak]{
   display: none;
+}
+
+.link-text{
+    margin-left: 0.5em;
 }
 .user-panel {
   height: 4em;

@@ -1,4 +1,4 @@
-<template>
+<template lang="html">
   <div class="wrapper">
     <header class="main-header">
       <a href="/" class="logo">
@@ -29,14 +29,14 @@
       <section class="sidebar">
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu">
-          <li class="header"><i class="fa fa-map">&nbsp;&nbsp;我的世界</i></li>
-          <li class="active pageLink" v-on:click="toggleMenu"><a href="/server_inst/dashboard"> <i class="fa fa-dashboard"></i> 仪表盘</></li>
+            <br><br>
+          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/info"> <i class="fa fa-info-circle"></i><span class="link-text">基本信息</span></router-link></li>
+          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/server_core"> <i class="fa fa-photo"></i><span class="link-text">服务器核心</span></router-link></li>
+          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/java_binary"><i class="fa fa-coffee"></i><span class="link-text">Java版本管理</span></router-link></li>
+          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/settings"> <i class="fa fa-gear"></i><span class="link-text">设置</span></router-link></li>
+          <br>
+          <li class="pageLink" v-on:click="toggleMenu"><a href="/server_inst/dashboard"><i class="fa fa-arrow-circle-left"></i><span class="link-text">返回控制台</span></a></li>
 
-          <li class="header"><i class="fa fa-gear"></i>&nbsp;&nbsp;服务器设置</li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/info"> <i class="fa fa-info-circle"></i> 基本信息</router-link></li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/server_core"> <i class="fa fa-photo"></i> 服务器核心</router-link></li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/java_binary"><i class="fa fa-coffee"></i> Java版本管理</router-link></li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/settings"> <i class="fa fa-gear"></i> 设置</router-link></li>
         </ul>
         <!-- /.sidebar-menu -->
       </section>
@@ -116,9 +116,15 @@ module.exports = {
 [v-cloak]{
   display: none;
 }
+
 .user-panel {
   height: 4em;
 }
+
+.link-text{
+    margin-left: 0.5em;
+}
+
 hr.visible-xs-block {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.17);

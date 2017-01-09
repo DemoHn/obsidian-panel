@@ -41,7 +41,7 @@
                                         <td>每日讯息</td>
                                         <td>
                                             <span id="motd">
-                                                {{ miscellaneous.motd }}
+                                                <motd-display :content="miscellaneous.motd"></motd-display>
                                             </span>
                                         </td>
                                     </tr>
@@ -160,6 +160,7 @@ import SelectInstance from "../../components/dashboard/inst-select.vue";
 import ControlButton from "../../components/dashboard/ctrl-button.vue";
 import ServerStatus from "../../components/dashboard/server-status.vue";
 import SimpleConsole from "../../components/dashboard/simple-console.vue";
+import MotdDisplay from "../../components/dashboard/motd-display.vue";
 
 import WebSocket from "../../lib/websocket";
 export default {
@@ -167,7 +168,8 @@ export default {
         'inst-select' : SelectInstance,
         'ctrl-button' : ControlButton,
         'server-status' : ServerStatus,
-        'simple-console': SimpleConsole
+        'simple-console': SimpleConsole,
+        'motd-display' : MotdDisplay
     },
     name: "Dashboard",
     data(){
