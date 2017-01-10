@@ -7,10 +7,11 @@ logger = Logger("FTM")
 
 def start_FTP_manager(port=2121, debug=True):
     logger.set_debug(debug)
-    manager = FTPManager()
-    manager.set_port(port)
-    manager.launch(background=True)
 
     proxy = MessageQueueProxy(WS_TAG.FTM)
     proxy.register(FTPAccountEventHandler)
-    proxy.listen(background=False)
+    proxy.listen(background=True)
+
+    manager = FTPManager()
+    manager.set_port(port)
+    manager.launch(background=False)

@@ -127,7 +127,7 @@ EOF
 }
 
 write_circus
+write_websocket_server
 write_app
 write_ftp_manager
 write_process_watcher
-write_websocket_server

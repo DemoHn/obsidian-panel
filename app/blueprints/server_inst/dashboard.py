@@ -7,6 +7,8 @@ from urllib.request import urlopen, Request
 from app import db, logger
 from app.utils import returnModel
 
+from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
+
 from app.model import ServerInstance, ServerCORE, FTPAccount
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 from app.controller.global_config import GlobalConfig
@@ -54,7 +56,7 @@ class KVParser(object):
                     self.conf_items[key] = val
         fd.close()
 
-
+proxy = MessageQueueProxy(WS_TAG.APP)
 rtn = returnModel("string")
 
 @server_inst_page.route("/dashboard", methods=["GET"])
@@ -122,15 +124,6 @@ def render_dashboard_page(uid, priv, inst_id):
         logger.error(traceback.format_exc())
     pass
 
-'''
-@server_inst_page.route("/dashboard/<inst_id>", methods=["GET"])
-@check_login
-def render_dashboard_page_II(uid, priv, inst_id):
-    try:
-        return render_dashboard_page(inst_id=int(inst_id))
-    except TemplateNotFound:
-        abort(404)
-'''
 
 @server_inst_page.route("/api/get_inst_list", methods=["GET"])
 @ajax_check_login
@@ -199,3 +192,24 @@ def get_my_ip(uid, priv):
         return rtn.success(ip_addr)
     else:
         return rtn.success(gc.get("my_ip_address"))
+
+# CONTROL directives
+@server_inst_page.route("/api/get_instance_status/<inst_id>", methods=["GET"])
+@ajax_check_login
+def get_instance_status(uid, priv, inst_id):
+    # don't forget to check it
+    props = {
+        "inst_id" : inst_id
+    }
+    info = proxy.send("process.get_instance_status", props, WS_TAG.MPW)
+
+    if info == None:
+        return rtn.error(500)
+    else:
+        print(info)
+        return rtn.success(info["data"])
+
+@server_inst_page.route("/api/get_instance_log/<inst_id>", methods=["GET"])
+@check_login
+def get_instance_log(uid, priv, inst_id):
+    pass

@@ -13,7 +13,7 @@ class WatcherEvents(MessageEventHandler):
     Of course, since the watcher is an independent process, we use message queue
     to control it.
     '''
-    __prefix__ = "_process"
+    __prefix__ = "process"
     def __init__(self):
         self.watcher = Watcher()
         self.proc_pool = MCProcessPool()
@@ -52,62 +52,48 @@ class WatcherEvents(MessageEventHandler):
             "status" : "error"
         }
         '''
-        uid, sid, src, dest = self.pool.get(flag)
         EVENT_NAME = "process.response"
 
         inst_id = int(values.get("inst_id"))
 
         if inst_id == None:
             rtn_data = {
-                "status" : "error",
                 "inst_id" : inst_id,
                 "val" : None
             }
             # send error msg
-            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
-            return None
+            return rtn_data
 
         # update pool
         self.__update_pool()
 
         rtn_data = {
-            "status": "success",
-            "event" : "process.get_instance_status",
             "inst_id" : inst_id,
             "val": None
         }
 
         inst_info = self.proc_pool.get_info(inst_id)
-        if inst_info.get_owner() == int(uid):
 
-            _curr_player = -1
-            _RAM = -1
-            if inst_info.get_current_player() != None:
-                _curr_player = inst_info.get_current_player()
+        _curr_player = -1
+        _RAM = -1
+        if inst_info.get_current_player() != None:
+            _curr_player = inst_info.get_current_player()
 
-            if inst_info.get_RAM() != None:
-                _RAM = inst_info.get_RAM()
+        if inst_info.get_RAM() != None:
+            _RAM = inst_info.get_RAM()
 
-            _model = {
-                "inst_id": inst_id,
-                "current_player": _curr_player,
-                "total_player": inst_info.get_total_player(),
-                "RAM": _RAM,
-                "total_RAM": inst_info.get_total_RAM(),
-                "status": self.proc_pool.get_status(inst_id)
-            }
-            rtn_data["val"] = _model
+        _model = {
+            "current_player": _curr_player,
+            "total_player": inst_info.get_total_player(),
+            "RAM": _RAM,
+            "total_RAM": inst_info.get_total_RAM(),
+            "status": self.proc_pool.get_status(inst_id)
+        }
+        rtn_data["val"] = _model
 
-            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
-        else:
-            rtn_data["status"] = "error"
-            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
-        # if the message is sent from browser
-        #if sender == WS_TAG.CLIENT:
-        #    self.proxy.send(EVENT_NAME, sender,flag, rtn_data, uid=uid)
+        return rtn_data
 
     def get_instance_log(self, flag, values):
-        # TODO
         '''
         DESCRIPTION: get instance log (all log)
 
@@ -121,27 +107,19 @@ class WatcherEvents(MessageEventHandler):
         }
         '''
         inst_id = values.get("inst_id")
-        uid, sid, src, dest = self.pool.get(flag)
-
-        EVENT_NAME = "process.response"
 
         if inst_id == None:
             return None
 
         rtn_data = {
-            "status": "success",
-            "event" : "process.get_instance_log",
             "inst_id" : inst_id,
             "val": {
                 "log" : None
             }
         }
 
-        inst_info = self.proc_pool.get_info(inst_id)
-        if inst_info.get_owner() == int(uid):
-            rtn_data["val"]["log"] = inst_info.get_log()
-
-            self.proxy.send(flag, EVENT_NAME, rtn_data, WS_TAG.CONTROL)
+        rtn_data["val"]["log"] = inst_info.get_log()
+        return rtn_data
 
     def add_instance(self, flag, values):
         return None

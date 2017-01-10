@@ -33,6 +33,7 @@ app.register_blueprint(server_inst_page)
 # set sqlalchemy database uri
 gc = GlobalConfig.getInstance()
 
+
 if gc.get("database_uri") != None:
     app.config["SQLALCHEMY_DATABASE_URI"] = gc.get("database_uri")
 

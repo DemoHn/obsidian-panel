@@ -3,14 +3,7 @@ from app.model import Users, UserToken
 from app.controller.global_config import GlobalConfig
 from app.utils import PRIVILEGES
 from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
-import socketio
-import eventlet
-import json
-import re
-import zmq
-import threading
-
-eventlet.monkey_patch()
+import socketio, eventlet, json, re, zmq, threading, traceback
 
 # logging system
 from . import logger
@@ -187,61 +180,50 @@ def emit_message_startup(sid, data):
                sid = sid,
                _src= WS_TAG.CLIENT)
 
-
-def start_zeromq_broker(req_port=852, rep_port=853):
+def start_zeromq_broker(router_port=852):
     context = zmq.Context()
-    frontend = context.socket(zmq.ROUTER)
-    backend = context.socket(zmq.DEALER)
-    frontend.bind("tcp://*:%s" % req_port)
-    backend.bind("tcp://*:%s" % rep_port)
+    socket  = context.socket(zmq.ROUTER)
+    socket.bind("tcp://*:%s" % router_port)
 
-    # Initialize poll set
-    poller = zmq.Poller()
-    poller.register(frontend, zmq.POLLIN)
-    poller.register(backend, zmq.POLLIN)
+    while True:
+        try:
+            msg = socket.recv_multipart()
+            _msg_json = json.loads(msg[1].decode())
+            logger.debug("recv msg --> %s" % msg[1].decode())
+            forward_arr = [_msg_json.get("_dest").encode(), msg[1]]
+            socket.send_multipart(forward_arr)
+        except:
+            logger.error(traceback.format_exc())
+            continue
 
-    # Switch messages between sockets
-    def start_broker():
-        while True:
-            socks = dict(poller.poll())
 
-            if socks.get(frontend) == zmq.POLLIN:
-                message = frontend.recv_multipart()
-                backend.send_multipart(message)
-
-            if socks.get(backend) == zmq.POLLIN:
-                message = backend.recv_multipart()
-                frontend.send_multipart(message)
-
-    t = threading.Thread(target=start_broker)
-    t.setDaemon(True)
-    t.start()
-
-def start_websocket_server(debug=True, port=851, req_port=852, rep_port=853):
+def start_websocket_server(debug=True, port=851, router_port=852):
     from . import logger
     logger.set_debug(debug)
 
     #from .controller import ProcessEventHandler, DownloaderEventHandler
     # register listeners
     #ControllerOfInstance()
-    #init
-    WSConnections.getInstance()
-    # add listen thread
-    #proxy = MessageQueueProxy.getInstance()
-    #t = threading.Thread(target=proxy.listen)
-    #t.start()
 
     #proxy = MessageQueueProxy(WS_TAG.CONTROL)
     #proxy.register(ProcessEventHandler)
     #proxy.register(DownloaderEventHandler)
 
     #proxy.listen(background=True)
-    start_zeromq_broker(req_port=req_port, rep_port=rep_port)
+#    t = threading.Thread(target=start_zeromq_broker, kwargs = {"router_port" : router_port })
+ #   t.setDaemon(True)
+  #  t.start()
+    start_zeromq_broker()
+#    eventlet.monkey_patch()
+
+    #init
+    WSConnections.getInstance()
 
     app = socketio.Middleware(sio)
 
+    # TODO
     PORT = 5001
     logger.info("This is Websocket Server.")
     logger.info("The listening port is %s" % PORT)
     # deploy as an eventlet WSGI server
-    eventlet.wsgi.server(eventlet.listen(('', PORT)), app)
+  #  eventlet.wsgi.server(eventlet.listen(('', PORT)), app)

@@ -9,7 +9,9 @@ import traceback
 # logging system
 from ob_logger import Logger
 logger = Logger("MsgQ", debug=True)
-class MessageQueueProxy(metaclass=Singleton):
+
+class MessageQueueProxy():
+#class MessageQueueProxy(metaclass=Singleton):
     '''
     What is a .. Message Queue Proxy?
     A message queue proxy takes responsibility for receiving message from message queue
@@ -18,18 +20,13 @@ class MessageQueueProxy(metaclass=Singleton):
     websocket server to send websocket message, instead of sending message directly.
     '''
     TAGS = WS_TAG
-    def __init__(self, tag, req_port=852, rep_port=853):
+    def __init__(self, tag, router_port=852):
         self.ws_tag = tag
         self.context = zmq.Context()
 
-        self.req_port = req_port
-        self.rep_port = rep_port
-        # init socket
-        self.sock_send = self.context.socket(zmq.REQ)
-        self.sock_send.connect("tcp://localhost:%s" % self.req_port)
+        self.sock_send = None
 
-        self.sock_recv = self.context.socket(zmq.REP)
-        self.sock_recv.connect("tcp://localhost:%s" % self.rep_port)
+        self.router_port = router_port
 
         self.handlers = {}
 
@@ -47,9 +44,18 @@ class MessageQueueProxy(metaclass=Singleton):
             return flag
 
     def _listen(self):
+        # init recv socket
+        self.sock_recv = self.context.socket(zmq.DEALER)
+        self.sock_recv.setsockopt_string(zmq.IDENTITY, self.ws_tag)
+        self.sock_recv.connect("tcp://localhost:%s" % self.router_port)
+
         while True:
-            _msg = self.sock_recv.recv()
-            logger.debug("recv msg: %s" % msg)
+            try:
+                _msg = self.sock_recv.recv()
+            except:
+                # timeout
+                logger.error(traceback.format_exc())
+                continue
 
             try:
                 msg_json = json.loads(_msg.decode())
@@ -57,17 +63,17 @@ class MessageQueueProxy(metaclass=Singleton):
                 # check if available
                 event_name = msg_json.get("event")
                 values = msg_json.get("props")
+                source = msg_json.get("_src")
 
-                src  = msg_json.get("_info").get("src")
-                dest = msg_json.get("_info").get("dest")
-                if dest == self.ws_tag and event_name != None and values != None:
+                if event_name != None and values != None:
                     if self.handlers.get(event_name) != None:
                         handler = self.handlers.get(event_name)
-
                         rtn_status = {
                             "status" : "success",
-                            "data" : None
+                            "data" : None,
+                            "_dest" : source
                         }
+
                         # send back data
                         try:
                             rtn_data = handler(flag, values)
@@ -77,7 +83,9 @@ class MessageQueueProxy(metaclass=Singleton):
                             logger.debug(traceback.format_exc())
                             rtn_status["status"] = "error"
                             self.sock_recv.send(json.dumps(rtn_status).encode())
-
+                else:
+                    # jsut drop it
+                    pass
             except:
                 logger.error(traceback.format_exc())
 
@@ -105,18 +113,20 @@ class MessageQueueProxy(metaclass=Singleton):
                 continue
         pass
 
-    def send(self, flag, event, values, dest, uid=None, sid=None, _src=None):
+    def send(self, event, values, dest, _src=None):
         '''
-
-        :param flag: just flag
         :param event:
         :param values:
         :param dest: the destination of message. choices:
          WS_TAG.CLIENT | WS_TAG.MPW and so on
         :return:
         '''
-        if flag == None:
-            flag = self._get_flag(flag)
+                # init send socket
+        if self.sock_send == None:
+            self.sock_send = self.context.socket(zmq.DEALER)
+            self.sock_send.setsockopt_string(zmq.IDENTITY, self.ws_tag)
+            self.sock_send.setsockopt(zmq.RCVTIMEO, 3000) # 5 sec timeout
+            self.sock_send.connect("tcp://localhost:%s" % self.router_port)
 
         if _src == None:
             _src = self.ws_tag
@@ -125,16 +135,24 @@ class MessageQueueProxy(metaclass=Singleton):
         send_msg = {
             "event" : event,
             "props" : values,
-            "flag"  : flag,
-            "_info":{
-                "src" : _src,
-                "dest" : _dest
-            }
+            "_dest" : _dest,
+            "_src"  : _src
         }
 
         self.sock_send.send(json.dumps(send_msg).encode())
         # and receive data...
-        return self.sock_send.recv()
+        try:
+            recv_binary = self.sock_send.recv()
+        except:
+            return None
+        # from binary to json object
+        try:
+            recv_str = recv_binary.decode()
+            recv_json = json.loads(recv_str)
+            return recv_json
+        except:
+            return None
+        return
 
     def listen(self, background=True):
         if background:
