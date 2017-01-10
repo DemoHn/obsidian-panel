@@ -7,14 +7,15 @@ import socketio
 import eventlet
 import json
 import re
+import zmq
+import threading
 
 eventlet.monkey_patch()
 
 # logging system
 from . import logger
 
-mgr = socketio.RedisManager("redis://")
-sio = socketio.Server(client_manager=mgr)
+sio = socketio.Server()
 
 class WSConnections(object):
 
@@ -187,11 +188,40 @@ def emit_message_startup(sid, data):
                _src= WS_TAG.CLIENT)
 
 
-def start_websocket_server(debug=True, port=5001):
+def start_zeromq_broker(req_port=852, rep_port=853):
+    context = zmq.Context()
+    frontend = context.socket(zmq.ROUTER)
+    backend = context.socket(zmq.DEALER)
+    frontend.bind("tcp://*:%s" % req_port)
+    backend.bind("tcp://*:%s" % rep_port)
+
+    # Initialize poll set
+    poller = zmq.Poller()
+    poller.register(frontend, zmq.POLLIN)
+    poller.register(backend, zmq.POLLIN)
+
+    # Switch messages between sockets
+    def start_broker():
+        while True:
+            socks = dict(poller.poll())
+
+            if socks.get(frontend) == zmq.POLLIN:
+                message = frontend.recv_multipart()
+                backend.send_multipart(message)
+
+            if socks.get(backend) == zmq.POLLIN:
+                message = backend.recv_multipart()
+                frontend.send_multipart(message)
+
+    t = threading.Thread(target=start_broker)
+    t.setDaemon(True)
+    t.start()
+
+def start_websocket_server(debug=True, port=851, req_port=852, rep_port=853):
     from . import logger
     logger.set_debug(debug)
 
-    from .controller import ProcessEventHandler, DownloaderEventHandler
+    #from .controller import ProcessEventHandler, DownloaderEventHandler
     # register listeners
     #ControllerOfInstance()
     #init
@@ -201,11 +231,12 @@ def start_websocket_server(debug=True, port=5001):
     #t = threading.Thread(target=proxy.listen)
     #t.start()
 
-    proxy = MessageQueueProxy(WS_TAG.CONTROL)
-    proxy.register(ProcessEventHandler)
-    proxy.register(DownloaderEventHandler)
+    #proxy = MessageQueueProxy(WS_TAG.CONTROL)
+    #proxy.register(ProcessEventHandler)
+    #proxy.register(DownloaderEventHandler)
 
-    proxy.listen(background=True)
+    #proxy.listen(background=True)
+    start_zeromq_broker(req_port=req_port, rep_port=rep_port)
 
     app = socketio.Middleware(sio)
 

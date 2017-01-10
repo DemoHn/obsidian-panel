@@ -1,6 +1,6 @@
 __author__ = "Nigshoxiz"
 
-import redis, pickle, inspect, threading, time
+import zmq, inspect, threading, time, zmq, json
 from uuid import uuid4
 from . import Singleton, WS_TAG, MessageUserStatusPool
 from .event_handler import MessageEventHandler
@@ -18,21 +18,22 @@ class MessageQueueProxy(metaclass=Singleton):
     websocket server to send websocket message, instead of sending message directly.
     '''
     TAGS = WS_TAG
-    def __init__(self, tag):
-        self.redis = redis.Redis()
-        self.pub_sub = self.redis.pubsub()
+    def __init__(self, tag, req_port=852, rep_port=853):
         self.ws_tag = tag
+        self.context = zmq.Context()
 
-        self.channel = "control"
+        self.req_port = req_port
+        self.rep_port = rep_port
+        # init socket
+        self.sock_send = self.context.socket(zmq.REQ)
+        self.sock_send.connect("tcp://localhost:%s" % self.req_port)
 
-        self.pub_sub.subscribe(self.channel)
-        # don't be afraid of initializing this class directly
-        # It's a singleton class
-        self.pool = MessageUserStatusPool()
+        self.sock_recv = self.context.socket(zmq.REP)
+        self.sock_recv.connect("tcp://localhost:%s" % self.rep_port)
+
         self.handlers = {}
 
-        # for send_sync()
-        self._sync_event = {}
+        # bind to zeromq router
     def _get_flag(self, flag):
         '''
         get flag. If flag is None, it will return an automatically generated uuid-like
@@ -46,27 +47,39 @@ class MessageQueueProxy(metaclass=Singleton):
             return flag
 
     def _listen(self):
-        channel = self.channel.encode()
-        for msg in self.pub_sub.listen():
-            if msg["type"] == "message" and msg["channel"] == channel:
-                msg_json = pickle.loads(msg['data'])
+        while True:
+            _msg = self.sock_recv.recv()
+            logger.debug("recv msg: %s" % msg)
+
+            try:
+                msg_json = json.loads(_msg.decode())
                 flag = self._get_flag(msg_json.get("flag"))
                 # check if available
                 event_name = msg_json.get("event")
                 values = msg_json.get("props")
-                uid,sid,src,dest = self.pool.get(flag)
 
+                src  = msg_json.get("_info").get("src")
+                dest = msg_json.get("_info").get("dest")
                 if dest == self.ws_tag and event_name != None and values != None:
-                    # set sync dict
-                    if self._sync_event.get(event_name) == "WAITING":
-                        self._sync_event[event_name] = values
-
                     if self.handlers.get(event_name) != None:
                         handler = self.handlers.get(event_name)
+
+                        rtn_status = {
+                            "status" : "success",
+                            "data" : None
+                        }
+                        # send back data
                         try:
-                            handler(flag, values)
+                            rtn_data = handler(flag, values)
+                            rtn_status["data"] = rtn_data
+                            self.sock_recv.send(json.dumps(rtn_status).encode())
                         except:
                             logger.debug(traceback.format_exc())
+                            rtn_status["status"] = "error"
+                            self.sock_recv.send(json.dumps(rtn_status).encode())
+
+            except:
+                logger.error(traceback.format_exc())
 
     def _register_handler(self, event_name, handler):
         if inspect.ismethod(handler):
@@ -105,21 +118,23 @@ class MessageQueueProxy(metaclass=Singleton):
         if flag == None:
             flag = self._get_flag(flag)
 
+        if _src == None:
+            _src = self.ws_tag
+        _dest = dest
+
         send_msg = {
             "event" : event,
             "props" : values,
-            "flag"  : flag
+            "flag"  : flag,
+            "_info":{
+                "src" : _src,
+                "dest" : _dest
+            }
         }
 
-        if _src == None:
-            _src = self.ws_tag
-
-        _dest = dest
-        if self.pool.exists(flag):
-            self.pool.update(flag, src=_src, dest=_dest)
-        else:
-            self.pool.put(flag, uid, sid, _src, _dest)
-        self.redis.publish(self.channel, pickle.dumps(send_msg))
+        self.sock_send.send(json.dumps(send_msg).encode())
+        # and receive data...
+        return self.sock_send.recv()
 
     def listen(self, background=True):
         if background:
