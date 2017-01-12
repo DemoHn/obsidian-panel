@@ -55,8 +55,8 @@ class KVParser(object):
                     val = result.group(2).strip()
                     self.conf_items[key] = val
         fd.close()
-
-proxy = MessageQueueProxy(WS_TAG.APP)
+TAG_NAME = "%s_%s" % (WS_TAG.APP, os.getpid())
+proxy = MessageQueueProxy(TAG_NAME)
 rtn = returnModel("string")
 
 @server_inst_page.route("/dashboard", methods=["GET"])
@@ -197,7 +197,11 @@ def get_my_ip(uid, priv):
 @server_inst_page.route("/api/get_instance_status/<inst_id>", methods=["GET"])
 @ajax_check_login
 def get_instance_status(uid, priv, inst_id):
-    # don't forget to check it
+    # don't forget to check if this user is allowed to get inst info
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+
+    if is_user == None:
+        return rtn.error(403)
     props = {
         "inst_id" : inst_id
     }
@@ -206,10 +210,69 @@ def get_instance_status(uid, priv, inst_id):
     if info == None:
         return rtn.error(500)
     else:
-        print(info)
         return rtn.success(info["data"])
 
 @server_inst_page.route("/api/get_instance_log/<inst_id>", methods=["GET"])
 @check_login
 def get_instance_log(uid, priv, inst_id):
-    pass
+    # don't forget to check if this user is allowed to get inst info
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+
+    if is_user == None:
+        return rtn.error(403)
+
+    props = {
+        "inst_id" : inst_id
+    }
+
+    info = proxy.send("process.get_instance_log", props, WS_TAG.MPW)
+    if info == None:
+        return rtn.error(500)
+    else:
+        return rtn.success(info["data"])
+
+# start, stop, restart instance
+@server_inst_page.route("/api/start_instance/<inst_id>", methods=["GET"])
+@check_login
+def start_instance(uid, priv, inst_id):
+    # don't forget to check if this user is allowed to get inst info
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    if is_user == None:
+        return rtn.error(403)
+    props = {
+        "inst_id" : inst_id
+    }
+
+    proxy.send("process.start_instance", props, WS_TAG.MPW, reply=False)
+    return rtn.success(200)
+
+@server_inst_page.route("/api/stop_instance/<inst_id>", methods=["GET"])
+@check_login
+def stop_instance(uid, priv, inst_id):
+    # don't forget to check if this user is allowed to get inst info
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    if is_user == None:
+        return rtn.error(403)
+    props = {
+        "inst_id" : inst_id
+    }
+
+    proxy.send("process.stop_instance", props, WS_TAG.MPW, reply=False)
+    return rtn.success(200)
+
+@server_inst_page.route("/api/send_command/<inst_id>", methods=["GET"])
+@check_login
+def send_command(uid, priv, inst_id):
+    # don't forget to check if this user is allowed to get inst info
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    if is_user == None:
+        return rtn.error(403)
+
+    G = request.args
+    props = {
+        "inst_id" : inst_id,
+        "command" : G.get("command")
+    }
+
+    proxy.send("process.send_command", props, WS_TAG.MPW, reply=False)
+    return rtn.success(200)

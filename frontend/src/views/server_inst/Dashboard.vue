@@ -202,16 +202,13 @@ export default {
     methods: {
         inst_cmd(command){
             let ws = new WebSocket();
-            let props = {
-                inst_id : this.inst_id
-            }
 
             if(command == "start"){
-                ws.send("process.start",props);
+                ws.ajax("GET", "/server_inst/api/start_instance/"+this.inst_id, (msg)=>{});
             }else if(command == "stop"){
-                ws.send("process.stop", props);
+                ws.ajax("GET", "/server_inst/api/stop_instance/"+this.inst_id, (msg)=>{});
             }else if(command == "restart"){
-                ws.send("process.restart", props);
+                ws.ajax("GET", "/server_inst/api/restart_instance/"+this.inst_id, (msg)=>{});
             }
         },
 
@@ -219,11 +216,7 @@ export default {
             let ws = new WebSocket();
             let Console = this.$refs.ConsoleF;
             if(Number.isInteger(this.inst_id)){
-                let props = {
-                    "inst_id" : this.inst_id,
-                    "command" : command
-                }
-                ws.send("process.send_command", props)
+                ws.ajax("GET","/server_inst/api/send_command/"+this.inst_id + "?" + "command=" + command);
             }
         },
 
@@ -234,8 +227,8 @@ export default {
 
             Status.set_loading_status(true);
             this.aj_get_properties();
-            this.ws_init_status();
-            this.ws_init_console_log();
+            this.aj_init_status();
+            this.aj_init_console_log();
         },
         // events originally from MPW
         on_status_change(msg){
@@ -276,14 +269,11 @@ export default {
                 Console.append_log(_log);
             }
         },
-        ws_init_console_log(){
+        aj_init_console_log(){
             let ws = new WebSocket();
             let Console = this.$refs.ConsoleF;
             if(Number.isInteger(this.inst_id)){
-                let props = {
-                    inst_id : this.inst_id
-                }
-                ws.send("process.get_instance_log", props, (msg)=>{
+                ws.ajax("GET", "/server_inst/api/get_instance_log/"+this.inst_id, (msg)=>{
                     let log_obj = msg.val;
                     let log = log_obj["log"]
                     if(log != null){
@@ -292,7 +282,7 @@ export default {
                 });
             }
         },
-        ws_init_status(){
+        aj_init_status(){
             let ws = new WebSocket();
             let Status = this.$refs.StatusF;
             let Button = this.$refs.CtrlF;
@@ -300,7 +290,7 @@ export default {
                 let props = {
                     inst_id : this.inst_id
                 }
-                ws.send("process.get_instance_status", props, (msg)=>{
+                ws.ajax("GET", "/server_inst/api/get_instance_status/"+this.inst_id, (msg)=>{
                     Status.init_status_list(msg.val);
                     Button.init(msg.val.status);
                 });
@@ -316,17 +306,15 @@ export default {
                     this.inst_id = msg.current_id;
 
                 this.aj_get_properties();
-                this.ws_init_status();
-                this.ws_init_console_log();
+                this.aj_init_status();
+                this.aj_init_console_log();
             },(msg)=>{
 
             })
-
             ws.bind("status_change", this.on_status_change);
             ws.bind("player_change", this.on_player_change);
             ws.bind("memory_change", this.on_memory_change);
             ws.bind("log_update", this.on_log_update);
-
         },
         aj_get_properties(){
             let ws = new WebSocket();

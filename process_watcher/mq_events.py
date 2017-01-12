@@ -106,10 +106,11 @@ class WatcherEvents(MessageEventHandler):
             "log" : [<Array>]
         }
         '''
-        inst_id = values.get("inst_id")
-
+        inst_id = int(values.get("inst_id"))
         if inst_id == None:
             return None
+
+        inst_info = self.proc_pool.get_info(inst_id)
 
         rtn_data = {
             "inst_id" : inst_id,
@@ -181,12 +182,10 @@ class WatcherEvents(MessageEventHandler):
         :return:
         '''
         inst_id = int(values.get("inst_id"))
-        uid, sid, src, dest = self.pool.get(flag)
         self.__update_pool()
-        inst_info = self.proc_pool.get_info(inst_id)
 
-        if inst_info.get_owner() == int(uid):
-            self.watcher.start_instance(inst_id)
+        inst_info = self.proc_pool.get_info(inst_id)
+        self.watcher.start_instance(inst_id)
 
     def stop_instance(self, flag, values):
         '''
@@ -197,9 +196,7 @@ class WatcherEvents(MessageEventHandler):
         :param values: { "inst_id" : <inst_id> }
         :return:
         '''
-        uid, sid, src, dest = self.pool.get(flag)
-        inst_id = values.get("inst_id")
-
+        inst_id = int(values.get("inst_id"))
         if inst_id == None:
             return None
 
@@ -209,18 +206,12 @@ class WatcherEvents(MessageEventHandler):
         if inst_info == None:
             return None
 
-        if inst_info.get_owner() == uid:
-            # normal exit, do not restart the instance anymore
-            inst_daemon.set_normal_exit(True)
-            self.watcher.stop_instance(inst_id)
-
-    def add_and_start(self, flag, values):
-        #self.add_instance(flag, values)
-        self.start_instance(flag, values)
+        # normal exit, do not restart the instance anymore
+        inst_daemon.set_normal_exit(True)
+        self.watcher.stop_instance(inst_id)
 
     def restart_instance(self, flag, values):
-        uid, sid, src, dest = self.pool.get(flag)
-        inst_id = values.get("inst_id")
+        inst_id = int(values.get("inst_id"))
 
         inst_info = self.proc_pool.get_info(inst_id)
         inst_daemon = self.proc_pool.get_daemon(inst_id)
@@ -228,19 +219,17 @@ class WatcherEvents(MessageEventHandler):
         if inst_info == None:
             return None
 
-        if inst_info.get_owner() == uid:
-            inst_daemon.set_normal_exit(True)
-            # restart flag
-            inst_daemon.set_restart_flag(True)
-            self.watcher.stop_instance(inst_id)
+        inst_daemon.set_normal_exit(True)
+        # restart flag
+        inst_daemon.set_restart_flag(True)
+        self.watcher.stop_instance(inst_id)
 
     def send_command(self, flag, values):
-        uid, sid, src, dest = self.pool.get(flag)
-        inst_id = values.get("inst_id")
+        inst_id = int(values.get("inst_id"))
         command = values.get("command")
         if inst_id == None:
             return None
 
         inst_info = self.proc_pool.get_info(inst_id)
-        if inst_info.get_owner() == uid:
-            self.watcher.send_command(inst_id, command)
+
+        self.watcher.send_command(inst_id, command)

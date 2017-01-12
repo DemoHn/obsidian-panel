@@ -7,6 +7,14 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+class SingletonP(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        TAG_NAME = args[0]
+        if TAG_NAME not in cls._instances:
+            cls._instances[TAG_NAME] = super(SingletonP, cls).__call__(*args, **kwargs)
+        return cls._instances[TAG_NAME]
+
 class WS_TAG:
     MPW = "MPW"
     CONTROL = "CONTROL"

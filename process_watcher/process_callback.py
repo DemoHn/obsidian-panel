@@ -1,5 +1,4 @@
 import re
-
 from . import logger, Singleton, SERVER_STATE
 from .process_pool import MCProcessPool
 
@@ -7,23 +6,23 @@ from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
 
 class MCProcessCallback():
     def __init__(self):
+        self.proxy = MessageQueueProxy(WS_TAG.MPW)
         self._proc_pool = MCProcessPool()
 
     # event name : inst_event
     def broadcast(self, inst_id, event_name, value):
-        proxy = MessageQueueProxy(WS_TAG.MPW)
-        event_prefix = "process"
-        event_type = "broadcast"
 
-        _name = "%s.%s" % (event_prefix, event_type)
+        _info = self._proc_pool.get_info(inst_id)
+        uid   = _info.get_owner()
+
         values = {
             "inst_id": inst_id,
             "event": event_name,
-            "val": value
+            "value": value,
+            "uid" : uid
         }
-        _info = self._proc_pool.get_info(inst_id)
-        uid   = _info.get_owner()
-        proxy.send(None, _name, values, WS_TAG.CONTROL, uid=uid)
+        self.proxy.send("websocket.broadcast", values, WS_TAG.CLIENT, reply=False)
+        #self.proxy.send("websocket.broadcast", values, WS_TAG.CLIENT, reply=False)
 
     def on_log_update(self, inst_id, pipe, log):
         # broadcast raw log

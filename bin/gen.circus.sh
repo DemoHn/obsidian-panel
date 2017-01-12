@@ -126,7 +126,28 @@ EOF
     fi
 }
 
+write_zeromq_broker(){
+    cat >> $DEST_FILE <<- EOF
+[watcher:zeromq_broker]
+copy_env = True
+virtualenv = ./env
+working_dir = ./
+cmd = python launch.py -b zeromq_broker -p $config_broker_listen_port --debug=$debug
+numprocesses = 1
+priority = 5
+EOF
+
+    if [ "$debug" = "false" ]; then
+        cat >> $DEST_FILE <<- EOF
+stdout_stream.class = FileStream
+stdout_stream.filename = $config_global_log_file
+
+EOF
+    fi
+}
+
 write_circus
+write_zeromq_broker
 write_websocket_server
 write_app
 write_ftp_manager

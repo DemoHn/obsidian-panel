@@ -28,6 +28,7 @@ def start_process_watcher(debug=True):
     from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
 
     proxy = MessageQueueProxy(WS_TAG.MPW)
+    print(proxy)
     proxy.register(WatcherEvents)
 
     logger.info("This is Minecraft Process Watcher.")

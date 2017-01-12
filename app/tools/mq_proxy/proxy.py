@@ -2,7 +2,7 @@ __author__ = "Nigshoxiz"
 
 import zmq, inspect, threading, time, zmq, json
 from uuid import uuid4
-from . import Singleton, WS_TAG, MessageUserStatusPool
+from . import SingletonP, WS_TAG, MessageUserStatusPool
 from .event_handler import MessageEventHandler
 import traceback
 
@@ -10,8 +10,7 @@ import traceback
 from ob_logger import Logger
 logger = Logger("MsgQ", debug=True)
 
-class MessageQueueProxy():
-#class MessageQueueProxy(metaclass=Singleton):
+class MessageQueueProxy(metaclass=SingletonP):
     '''
     What is a .. Message Queue Proxy?
     A message queue proxy takes responsibility for receiving message from message queue
@@ -46,9 +45,10 @@ class MessageQueueProxy():
     def _listen(self):
         # init recv socket
         self.sock_recv = self.context.socket(zmq.DEALER)
-        self.sock_recv.setsockopt_string(zmq.IDENTITY, self.ws_tag)
+        self.sock_recv.setsockopt_string(zmq.IDENTITY, "recv-"+self.ws_tag)
         self.sock_recv.connect("tcp://localhost:%s" % self.router_port)
 
+        logger.debug("identity: %s" % self.ws_tag)
         while True:
             try:
                 _msg = self.sock_recv.recv()
@@ -64,6 +64,7 @@ class MessageQueueProxy():
                 event_name = msg_json.get("event")
                 values = msg_json.get("props")
                 source = msg_json.get("_src")
+                reply  = msg_json.get("_reply")
 
                 if event_name != None and values != None:
                     if self.handlers.get(event_name) != None:
@@ -75,14 +76,24 @@ class MessageQueueProxy():
                         }
 
                         # send back data
-                        try:
-                            rtn_data = handler(flag, values)
-                            rtn_status["data"] = rtn_data
-                            self.sock_recv.send(json.dumps(rtn_status).encode())
-                        except:
-                            logger.debug(traceback.format_exc())
-                            rtn_status["status"] = "error"
-                            self.sock_recv.send(json.dumps(rtn_status).encode())
+                        if reply:
+                            try:
+                                rtn_data = handler(flag, values)
+                                rtn_status["data"] = rtn_data
+                                self.sock_recv.send(json.dumps(rtn_status).encode())
+                            except:
+                                logger.debug(traceback.format_exc())
+                                rtn_status["status"] = "error"
+                                self.sock_recv.send(json.dumps(rtn_status).encode())
+                        else:
+                            # if reply option is false, that means there's no need to get
+                            # the return values of handler
+                            try:
+                                handler(flag, values)
+                                #self.sock_recv.send(json.dumps(rtn_status).encode())
+                            except:
+                                logger.debug(traceback.format_exc())
+                    #            self.sock_recv.send(json.dumps(rtn_status).encode())
                 else:
                     # jsut drop it
                     pass
@@ -111,9 +122,8 @@ class MessageQueueProxy():
                     self._register_handler(event_name, method)
             except:
                 continue
-        pass
 
-    def send(self, event, values, dest, _src=None):
+    def send(self, event, values, dest, _src=None, reply=True):
         '''
         :param event:
         :param values:
@@ -124,8 +134,8 @@ class MessageQueueProxy():
                 # init send socket
         if self.sock_send == None:
             self.sock_send = self.context.socket(zmq.DEALER)
-            self.sock_send.setsockopt_string(zmq.IDENTITY, self.ws_tag)
-            self.sock_send.setsockopt(zmq.RCVTIMEO, 3000) # 5 sec timeout
+            self.sock_send.setsockopt_string(zmq.IDENTITY, "send-"+self.ws_tag)
+            self.sock_send.setsockopt(zmq.RCVTIMEO, 10000) # 10 sec timeout
             self.sock_send.connect("tcp://localhost:%s" % self.router_port)
 
         if _src == None:
@@ -136,23 +146,27 @@ class MessageQueueProxy():
             "event" : event,
             "props" : values,
             "_dest" : _dest,
-            "_src"  : _src
+            "_src"  : _src,
+            "_reply": reply
         }
 
         self.sock_send.send(json.dumps(send_msg).encode())
-        # and receive data...
-        try:
-            recv_binary = self.sock_send.recv()
-        except:
+
+        if reply:
+            # and receive data...
+            try:
+                recv_binary = self.sock_send.recv()
+            except:
+                return None
+            # from binary to json object
+            try:
+                recv_str = recv_binary.decode()
+                recv_json = json.loads(recv_str)
+                return recv_json
+            except:
+                return None
+        else:
             return None
-        # from binary to json object
-        try:
-            recv_str = recv_binary.decode()
-            recv_json = json.loads(recv_str)
-            return recv_json
-        except:
-            return None
-        return
 
     def listen(self, background=True):
         if background:
@@ -161,6 +175,3 @@ class MessageQueueProxy():
             t.start()
         else:
             self._listen()
-
-    def terminate(self):
-        self.pub_sub.unsubscribe()

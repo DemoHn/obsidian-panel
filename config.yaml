@@ -12,5 +12,7 @@ ftp:
 websocket:
   listen_port: 5001
 
+broker:
+  listen_port: 852
 circus:
   end_port: 5002

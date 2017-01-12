@@ -88,6 +88,10 @@ def start_websocket_server(**kwargs):
     from websocket_server import start_websocket_server
     start_websocket_server(**kwargs)
 
+def start_zeromq_broker(**kwargs):
+    from websocket_server import start_zeromq_broker
+    start_zeromq_broker(**kwargs)
+
 def start_process_watcher(**kwargs):
     from process_watcher import start_process_watcher
     start_process_watcher(**kwargs)
@@ -127,7 +131,6 @@ for o, a in opts:
     elif o == "--circusd-endport":
         circusd_end_port = int(a)
 
-# TODO: add params
 if launch_branch_name == "app":
     start_chaussette(fd, debug=debug_flag, port=listen_port, use_reloader=use_reloader, circusd_end_port=circusd_end_port)
 elif launch_branch_name == "ftp_manager":
@@ -136,3 +139,5 @@ elif launch_branch_name == "process_watcher":
     start_process_watcher(debug=debug_flag)
 elif launch_branch_name == "websocket_server":
     start_websocket_server(port=listen_port, debug=debug_flag)
+elif launch_branch_name == "zeromq_broker":
+    start_zeromq_broker(router_port=listen_port, debug=debug_flag)

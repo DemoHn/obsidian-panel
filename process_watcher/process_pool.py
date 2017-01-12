@@ -29,6 +29,7 @@ class MCProcessPool(metaclass=Singleton):
         self._proc_pool[inst_id] = val
 
     def get(self, inst_id):
+        inst_id = int(inst_id)
         return self._proc_pool.get(inst_id)
 
     def get_info(self, inst_id):
