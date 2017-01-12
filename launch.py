@@ -96,6 +96,10 @@ def start_process_watcher(**kwargs):
     from process_watcher import start_process_watcher
     start_process_watcher(**kwargs)
 
+def start_task_scheduler(**kwargs):
+    from task_scheduler import start_task_scheduler
+    start_task_scheduler(**kwargs)
+
 try:
     opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport="])
 except getopt.GetoptError as err:
@@ -141,3 +145,5 @@ elif launch_branch_name == "websocket_server":
     start_websocket_server(port=listen_port, debug=debug_flag)
 elif launch_branch_name == "zeromq_broker":
     start_zeromq_broker(router_port=listen_port, debug=debug_flag)
+elif launch_branch_name == "task_scheduler":
+    start_task_scheduler(debug=debug_flag)

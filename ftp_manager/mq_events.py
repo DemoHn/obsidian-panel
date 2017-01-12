@@ -33,8 +33,5 @@ class FTPAccountEventHandler(MessageEventHandler):
         :param values:
         :return:
         '''
-        uid, sid, src, dest = self.pool.get(flag)
-        # only accept data from APP
-        if src == WS_TAG.APP:
-            manager = FTPManager()
-            manager.update_user_info()
+        manager = FTPManager()
+        manager.update_user_info()

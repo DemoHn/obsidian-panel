@@ -1,8 +1,5 @@
 __author__ = "Nigshoxiz"
 
-from websocket_server.server import WSConnections
-from websocket_server import logger
-
 from app import db
 from app.model import JavaBinary
 from app.controller.global_config import GlobalConfig

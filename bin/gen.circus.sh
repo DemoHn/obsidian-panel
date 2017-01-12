@@ -61,6 +61,7 @@ EOF
 use_sockets = True
 cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port
 numprocesses = $config_server_process_num
+priority = 6
 
 [socket:app]
 host = 0.0.0.0
@@ -146,9 +147,30 @@ EOF
     fi
 }
 
+write_task_scheduler(){
+    cat >> $DEST_FILE <<- EOF
+[watcher:task_scheduler]
+copy_env = True
+virtualenv = ./env
+working_dir = ./
+cmd = python launch.py -b task_scheduler --debug=$debug
+numprocesses = 1
+priority = 2
+EOF
+
+    if [ "$debug" = "false" ]; then
+        cat >> $DEST_FILE <<- EOF
+stdout_stream.class = FileStream
+stdout_stream.filename = $config_global_log_file
+
+EOF
+    fi
+}
+
 write_circus
 write_zeromq_broker
 write_websocket_server
 write_app
 write_ftp_manager
+write_task_scheduler
 write_process_watcher

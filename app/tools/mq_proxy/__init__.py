@@ -17,10 +17,10 @@ class SingletonP(type):
 
 class WS_TAG:
     MPW = "MPW"
-    CONTROL = "CONTROL"
     CLIENT = "CLIENT"
     APP = "APP"
     FTM = "FTM"
+    TSR = "TSR"
     _TEST_RECV = "_TEST_RECV"
     _TEST_SEND = "_TEST_SEND"
 
