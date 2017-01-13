@@ -4,11 +4,9 @@ from flask import render_template, abort, request, redirect, send_file
 from jinja2 import TemplateNotFound
 from urllib.request import urlopen, Request
 
-from app import db, logger
+from app import db, logger, proxy
 from app.utils import returnModel
-
-from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
-
+from app.tools.mq_proxy import WS_TAG
 from app.model import ServerInstance, ServerCORE, FTPAccount
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 from app.controller.global_config import GlobalConfig
@@ -55,8 +53,7 @@ class KVParser(object):
                     val = result.group(2).strip()
                     self.conf_items[key] = val
         fd.close()
-TAG_NAME = "%s_%s" % (WS_TAG.APP, os.getpid())
-proxy = MessageQueueProxy(TAG_NAME)
+
 rtn = returnModel("string")
 
 @server_inst_page.route("/dashboard", methods=["GET"])

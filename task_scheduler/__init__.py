@@ -4,6 +4,13 @@ from app.tools.mq_proxy import MessageQueueProxy, WS_TAG
 
 logger = Logger("TSR")
 
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
 def start_task_scheduler(debug=True):
     logger.set_debug(debug)
 

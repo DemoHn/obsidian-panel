@@ -92,8 +92,8 @@ class sourceJAVA(object):
            }
         }
         '''
-        priority = str(priority)
-        self.versions[priority] = version_config
+        #priority = str(priority)
+        #self.versions[priority] = version_config
 
     def get_download_list(self):
         '''
@@ -113,7 +113,7 @@ class sourceJAVA(object):
 
         return list
 
-    def get_download_link(self, major, minor, priority=0):
+    def get_download_link(self, major, minor, priority=0, index=None):
         _arch = self._get_cpu_arch()
         _OS   = self._get_OS()
 
@@ -127,12 +127,15 @@ class sourceJAVA(object):
                     return item.get("arch").get(_arch).get(_OS)
             return None
         else:
+            if index != None:
+                return self.versions[index].get("arch").get(_arch).get(_OS)
+
             for item in self.versions:
                 if item["major"] == major and item["minor"] == minor:
                     return item.get("arch").get(_arch).get(_OS)
             return None
 
-    def get_binary_directory(self, major, minor, priority=0):
+    def get_binary_directory(self, major, minor, priority=0, index=None):
         priority = int(priority)
         major    = str(major)
         minor    = str(minor)
@@ -142,6 +145,8 @@ class sourceJAVA(object):
                     return item.get("bin")
             return None
         else:
+            if index != None:
+                return self.versions[index].get("bin")
             for item in self.versions:
                 if item["major"] == major and item["minor"] == minor:
                     return item.get("bin")

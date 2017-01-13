@@ -1,6 +1,8 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from app.controller.global_config import GlobalConfig
+from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
 
 from ob_logger import Logger
 logger = Logger("APP", debug=True)
@@ -17,6 +19,8 @@ app.config['REDIS_QUEUE_KEY'] = 'reboot_queue'
 
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)
+
+proxy = MessageQueueProxy( "%s_%s" % (WS_TAG.APP, os.getpid()) )
 
 # import blueprints
 # to event circular importing, this `import` statement should be put

@@ -45,7 +45,7 @@
                         <br><br>
                         <div class="form-group">
                             <div class="col-xs-12">
-                                <button class="btn btn-primary btn-sm" @click="modify_passwd">修改</button>
+                                <button class="btn btn-primary btn-sm">修改</button>
                             </div>
                         </div>
                     </div>

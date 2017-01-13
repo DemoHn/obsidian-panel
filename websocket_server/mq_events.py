@@ -1,4 +1,5 @@
 from app.tools.mq_proxy import WS_TAG, MessageQueueProxy, MessageEventHandler
+from app import db
 
 from .ws_conn import WSConnections
 class WebsocketEventHandler(MessageEventHandler):
@@ -9,7 +10,7 @@ class WebsocketEventHandler(MessageEventHandler):
         MessageEventHandler.__init__(self)
 
     # broadcast data pushed from Process Watcher
-    def broadcast(self, flag, values):
+    def proc_broadcast(self, flag, values):
         _event = values.get("event")
         _uid   = values.get("uid")
 
@@ -21,6 +22,21 @@ class WebsocketEventHandler(MessageEventHandler):
 
         if _event == None:
             return None
-        # broadcast data to multiple clients
+        # broadcast data to clients
+        ws = WSConnections.getInstance()
+        ws.send_data("message", _values, uid=_uid)
+
+    def dw_response(self, flag, values):
+        _uid   = values.get("uid")
+        _values = {
+            "event": values.get("event"),
+            "hash": values.get("hash"),
+            "result": values.get("result"),
+        }
+
+        print(_values)
+        if values.get("event") == None:
+            return None
+
         ws = WSConnections.getInstance()
         ws.send_data("message", _values, uid=_uid)

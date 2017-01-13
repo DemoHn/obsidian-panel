@@ -1,4 +1,4 @@
-<template>
+<template lang="html">
     <section class="content">
         <div class="row">
             <div class="col-md-6 col-lg-4">
@@ -72,12 +72,13 @@
 </template>
 
 <script>
+    import WebSocket from "../../lib/websocket.js"
     const WAIT = 1,
-          DOWNLOADING = 2,
-          EXTRACTING = 3,
-          FINISH = 4,
-          FAIL = 5,
-          EXTRACT_FAIL = 6;
+DOWNLOADING = 2,
+EXTRACTING = 3,
+FINISH = 4,
+FAIL = 5,
+EXTRACT_FAIL = 6;
 
 export default {
     name: 'JavaBinary',
@@ -140,30 +141,23 @@ export default {
         },
 
         start_downloading(major, minor, _index){
-            let app = this.$parent.$parent;
-            let socket = app.ws;
-
-            let props = {
-                "major" : major,
-                "minor" : minor
-            };
-
-            socket.send("downloader.add_download_java_task", props, (msg)=>{
-                // on download start
-                let dw_hash = msg['hash'];
-                let _hash = msg["hash"];
-                let _total = msg["result"][1];
-                let _dw = msg["result"][0];
-
-                let _index = this._find_index_by_hash(_hash);
-                if (_total !== null && _dw !== null && _total > 0) {
-                    this.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
-                }
-            });
+            let ws = new WebSocket();
+            ws.ajax("GET","/super_admin/api/start_download_java?index="+_index);
         },
         // events
+        on_download_start(msg){
+            let _hash = msg["hash"];
+            let _link = msg["result"];
+            // find downloading java version
+            for(let i in this.versions){
+                if(this.versions[i]["link"] == _link){
+                    this.versions[i]["dw_hash"] = _hash;
+                    this.versions[i]["btn_status"]["progress"] = 0.0;
+                    break;
+                }
+            }
+        },
         on_get_progress(msg){
-            msg["value"] = msg["result"];
             let _hash = msg["hash"];
             let _total = msg["result"][1];
             let _dw = msg["result"][0];
@@ -199,17 +193,19 @@ export default {
     },
 
     mounted(){
-        let app = this.$parent.$parent;
-        let socket = app.ws;
+        let ws = new WebSocket();
 
-        socket.send("downloader.init_download_list",{}, (msg)=>{
-            this.init_download_list(msg.result);
+        ws.ajax("GET","/super_admin/api/get_java_download_list", (msg)=>{
+            this.init_download_list(msg);
         })
-        socket.bind("_extract_finish", this.on_extract_finish);
-        socket.bind("_get_progress", this.on_get_progress);
-        socket.bind("_download_finish", this.on_download_finish);
+        ws.bind("_download_start", this.on_download_start);
+        ws.bind("_extract_finish", this.on_extract_finish);
+        ws.bind("_get_progress", this.on_get_progress);
+        ws.bind("_download_finish", this.on_download_finish);
     }
 }
-</script>
+    </script>
+
 <style>
+
 </style>

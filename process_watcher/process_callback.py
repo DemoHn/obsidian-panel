@@ -21,8 +21,7 @@ class MCProcessCallback():
             "value": value,
             "uid" : uid
         }
-        self.proxy.send("websocket.broadcast", values, WS_TAG.CLIENT, reply=False)
-        #self.proxy.send("websocket.broadcast", values, WS_TAG.CLIENT, reply=False)
+        self.proxy.send("websocket.proc_broadcast", values, WS_TAG.CLIENT, reply=False)
 
     def on_log_update(self, inst_id, pipe, log):
         # broadcast raw log
