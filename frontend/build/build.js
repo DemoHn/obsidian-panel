@@ -23,9 +23,7 @@ var assetsPath = path.join(config.build.assetsRoot, config.build.assetsSubDirect
 //rm("-R", assetsPath)
 cp('-R','server_inst.index.html',assetsPath+"/../templates/server_inst/index.html");
 cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html");
-//cp('-R', 'static/css/*', assetsPath +"/css/")
-//cp('-R', 'static/img/*', assetsPath+ "/img/")
-
+cp('-R','startup.index.html',assetsPath+"/../templates/startup/index.html");
 webpack(webpackConfig, function (err, stats) {
 /*    console.log(stats.toString({
         modules: true,

@@ -9,9 +9,12 @@ class TaskEventHandler(MessageEventHandler):
     def start_download(self, flag, values):
         from task_scheduler.tasks import DownloadTaskManager
         manager = DownloadTaskManager()
+
+        version_pair = (values.get("major_version"), values.get("minor_version"))
         manager.add_download_java_task(
             values.get("download_link"),
             values.get("binary_dir"),
+            version_pair,
             values.get("uid")
         )
 

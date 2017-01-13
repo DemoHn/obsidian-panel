@@ -11,17 +11,12 @@
         name: 'App',
         data: function () {
             return {
-                section: 'Head',
-                version: '0.10.0',
-                callingAPI: false,
-                serverURI: 'http://10.110.1.10:8080',
                 ws : new WebSocket(5001),
-                caller: this.$http // vue-resource
             }
         },
         methods: {
             /*NOTICE: this method is only suitable for this app since it contains automatic JSON parsing*/
-            ajax: function(method, url, data, on_success, on_fail){
+            callAPI: function(method, url, data, on_success, on_fail){
                 const ajax_info = {
                     url: url,
                     method: method,

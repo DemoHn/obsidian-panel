@@ -114,6 +114,8 @@ def start_download_java(uid, priv):
         _v = {
             "download_link" : source.get_download_link(None, None, index=_index),
             "binary_dir" : source.get_binary_directory(None, None, index=_index),
+            "major_version" : _list[_index].get("major"),
+            "minor_version" : _list[_index].get("minor"),
             "uid" : uid
         }
 

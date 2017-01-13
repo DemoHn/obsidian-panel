@@ -84,6 +84,7 @@
     "url-loader": "^0.5.7",
     "vue-file-upload": "^0.1.1",
     "vue-loader": "^9.4.0",
+    "vue-material": "^0.6.3",
     "vue-quill-editor": "^1.1.0",
     "vue-style-loader": "^1.0.0",
     "vue2-ace-editor": "0.0.2",

@@ -33,6 +33,9 @@ def only_on_startup(fn):
 
 @start_page.route("/", methods=["GET"])
 @only_on_startup
+def render_startup_page():
+    return render_template("startup/index.html")
+
 def show_starter_page():
     try:
         _step = request.args.get("step")

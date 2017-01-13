@@ -79,7 +79,11 @@ class DownloadTaskManager(metaclass=Singleton):
         newest_version = list[0]
         self.add_download_java_task(flag, newest_version)
 
-    def add_download_java_task(self, download_link, binary_dir, uid):
+    def add_download_java_task(self, download_link, binary_dir, version_pair, uid):
+        gc = GlobalConfig()
+        root_dir = gc.get("lib_bin_dir")
+        major_ver, minor_ver = version_pair
+
         '''
             when accessing this route, a new JDK starts downloading in the background.
             Due to the limitation of current technology, we only allow one file to download at the
@@ -88,7 +92,6 @@ class DownloadTaskManager(metaclass=Singleton):
             :major: <major version of java>
             :minor: <minor version of java>
             '''
-        gc = GlobalConfig()
         def _schedule_get_progress(self, hash):
             # fetch and update data
             dp = DownloaderPool.getInstance()
@@ -111,10 +114,7 @@ class DownloadTaskManager(metaclass=Singleton):
 
             self.proxy.send("websocket.dw_response", values, WS_TAG.CLIENT, reply=False)
 
-        def _extract_file(download_result, filename):
-            gc = GlobalConfig()
-            root_dir = gc.get("lib_bin_dir")
-
+        def _extract_file(download_result, filename, version_pair):
             # for abnormal input parameters(like empty filename), the only thing is to terminate
             # next steps!
             if download_result == False or filename == None:
@@ -211,13 +211,16 @@ class DownloadTaskManager(metaclass=Singleton):
 
             link = download_link
             binary_dir = binary_dir
+            # version_pair : (major_version, minor_version)
+            # e.g.: (8, 102)
+            version_pair = version_pair
             if link != None:
                 if self.tasks_pool.has_working_link(link):
                     _send_dw_signal("_download_start", None, None)
                     return
 
                 # create new task and download
-                inst, hash = _add_java_task(link, files_dir, binary_dir)
+                inst, hash = _add_java_task(link, files_dir, binary_dir, version_pair)
 
                 self.tasks_pool.add(hash, link)
                 # start progress scheduler
@@ -231,37 +234,3 @@ class DownloadTaskManager(metaclass=Singleton):
                 _send_dw_signal("_download_start", None, None)
         except:
             logger.error(traceback.format_exc())
-
-    def get_active_tasks(self, flag, values):
-        def send_dw_signal(event_name, result):
-            ws = WSConnections.getInstance()
-            v = {
-                "event": event_name,
-                "result": result,
-                "flag" : flag
-            }
-
-            ws.send_data("message",v ,sid=sid)
-
-        active_tasks = self.tasks_pool.get_all()
-        send_dw_signal("_active_tasks", active_tasks)
-
-    def terminate_task(self, flag, values):
-
-        def send_dw_signal(event_name, result):
-            ws = WSConnections.getInstance()
-            v = {
-                "event": event_name,
-                "result": result,
-                "flag" : flag
-            }
-
-            ws.send_data("message",v ,sid=sid)
-
-        hash = values.get("hash")
-        if hash == None:
-            return
-        else:
-            dp = DownloaderPool.getInstance()
-            dp.terminate(hash)
-            send_dw_signal("terminate_task", True)

@@ -30,6 +30,10 @@ module.exports = {
               target: 'http://localhost:5000',
               changeOrigin: true
           },
+          "/startup/**":{
+              target: 'http://localhost:5000',
+              changeOrigin: true
+          },
           "_":{
               rule:["/static/js/**"
                    ],

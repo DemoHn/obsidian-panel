@@ -28,6 +28,11 @@ def proxy_inst():
     return send_file("static/js/server_inst.app.build.js")
     pass
 
+@app.route("/startup.app.js")
+def proxy_startup():
+    return send_file("static/js/startup.app.build.js")
+    pass
+
 @app.route("/__test")
 def __draft():
     return render_template("__test.html")

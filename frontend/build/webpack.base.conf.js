@@ -14,6 +14,7 @@ module.exports = {
   entry: {
       "super_admin.app": './src/super_admin.main.js',
       "server_inst.app":'./src/server_inst.main.js',
+      "startup.app":'./src/startup.main.js',
       "vendors": [
           "./static/js/plugins/bootstrap/bootstrap.js",
           "./static/js/plugins/AdminLTE/app.js",
