@@ -36,6 +36,8 @@ def only_on_startup(fn):
 def render_startup_page():
     return render_template("startup/index.html")
 
+@start_page.route("/_", methods=["GET"])
+@only_on_startup
 def show_starter_page():
     try:
         _step = request.args.get("step")
@@ -192,7 +194,7 @@ def test_mysql_connection():
     rtn = returnModel(type="string")
     try:
         db_env = DatabaseEnv()
-        F = request.form
+        F = request.json
 
         mysql_username = F.get("mysql_username")
         mysql_password = F.get("mysql_password")

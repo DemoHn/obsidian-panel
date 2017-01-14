@@ -1,0 +1,166 @@
+<template lang="html">
+    <div>
+        <div class="hint_text"><b>STEP III:</b> 端口设置</div>
+        <hr>
+        <div>
+            <table class="tb">
+                <tr>
+                    <td class="lb"><span class="label"><b>网页端口</b></span></td>
+                    <td>
+                        <md-input-container md-inline>
+                            <label>网页端口</label>
+                            <md-input v-model="app_port" type="number"></md-input>
+                        </md-input-container>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lb"><span class="label"><b>FTP端口</b></span></td>
+                    <td>
+                        <md-input-container md-inline>
+                            <label>FTP端口</label>
+                            <md-input v-model="ftp_port"></md-input>
+                        </md-input-container>
+                    </td>
+                </tr>
+                <tr><td colspan="2"><div style="text-align: center;margin-top: 1rem;color:#888;">以下端口为系统自用，如无意外，毋须更改</div></td></tr>
+                <tr>
+                    <td class="lb-wide"><span class="label"><i>Websocket Server</i></span></td>
+                    <td>
+                        <md-input-container md-inline>
+                            <label>&lt;Internal Port&gt;</label>
+                            <md-input v-model="username"></md-input>
+                        </md-input-container>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lb-wide"><span class="label"><i>MsgQ Broker</i></span></td>
+                    <td>
+                        <md-input-container md-inline>
+                            <label>&lt;Internal Port&gt;</label>
+                            <md-input v-model="username"></md-input>
+                        </md-input-container>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="lb-wide"><span class="label"><i>Proc. Supervisor</i></span></td>
+                    <td>
+                        <md-input-container md-inline>
+                            <label>&lt;Internal Port&gt;</label>
+                            <md-input v-model="username"></md-input>
+                        </md-input-container>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="text-align: right;">
+            <md-button class="md-raised md-primary" :disabled="!enable_login">下一步</md-button>
+        </div>
+    </div>
+</template>
+
+<script>
+    import Vue from "vue";
+    import Resource from 'vue-resource';
+    Vue.use(Resource);
+
+    let ajax = (method, url, data, on_success, on_fail) => {
+        const ajax_info = {
+            url: url,
+            method: method,
+            body: data
+        };
+
+        if(typeof(data) == "function"){
+            on_fail    = on_success;
+            on_success = data;
+        }
+
+        let vs = null;
+        if(method == "GET"){
+            vs = Vue.http.get(url);
+        }else if(method == "POST"){
+            vs = Vue.http.post(url, data);
+        }
+        vs.then((response)=>{
+            try{
+                let body = JSON.parse(response.body);
+                if(body.status == "success"){
+                    if(typeof(on_success) == "function"){
+                        on_success(body["info"]);
+                        return ;
+                    }
+                }else{
+                    // not login
+                    if(body.code == 403){
+                        return ;
+                    }
+                    if(typeof(on_fail) == "function"){
+                        on_fail(body["code"]);
+                        return ;
+                    }
+                }
+            }catch(e){
+                if(typeof(on_fail) == "function"){
+                    const error_code = 500;
+                    on_fail(500);
+                    return ;
+                }
+            }
+        },(response)=>{
+            if(typeof(on_fail) == "function"){
+                on_fail(500);
+                return ;
+            }
+        })
+    }
+    export default {
+        data(){
+            return {
+                remember_me : false,
+            }
+        },
+        computed:{
+            test_btn_enable() {
+                return null;
+                //return !!(this.mysql_password.length > 0 &&
+                //            this.mysql_username.length > 0);
+            },
+        },
+        methods:{
+        },
+        mounted(){
+
+        }
+    };
+</script>
+
+<style scoped>
+.md-input-container{
+    margin-bottom: 0 !important;
+}
+
+table.tb{
+    width: 100% !important;
+}
+
+table td.lb{
+    width: 4rem;
+    vertical-align: middle;
+}
+table td.lb-wide{
+    width: 7.5rem;
+    vertical-align: middle;
+}
+
+table td.lb span.label,
+table td.lb-wide span.label{
+    display: inline-block;
+    margin-top: 1rem;
+}
+p{
+    color : #666;
+    margin-top: 12px;
+    margin-bottom:6px;
+}
+</style>
