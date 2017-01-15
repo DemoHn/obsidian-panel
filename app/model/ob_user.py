@@ -46,7 +46,7 @@ class Users(db.Model):
             raise ValueError("username `%s` is too long!" % self.username)
 
         password_re = "^\w{6,30}$"
-        if re.match(password_re, self.password) == None:
+        if re.match(password_re, self._password) == None:
             raise ValueError("password format doesn't matches!")
 
         self.hash = hashlib.md5(self._password.encode('utf-8') + SALT).hexdigest()

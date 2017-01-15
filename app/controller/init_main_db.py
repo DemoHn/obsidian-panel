@@ -47,6 +47,24 @@ def init_database(logger=None):
     else:
         logger.warning("Main database NOT initialized as starter configuration not finished yet.")
 
+def init_db_data(root_user):
+    if root_user == None:
+        return None
+    else:
+        u = Users(
+            username = root_user.get("username"),
+            email = root_user.get("email")
+        )
+        u._password = root_user.get("password")
+        try:
+            u.insert()
+        except:
+            print(traceback.format_exc())
+            return False
+        return True
+    pass
+
+# [deprecated]
 def migrate_superadmin():
     '''
     This function aims to migrate superadmin's account data (including username, email

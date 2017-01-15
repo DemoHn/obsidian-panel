@@ -33,7 +33,7 @@
         </div>
 
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" :disabled="!test_btn_enable">下一步</md-button>
+            <md-button class="md-raised md-primary" :disabled="! finish_btn_enable" @click="submit">下一步</md-button>
         </div>
     </div>
 </template>
@@ -72,7 +72,7 @@
                 }else{
                     // not login
                     if(body.code == 403){
-                        window.location.href = "/super_admin/login";
+                        window.location.href = "/login";
                         return ;
                     }
                     if(typeof(on_fail) == "function"){
@@ -99,6 +99,7 @@
             return {
                 connection_result : null,
                 test_btn_enable: false,
+                finish_btn_enable : true,
                 db_type : "sqlite",
                 mysql_username :"",
                 mysql_password : ""
@@ -127,10 +128,18 @@
                 },(code) => {
                     self.connection_result = -1;
                 });
+            },
+            submit(){
+                let _v = {
+                    "db_env" : this.db_type,
+                    "mysql_username" : this.mysql_username,
+                    "mysql_password" : this.mysql_password
+                }
+                this.$emit("submit", _v);
             }
         },
         mounted(){
-
+            
         }
     };
 </script>

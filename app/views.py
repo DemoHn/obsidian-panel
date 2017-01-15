@@ -12,6 +12,9 @@ def index():
     else:
         return redirect("/server_inst/dashboard")
 
+@app.route("/login")
+def login():
+    return render_template("/startup/index.html", login_flag = 1)
 # proxies
 @app.route("/vendors.js")
 def proxy_vendors_js():

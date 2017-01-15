@@ -28,7 +28,7 @@
                     <td>
                         <md-input-container md-inline>
                             <label>&lt;Internal Port&gt;</label>
-                            <md-input v-model="username"></md-input>
+                            <md-input v-model="ws_port"></md-input>
                         </md-input-container>
                     </td>
                 </tr>
@@ -37,7 +37,7 @@
                     <td>
                         <md-input-container md-inline>
                             <label>&lt;Internal Port&gt;</label>
-                            <md-input v-model="username"></md-input>
+                            <md-input v-model="msgQ_port"></md-input>
                         </md-input-container>
                     </td>
                 </tr>
@@ -47,14 +47,14 @@
                     <td>
                         <md-input-container md-inline>
                             <label>&lt;Internal Port&gt;</label>
-                            <md-input v-model="username"></md-input>
+                            <md-input v-model="pm_port"></md-input>
                         </md-input-container>
                     </td>
                 </tr>
             </table>
         </div>
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" :disabled="!enable_login">下一步</md-button>
+            <md-button class="md-raised md-primary" @click="submit">完成</md-button>
         </div>
     </div>
 </template>
@@ -117,20 +117,30 @@
     export default {
         data(){
             return {
-                remember_me : false,
+                app_port: 80,
+                ftp_port: 21,
+                msgQ_port: 852,
+                ws_port:851,
+                pm_port:853
             }
         },
         computed:{
-            test_btn_enable() {
-                return null;
-                //return !!(this.mysql_password.length > 0 &&
-                //            this.mysql_username.length > 0);
-            },
+
         },
         methods:{
+            submit(){
+                let _v = {
+                    app_port: this.app_port,
+                    ftp_port: this.ftp_port,
+                    msgQ_port: this.msgQ_port,
+                    ws_port:this.ws_port,
+                    pm_port:this.pm_port
+                }
+
+                this.$emit("submit", _v);
+            }
         },
         mounted(){
-
         }
     };
 </script>
@@ -158,6 +168,7 @@ table td.lb-wide span.label{
     display: inline-block;
     margin-top: 1rem;
 }
+
 p{
     color : #666;
     margin-top: 12px;

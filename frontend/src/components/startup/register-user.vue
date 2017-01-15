@@ -32,7 +32,7 @@
         <div class="error-msg" v-if="repeat_error">前后密码不一致！</div>
 
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" :disabled="!agree">下一步</md-button>
+            <md-button class="md-raised md-primary" :disabled="!agree" @click="submit">下一步</md-button>
         </div>
     </div>
 </template>
@@ -55,7 +55,7 @@
             }
         },
         computed:{
-            "hasi_username" : function () {
+            hasi_username() {
                 var excited_words = ["excited","+1s","plus+1s","蛤","naive","too young","too simple","hawaii guitar","engineering drawing"];
                 for(var i=0;i<excited_words.length;i++){
                     if(this.username == excited_words[i]){
@@ -64,7 +64,7 @@
                 }
                 return false;
             },
-            "password_error": function () {
+            password_error(){
                 var len = this.password.length;
                 if(len > 0 && (len < 6 || len > 30)){
                     return true;
@@ -72,14 +72,14 @@
                     return false;
                 }
             },
-            "repeat_error": function () {
+            repeat_error(){
                 if(this.repeat_password.length > 0 && this.repeat_password !== this.password){
                     return true;
                 }else{
                     return false;
                 }
             },
-            "agree":function () {
+            agree(){
                 if(
                     ! this.repeat_error &&
                     ! this.hasi_username &&
@@ -101,7 +101,14 @@
             }
         },
         methods:{
-
+            submit(){
+                let _v = {
+                    "username" : this.username,
+                    "email" : this.email,
+                    "password" : this.password
+                }
+                this.$emit("submit", _v);
+            }
         },
         mounted(){
 
