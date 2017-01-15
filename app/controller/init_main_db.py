@@ -53,7 +53,8 @@ def init_db_data(root_user):
     else:
         u = Users(
             username = root_user.get("username"),
-            email = root_user.get("email")
+            email = root_user.get("email"),
+            privilege = PRIVILEGES.ROOT_USER
         )
         u._password = root_user.get("password")
         try:

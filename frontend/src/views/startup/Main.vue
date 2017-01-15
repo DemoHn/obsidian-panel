@@ -3,7 +3,7 @@
         <div class="box">
             <div class="logo"><b>Obsidian</b> Panel</div>
             <div class="box-content">
-                <user-login v-if="page_index == -1" @submit="login"></user-login>
+                <user-login v-if="page_index == -1"></user-login>
                 <register-user v-if="page_index == 1" @submit="user_submit"></register-user>
                 <port-settings v-if="page_index == 2" @submit="port_submit"></port-settings>
                 <set-database v-if="page_index == 3" @submit="db_submit"></set-database>

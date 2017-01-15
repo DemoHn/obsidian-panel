@@ -2,8 +2,10 @@
     <div>
         <div class="hint_text">管理员登录</div>
         <hr>
-        <div class="error-msg">登录失败，请检查登录密码！</div>
-        <div class="error-msg">用户名不存在！</div>
+        <div class="error-msg" v-if="error_type == 504">登录失败，请检查登录密码！</div>
+        <div class="error-msg" v-if="error_type == 502">用户名不存在！</div>
+        <div class="error-msg" v-if="error_type == 500">未知错误！</div>
+        <div class="error-msg" v-if="error_type == 503">非管理员用户！！</div>
         <div>
             <md-input-container md-inline>
                 <md-icon><i class="ion-person"></i></md-icon>
@@ -18,7 +20,7 @@
         </div>
         <div style="text-align: right;">
             <md-checkbox id="remember_me" name="rem" v-model="remember_me" style="float:left;">&nbsp;记住密码</md-checkbox>
-            <md-button class="md-raised md-primary" :disabled="!enable_login">登录</md-button>
+            <md-button class="md-raised md-primary" :disabled="!enable_login" @click="login_submit">登录</md-button>
         </div>
     </div>
 </template>
@@ -81,17 +83,38 @@
     export default {
         data(){
             return {
+                error_type : null,
+                username : "",
+                password : "",
                 remember_me : false,
+                enable_login : false
             }
         },
         computed:{
-            test_btn_enable() {
-                return null;
-                //return !!(this.mysql_password.length > 0 &&
-                //            this.mysql_username.length > 0);
-            },
+            enable_login(){
+                if(this.password.length > 0 && this.username.length > 0){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
         },
         methods:{
+            login_submit(){
+                let _v = {
+                    username : this.username,
+                    password: this.password,
+                    remember_me : this.remember_me
+                };
+
+                let vue = this;
+                ajax("POST", "/super_admin/api/login", _v, (msg)=>{
+                    window.location.href = "/super_admin/info"
+                },(code)=>{
+                    console.log(code);
+                    vue.error_type = code;
+                });
+            }
         },
         mounted(){
 

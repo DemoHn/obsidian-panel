@@ -14,7 +14,13 @@ def index():
 
 @app.route("/login")
 def login():
-    return render_template("/startup/index.html", login_flag = 1)
+    gc = GlobalConfig()
+
+    if gc.get("init_super_admin") == True:
+        login_flag = 1
+    else:
+        login_flag = 0
+    return render_template("/startup/index.html", login_flag = login_flag)
 # proxies
 @app.route("/vendors.js")
 def proxy_vendors_js():

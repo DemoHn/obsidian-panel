@@ -167,7 +167,7 @@ class DownloadTaskManager(metaclass=Singleton):
                     sch_job.remove()
                 _send_dw_signal("_extract_finish", hash, True)
 
-        def _add_java_task(link, download_dir, binary_dir):
+        def _add_java_task(link, download_dir, binary_dir, version_pair):
             sch_job = None
             '''
             add task of downloading java, with hooks.

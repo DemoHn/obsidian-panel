@@ -175,7 +175,7 @@ const SUCCESS = 1;
 
 const TYPE_UPLOAD = 16;
 const TYPE_FROM_SOURCE = 32;
-
+import WebSocket from "../../lib/websocket.js"
 import Loading from '../../components/c-loading.vue';
 import LoadError from '../../components/c-error.vue';
 import cModal from '../../components/c-modal.vue';
@@ -219,8 +219,8 @@ export default {
     methods: {
         // fetch data from remote
         aj_load_core_list(){
-            let app = this.$parent.$parent;
-            app.ajax("GET",'/super_admin/api/get_core_file_info', this.init_core_list, this.on_load_error);
+            let ws = new WebSocket();
+            ws.ajax("GET",'/super_admin/api/get_core_file_info', this.init_core_list, this.on_load_error);
         },
         // click methods
         edit_serv_core(index){

@@ -33,5 +33,3 @@ class ServerInstance(db.Model):
         return "<id=%s, port=%s, max_RAM=%s>" % (self.inst_id,
                                                  self.listening_port,
                                                  self.max_RAM)
-
-
