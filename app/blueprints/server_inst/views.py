@@ -3,9 +3,10 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, make_response, redirect, session
 from jinja2 import TemplateNotFound
 from . import server_inst_page
-from app.blueprints.superadmin.check_login import check_login
 
+from app.blueprints.superadmin.check_login import check_login
 from app.utils import PRIVILEGES
+
 #import libs
 import string, random
 import logging
@@ -25,7 +26,7 @@ def logout():
 def view(uid, priv):
     try:
         if priv <= PRIVILEGES.INST_OWNER:
-            return render_template("server_inst/index.html")
+            return redirect("/server_inst/dashboard")
         else:
             abort(403)
     except TemplateNotFound:

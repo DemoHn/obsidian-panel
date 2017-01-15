@@ -337,6 +337,9 @@ export default {
         }
     },
     mounted(){
+        if(NEW_INST_PAGE == 1){
+            window.location.href = "/server_inst/new_inst";
+        }
         // init with hash
         let hash = window.location.hash;
         if(hash !== ""){

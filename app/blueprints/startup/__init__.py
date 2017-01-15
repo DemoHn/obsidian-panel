@@ -155,10 +155,3 @@ def test_mysql_connection():
 # make sure use circusd!
 def _restart_process():
     os.system("ob-panel restart")
-#    client = SystemProcessClient()
-#    client.send_restart_cmd("task_scheduler")
-#    client.send_restart_cmd("zeromq_broker")
-#    client.send_restart_cmd("process_watcher")
-#    client.send_restart_cmd("websocket_server")
-#    client.send_restart_cmd("ftp_manager")
-#    client.send_restart_cmd("app")

@@ -41,7 +41,6 @@ cmd_circusctl(){
 start(){
     echo "Start obsidian-panel..."
     sh $DIR/gen.circus.sh
-    redis-server --daemonize yes
     cd $DIR/../
     if [ ! -f $PIDFILE ]; then
         _start_circus
@@ -66,7 +65,6 @@ restart(){
     echo "Restart obsidian-panel..."
     # generate ini file
     sh $DIR/gen.circus.sh
-    redis-server --daemonize yes
     cd $DIR/../
     if [ ! -f $PIDFILE ]; then
         _start_circus
@@ -83,7 +81,6 @@ debug(){
     fi
     # generate ini file
     sh $DIR/gen.circus.sh true
-    redis-server --daemonize yes
     cd $DIR/../
     circusd .obsidian_panel.ini
 }

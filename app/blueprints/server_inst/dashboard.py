@@ -59,6 +59,15 @@ rtn = returnModel("string")
 @server_inst_page.route("/dashboard", methods=["GET"])
 @check_login
 def render_new_dashboard(uid, priv):
+    _q = db.session.query(ServerInstance).all()
+    if _q == None:
+        return render_template("server_inst/index.html", new_inst_page=1)
+    else:
+        if len(_q) == 0:
+            return render_template("server_inst/index.html", new_inst_page=1)
+        else:
+            return render_template("server_inst/index.html", new_inst_page=0)
+
     return render_template("/server_inst/index.html")
 
 # miscellaneouses, including basic LOGO, FTP status, server properties, etc.

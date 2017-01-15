@@ -125,16 +125,6 @@ _make_install_pip3(){
     pip3 install --upgrade pip
 }
 
-_make_install_redis(){
-    echo "[INFO] compile redis"
-    wget http://download.redis.io/releases/redis-2.8.3.tar.gz -O /var/tmp/redis-2.8.3.tar.gz
-    cd /var/tmp
-    tar xzvf /var/tmp/redis-2.8.3.tar.gz
-    cd redis-2.8.3
-    make CFLAGS="-march=i686"
-    make install
-}
-
 _check_sudo
 _OSTYPE_detect
 
@@ -143,7 +133,7 @@ echo "Package Manager: $_OSTYPE"
 # for Ubuntu, Debian
 if [ $_OSTYPE = "DPKG" ]; then
     $_SUDO apt-get update -y
-    $_SUDO apt-get install -y python3 python3-pip git redis-server libzmq-dev
+    $_SUDO apt-get install -y python3 python3-pip git libzmq-dev
     # install virtualenv,circusd
     $_SUDO pip3 install virtualenv circus
 fi
@@ -159,7 +149,6 @@ if [ $_OSTYPE = "YUM" ]; then
     _detect_dpendency git && _make_install_git
     _detect_dpendency python3 && _make_install_python3
     _detect_dpendency pip3 && _make_install_pip3
-    _detect_dpendency redis-server && _make_install_redis
 
     $_SUDO pip3 install virtualenv circus
 fi
