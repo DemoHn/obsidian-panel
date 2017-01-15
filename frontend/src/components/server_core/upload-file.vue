@@ -91,8 +91,11 @@ export default{
                 {
                     name:"imageFilter",
                     fn(file){
-                        var type = '|' + file.type.slice(file.type.lastIndexOf('/') + 1) + '|';
-                        return '|x-java-archive|'.indexOf(type) !== -1;
+                        var type = file.type.slice(file.type.lastIndexOf('/') + 1);
+                        var re   = /java/;
+                        console.log("upload file type:" + type);
+                        return re.test(type);
+                        //return '|x-java-archive|'.indexOf(type) !== -1;
                     }
                 }
             ],
