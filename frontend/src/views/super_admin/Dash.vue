@@ -46,7 +46,7 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
       <!-- Content Header (Page header) -->
-      <section class="content-header">
+      <!--<section class="content-header">
         <h1>
           {{$route.name.toUpperCase() }}
           <small>{{ $route.meta.description }}</small>
@@ -55,9 +55,9 @@
           <li><a href="javascript:;"><i class="fa fa-home"></i>Home</a></li>
           <li class="active">{{$route.name.toUpperCase() }}</li>
         </ol>
-      </section>
+      </section>-->
 
-      <router-view></router-view>
+      <router-view @route-data-loaded="changeTitle"></router-view>
     </div>
     <!-- /.content-wrapper -->
 
@@ -95,12 +95,15 @@ module.exports = {
       return this.store.state
     },
   },
-  methods: {
-    changeloading: function () {
-      this.store.dispatch('TOGGLE_SEARCHING')
-    },
-    toggleMenu: function (event) {
-      // remove active from li
+    methods: {
+        changeTitle(vm){
+            console.log(vm);
+        },
+        changeloading: function () {
+            this.store.dispatch('TOGGLE_SEARCHING')
+        },
+        toggleMenu: function (event) {
+            // remove active from li
       $('li.pageLink').removeClass('active')
 
       // Add it to the item that was clicked

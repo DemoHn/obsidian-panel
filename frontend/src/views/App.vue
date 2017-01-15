@@ -11,7 +11,7 @@
         name: 'App',
         data: function () {
             return {
-                ws : new WebSocket(5001),
+
             }
         },
         methods: {

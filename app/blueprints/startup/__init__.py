@@ -57,6 +57,7 @@ def starter_finish():
             db.setDatabaseType("sqlite")
             # set init flag = True
             gc.set("init_super_admin", "True")
+            gc.set("_RESTART_LOCK", "True")
             # then init database
             init_database()
             if init_db_data(usr_data):
@@ -72,7 +73,7 @@ def starter_finish():
 
             if db.testMySQLdb(_u,_p) == True:
                 gc.set("init_super_admin","True")
-
+                gc.set("_RESTART_LOCK", "True")
                 db.setMySQLinfo(_u, _p)
                 init_database()
                 if init_db_data(usr_data):
@@ -94,7 +95,8 @@ def __reboot_once():
     if gc.get("_RESTART_LOCK") == True:
         gc.set("_RESTART_LOCK", "False")
         _restart_process()
-    #return response
+    return rtn.success(200)
+#    return response
 # ajax data
 #
 # in step=2 (detect Java Environment)
@@ -152,11 +154,11 @@ def test_mysql_connection():
 
 # make sure use circusd!
 def _restart_process():
-    #os.system("ob-panel restart")
-    client = SystemProcessClient()
-    client.send_restart_cmd("task_scheduler")
-    client.send_restart_cmd("zeromq_broker")
-    client.send_restart_cmd("process_watcher")
-    client.send_restart_cmd("websocket_server")
-    client.send_restart_cmd("ftp_manager")
-    client.send_restart_cmd("app")
+    os.system("ob-panel restart")
+#    client = SystemProcessClient()
+#    client.send_restart_cmd("task_scheduler")
+#    client.send_restart_cmd("zeromq_broker")
+#    client.send_restart_cmd("process_watcher")
+#    client.send_restart_cmd("websocket_server")
+#    client.send_restart_cmd("ftp_manager")
+#    client.send_restart_cmd("app")
