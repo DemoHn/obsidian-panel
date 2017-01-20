@@ -164,7 +164,8 @@ export default {
 
             let _index = this._find_index_by_hash(_hash);
             if (_total !== null && _dw !== null && _total > 0) {
-                this.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
+                if(this.versions[_index]["btn_status"] != null)
+                    this.versions[_index]["btn_status"]["progress"] = _dw / _total * 100;
             }
         },
 

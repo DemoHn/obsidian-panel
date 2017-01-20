@@ -32,7 +32,8 @@ class DownloadingTasksPool(metaclass=Singleton):
         _model = {
             "link": dw_link,
             "status": _utils.DOWNLOADING,
-            "progress": 0
+            "progress": 0,
+            "sch_job" : None
         }
 
         self.tasks[hash] = _model
@@ -41,13 +42,15 @@ class DownloadingTasksPool(metaclass=Singleton):
         if self.tasks.get(hash) != None:
             del self.tasks[hash]
 
-    def update(self, hash, status = None, progress = None):
+    def update(self, hash, status = None, progress = None, sch_job=None):
         if self.tasks.get(hash) != None:
             _model = self.tasks.get(hash)
             if status != None:
                 _model["status"] = status
             if progress != None:
                 _model["progress"] = progress
+            if sch_job != None:
+                _model["sch_job"] = sch_job
 
     def get(self, hash):
         if self.tasks.get(hash) != None:
@@ -56,11 +59,20 @@ class DownloadingTasksPool(metaclass=Singleton):
             return None
 
     def get_all(self):
-        return self.tasks
+        cpy_tasks = {}
+        for item in self.tasks:
+            cpy_tasks[item] = {
+                "link": self.tasks[item]["link"],
+                "status": self.tasks[item]["status"],
+                "progress": self.tasks[item]["progress"],
+            }
+
+        return cpy_tasks
 
     def has_working_link(self, link):
         for item in self.tasks:
-            if self.tasks[item]['link'] == link:
+            if self.tasks[item]['link'] == link and \
+            self.tasks[item]['status'] in (_utils.DOWNLOADING, _utils.EXTRACTING):
                 return True
         return False
 
@@ -114,7 +126,7 @@ class DownloadTaskManager(metaclass=Singleton):
 
             self.proxy.send("websocket.dw_response", values, WS_TAG.CLIENT, reply=False)
 
-        def _extract_file(download_result, filename, version_pair):
+        def _extract_file(download_result, filename):
             # for abnormal input parameters(like empty filename), the only thing is to terminate
             # next steps!
             if download_result == False or filename == None:
@@ -157,29 +169,37 @@ class DownloadTaskManager(metaclass=Singleton):
                 logger.error(traceback.format_exc())
                 self.tasks_pool.update(hash, status=_utils.FAIL)
                 # delete scheduler
+                sch_job = self.tasks_pool.get(hash).get("sch_job")
                 if sch_job != None:
                     sch_job.remove()
-                    _send_dw_signal("_download_finish", hash, False)
-                    return
+                _send_dw_signal("_download_finish", hash, False)
+                return
 
-                self.tasks_pool.update(hash, status=_utils.FINISH)
-                if sch_job != None:
-                    sch_job.remove()
-                _send_dw_signal("_extract_finish", hash, True)
+            self.tasks_pool.update(hash, status=_utils.FINISH)
+            _send_dw_signal("_extract_finish", hash, True)
 
         def _add_java_task(link, download_dir, binary_dir, version_pair):
-            sch_job = None
             '''
             add task of downloading java, with hooks.
             :return: (<instance>, <download_hash>)
             '''
 
             def _send_finish_event(download_result, filename):
+                # close scheduler
+                sch_job = self.tasks_pool.get(hash).get("sch_job")
+                if sch_job != None:
+                    sch_job.remove()
                 # send finish event
                 self.tasks_pool.update(hash, status=_utils.FINISH)
                 _send_dw_signal("_download_finish", hash, True)
 
             def _network_error(e):
+                # remove scheduler
+                sch_job = self.tasks_pool.get(hash).get("sch_job")
+                logger.debug("Network Error! sch:%s" % sch_job)
+
+                if sch_job != None:
+                    sch_job.remove()
                 self.tasks_pool.update(hash, status=_utils.FAIL)
                 _send_dw_signal("_download_finish", hash, False)
 
@@ -229,6 +249,7 @@ class DownloadTaskManager(metaclass=Singleton):
 
                 sch_job = self.scheduler.add_job(_schedule_get_progress, 'interval', seconds=1, args=[self, hash])
 
+                self.tasks_pool.update(hash, sch_job=sch_job)
                 _send_dw_signal("_download_start", hash, link)
             else:
                 _send_dw_signal("_download_start", None, None)

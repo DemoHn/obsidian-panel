@@ -12,41 +12,55 @@ class sourceJAVA(object):
         # VALUE : <many objs>
         self.versions = [
             {
-                'priority':5,'major': "8", "minor": "102",
-                'bin': "jdk1.8.0_102/bin/java",
+                'priority':6,'major': "8", "minor": "112",
+                'bin': "jre1.8.0_112/bin/java",
                 "arch": {
                     "x86": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-i586.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-windows-i586.exe"
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jre-8u112-linux-i586.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jre-8u112-windows-i586.exe"
                     },
                     "x64": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-windows-x64.exe"
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jre-8u112-linux-x64.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jre-8u112-windows-x64.exe"
+                    }
+                }
+            },
+            {
+                'priority':5,'major': "8", "minor": "102",
+                'bin': "jre1.8.0_102/bin/java",
+                "arch": {
+                    "x86": {
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102-linux-i586.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102-windows-i586.exe"
+                    },
+                    "x64": {
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102-linux-x64.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102-windows-x64.exe"
                     }
                 }
             },{
                 'priority':4, 'major': "8", "minor": "101",
-                'bin': "jdk1.8.0_101/bin/java",
+                'bin': "jre1.8.0_101/bin/java",
                 "arch": {
                     "x86": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-i586.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-windows-i586.exe"
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jre-8u101-linux-i586.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jre-8u101-windows-i586.exe"
                     },"x64": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-x64.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-windows-x64.exe"
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jre-8u101-linux-x64.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jre-8u101-windows-x64.exe"
                     }
                 }
             },{
                 'priority':3, 'major': "7", "minor": "80",
-                'bin': "jdk1.7.0_80/bin/java",
+                'bin': "jre1.7.0_80/bin/java",
                 "arch": {
                     "x86": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-linux-i586.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-windows-i586.exe"
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jre-7u80-linux-i586.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jre-7u80-windows-i586.exe"
                     },
                     "x64": {
-                        "linux": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-linux-x64.tar.gz",
-                        "windows": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jdk-7u80-windows-x64.exe"
+                        "linux": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jre-7u80-linux-x64.tar.gz",
+                        "windows": "http://download.oracle.com/otn-pub/java/jdk/7u80-b15/jre-7u80-windows-x64.exe"
                     }
                 }
             }]

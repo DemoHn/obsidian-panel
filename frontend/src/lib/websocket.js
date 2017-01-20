@@ -151,7 +151,7 @@ class WebSocket {
                 }else{
                     // not login
                     if(body.code == 403){
-                        window.location.href = "/super_admin/login";
+                        window.location.href = "/login";
                         return ;
                     }
                     if(typeof(on_fail) == "function"){
