@@ -55,9 +55,7 @@ def start_websocket_server(debug=True, port=851, router_port=852):
     ws.init_events()
     app = socketio.Middleware(sio)
 
-    # TODO
-    PORT = 5001
     logger.info("This is Websocket Server.")
-    logger.info("The listening port is %s" % PORT)
+    logger.info("The listening port is %s" % port)
     # deploy as an eventlet WSGI server
-    eventlet.wsgi.server(eventlet.listen(('', PORT)), app)
+    eventlet.wsgi.server(eventlet.listen(('', port)), app)

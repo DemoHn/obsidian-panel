@@ -61,12 +61,12 @@ rtn = returnModel("string")
 def render_new_dashboard(uid, priv):
     _q = db.session.query(ServerInstance).all()
     if _q == None:
-        return render_template("server_inst/index.html", new_inst_page=1)
+        return render_template("server_inst/index.html", new_inst_page=1, ws_port = 851)
     else:
         if len(_q) == 0:
-            return render_template("server_inst/index.html", new_inst_page=1)
+            return render_template("server_inst/index.html", new_inst_page=1, ws_port = 851)
         else:
-            return render_template("server_inst/index.html", new_inst_page=0)
+            return render_template("server_inst/index.html", new_inst_page=0, ws_port = 851)
 
     return render_template("/server_inst/index.html")
 

@@ -29,7 +29,7 @@ class _utils:
 @super_admin_only
 def render_java_binary_page(uid, priv):
     try:
-        return render_template('superadmin/index.html')
+        return render_template('superadmin/index.html', ws_port = 851)
     except TemplateNotFound:
         abort(404)
 
