@@ -102,7 +102,6 @@ def edit_core_file_params(uid, priv, core_file_id):
             update_dict["file_name"]  = file_name
             os.rename(os.path.join(upload_dir, ori_filename), os.path.join(upload_dir, file_name))
 
-        print(update_dict)
         db.session.query(ServerCORE).filter(ServerCORE.core_id == core_file_id).update(update_dict)
         db.session.commit()
         return rtn.success(200)

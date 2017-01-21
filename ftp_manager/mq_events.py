@@ -35,3 +35,4 @@ class FTPAccountEventHandler(MessageEventHandler):
         '''
         manager = FTPManager()
         manager.update_user_info()
+        return True

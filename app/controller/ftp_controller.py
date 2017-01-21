@@ -1,15 +1,11 @@
 from app.model import FTPAccount, Users
 from app.controller.sys_process import SystemProcessClient
-from app.tools.mq_proxy import MessageQueueProxy, WS_TAG
-from app import db
+from app.tools.mq_proxy import WS_TAG
+from app import db, proxy
 from app.utils import salt
 import hashlib
 
 class FTPController:
-    # 「大柠乐」计数器
-    # This counter is used to count how many times an event is emitted.
-    # This is used for preventing forked processes sending one event at the same time.
-    DA_LING_LE_COUNTER = 0
     def __init__(self):
         pass
 
@@ -45,12 +41,5 @@ class FTPController:
 
         self.update_user()
 
-    def _restart_ftp(self):
-        client = SystemProcessClient()
-        client.send_restart_cmd("ftp", waiting=True)
-
     def update_user(self):
-        values = {}
-        proxy = MessageQueueProxy(WS_TAG.APP)
-        proxy.send("up_usr_%s" % FTPController.DA_LING_LE_COUNTER, "ftp.update_users", values, WS_TAG.FTM)
-        FTPController.DA_LING_LE_COUNTER += 1
+        proxy.send("ftp.update_users", {}, WS_TAG.FTM, reply=False)

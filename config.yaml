@@ -3,7 +3,7 @@ broker:
 circus:
   end_port: 853
 ftp:
-  listen_port: 851
+  listen_port: 21
 global:
   log_file: ob-panel.log
 server:
@@ -11,4 +11,4 @@ server:
   process_num: 2
   use_reloader: false
 websocket:
-  listen_port: 851
+  listen_port: 5001

@@ -34,7 +34,6 @@ class WebsocketEventHandler(MessageEventHandler):
             "result": values.get("result"),
         }
 
-        print(_values)
         if values.get("event") == None:
             return None
 
