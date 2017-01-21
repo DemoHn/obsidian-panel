@@ -1,19 +1,14 @@
-global:
-  log_file: ob-panel.log
-
-server:
-  listen_port: 5000
-  process_num: 2
-  use_reloader: false
-
-ftp:
-  listen_port: 2121
-
-websocket:
-  listen_port: 5001
-
 broker:
   listen_port: 852
-
 circus:
-  end_port: 5002
+  end_port: 853
+ftp:
+  listen_port: 851
+global:
+  log_file: ob-panel.log
+server:
+  listen_port: 80
+  process_num: 2
+  use_reloader: false
+websocket:
+  listen_port: 851

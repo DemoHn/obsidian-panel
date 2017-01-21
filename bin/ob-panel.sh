@@ -68,9 +68,11 @@ restart(){
     cd $DIR/../
     if [ ! -f $PIDFILE ]; then
         _start_circus
+    else
+        kill -9 $(cat $PIDFILE)
+        rm -f $PIDFILE
+        _start_circus
     fi
-
-    cmd_circusctl restart
 }
 
 debug(){

@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, abort, request, make_response
 from jinja2 import TemplateNotFound
 from app.utils import returnModel, salt
 
-import hashlib, os
+import hashlib, os, yaml
 import traceback
 from app import logger
 from functools import wraps
@@ -37,6 +37,37 @@ def only_on_startup(fn):
 def render_startup_page():
     return render_template("startup/index.html", login_flag = 0)
 
+# dump yaml data
+def dump_yaml_config(new_config):
+    docs = None
+    try:
+        config_file = "config.yaml"
+        fr = open(os.path.join(os.getcwd(), config_file), "r")
+        docs = yaml.load(fr)
+        fr.close()
+    except:
+        fr.close()
+        logger.error(traceback.format_exc())
+        return False
+
+    try:
+        fw = open(os.path.join(os.getcwd(), config_file), "w")
+        # change config
+        docs["circus"]["end_port"] = int(new_config.get("pm_port"))
+        docs["server"]["listen_port"] = int(new_config.get("app_port"))
+        docs["websocket"]["listen_port"] = int(new_config.get("ws_port"))
+        docs["ftp"]["listen_port"] = int(new_config.get("ftp_port"))
+        docs["broker"]["listen_port"] = int(new_config.get("msgQ_port"))
+
+        fw.write(yaml.dump(docs, default_flow_style=False))
+        fw.close()
+
+        return True
+    except:
+        fw.close()
+        logger.error(traceback.format_exc())
+    return False
+
 @start_page.route("/api/submit", methods=["POST"])
 @only_on_startup
 def starter_finish():
@@ -52,6 +83,17 @@ def starter_finish():
             "email" : F.get("email"),
             "password" : F.get("password")
         }
+
+        port_config = {
+            "app_port" : F.get("app_port"),
+            "ftp_port" : F.get("ftp_port"),
+            "msgQ_port" : F.get("msgQ_port"),
+            "ws_port" : F.get("ws_port"),
+            "pm_port" : F.get("pm_port")
+        }
+
+        if not dump_yaml_config(port_config):
+            return rtn.error(500)
 
         if db_env == "sqlite":
             db.setDatabaseType("sqlite")
@@ -97,10 +139,8 @@ def __reboot_once():
         _restart_process()
     return rtn.success(200)
 #    return response
-# ajax data
-#
-# in step=2 (detect Java Environment)
-#
+
+# DEPRECATED!!!!
 # NOTE : this route (and the following 'download java' route) is somehow dangerous since anyone has privilege
 # to operate. Thus, it's better to warn users to finish the starter steps as soon as possible.
 @start_page.route("/detect_java_environment")

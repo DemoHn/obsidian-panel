@@ -54,7 +54,7 @@
             </table>
         </div>
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" @click="submit">完成</md-button>
+            <md-button class="md-raised md-primary" @click="submit" :disabled="!allow_submit">完成</md-button>
         </div>
     </div>
 </template>
@@ -121,11 +121,31 @@
                 ftp_port: 21,
                 msgQ_port: 852,
                 ws_port:851,
-                pm_port:853
+                pm_port:853,
+                allow_submit : false
             }
         },
         computed:{
+            allow_submit(){
+                let ports = [
+                    this.app_port,
+                    this.ftp_port,
+                    this.msgQ_port,
+                    this.ws_port,
+                    this.pm_port
+                ];
 
+                let allow_submit = true;
+
+                for(let i=0;i<ports.length;i++){
+                    for(let j=i+1;j<ports.length;j++){
+                        if(ports[i] == ports[j]){
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
         },
         methods:{
             submit(){

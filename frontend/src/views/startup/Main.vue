@@ -147,10 +147,14 @@ export default {
                 "password" : this.password,
                 "db_env" : this.db_env,
                 "mysql_username" : this.mysql_username,
-                "mysql_password" : this.mysql_password
+                "mysql_password" : this.mysql_password,
+                "app_port" : this.app_port,
+                "ftp_port" : this.ftp_port,
+                "msgQ_port" : this.msgQ_port,
+                "ws_port" : this.ws_port,
+                "pm_port" : this.pm_port
             }
 
-            //this.page_index = SET_DB;
             ajax("POST","/startup/api/submit", v, this.submit_success, this.submit_fail)
         },
         submit_success(msg){
