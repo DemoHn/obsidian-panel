@@ -157,12 +157,16 @@ fi
 # clone code
 echo "[INFO] Now let's clone the source code"
 CLONE_DIR="/opt/obsidian-panel"
+ENV_DIR="/opt/obsidian-panel/env"
 if [ ! -d "$CLONE_DIR" ]; then
     $_SUDO git clone $_URL /opt/obsidian-panel
     $_SUDO cd $CLONE_DIR
     virtualenv /opt/obsidian-panel/env
 else
     $_SUDO cd $CLONE_DIR
+    if [ ! -d "$ENV_DIR" ]; then
+        virtualenv /opt/obsidian-panel/env
+    fi
 fi
 # run virtualenv
 . env/bin/activate
@@ -179,7 +183,14 @@ $_SUDO ln -s $(_realpath ./bin/ob-panel.sh) /usr/local/bin/ob-panel
 
 $_SUDO rm /etc/init.d/ob-panel 2>/dev/null
 $_SUDO ln -s $(_realpath ./bin/ob-panel.sh) /etc/init.d/ob-panel
-# make it autostart
+
+# copy config.sample
+CONFIG_SAMPLE_FILE=$(_realpath ./config.yaml.sample)
+CONFIG_FILE=$(_realpath ./config.yaml)
+if [ ! -f "$CONFIG_FILE" ]; then
+    cp $CONFIG_SAMPLE_FILE $CONFIG_FILE
+fi
+# configure autostart
 if [ $_OSTYPE = "DPKG" ]; then
     update-rc.d ob-panel defaults
     update-rc.d ob-panel enable

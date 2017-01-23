@@ -2,7 +2,7 @@ _draft/
 _draft.py
 *.pyc
 env/
-config.py
+config.yaml
 .idea/
 __pycache__/
 app/__pycache__/

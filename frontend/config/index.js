@@ -23,25 +23,25 @@ module.exports = {
       assetsPublicPath: '/',
       proxyTable: {
           "/super_admin/**": {
-              target: 'http://localhost:5000',
+              target: 'http://localhost:80',
               changeOrigin: true
           },
           "/server_inst/**":{
-              target: 'http://localhost:5000',
+              target: 'http://localhost:80',
               changeOrigin: true
           },
           "/startup/":{
-              target: 'http://localhost:5000',
+              target: 'http://localhost:80',
               changeOrigin: true
           },
           "/login":{
-              target: 'http://localhost:5000',
+              target: 'http://localhost:80',
               changeOrigin: true
           },
           "_":{
               rule:["/static/js/**"
                    ],
-              target:"http://localhost:5000"
+              target:"http://localhost:80"
 
           }
       },

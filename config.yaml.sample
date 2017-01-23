@@ -1,0 +1,14 @@
+broker:
+  listen_port: 852
+circus:
+  end_port: 853
+ftp:
+  listen_port: 21
+global:
+  log_file: /var/log/ob-panel.log
+server:
+  listen_port: 80
+  process_num: 2
+  use_reloader: false
+websocket:
+  listen_port: 851
