@@ -250,6 +250,7 @@ class DownloadTaskManager(metaclass=Singleton):
                 sch_job = self.scheduler.add_job(_schedule_get_progress, 'interval', seconds=1, args=[self, hash])
 
                 self.tasks_pool.update(hash, sch_job=sch_job)
+                self.tasks_pool.update(hash, status = _utils.DOWNLOADING)
                 _send_dw_signal("_download_start", hash, link)
             else:
                 _send_dw_signal("_download_start", None, None)

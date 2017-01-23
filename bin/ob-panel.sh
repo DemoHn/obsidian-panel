@@ -29,8 +29,8 @@ _parse_yaml() {
 }
 
 _start_circus(){
-    circusd .obsidian_panel.ini --daemon
-    echo $! > $PIDFILE
+    echo "[INFO] Start Obsidian Panel LEVEL - 2"
+    circusd --pidfile $PIDFILE .obsidian_panel.ini --daemon
 }
 
 cmd_circusctl(){
@@ -44,6 +44,8 @@ start(){
     cd $DIR/../
     if [ ! -f $PIDFILE ]; then
         _start_circus
+    else
+        echo "[INFO] Start Obsidian Panel LEVEL - 1"
     fi
     cmd_circusctl start
 }
@@ -69,7 +71,7 @@ restart(){
     if [ ! -f $PIDFILE ]; then
         _start_circus
     else
-        kill -9 $(cat $PIDFILE)
+        kill -2 $(cat $PIDFILE)
         rm -f $PIDFILE
         _start_circus
     fi
@@ -89,6 +91,7 @@ debug(){
 
 quit(){
     if [ -f $PIDFILE ]; then
+        echo "Quit circus..."
         cmd_circusctl quit
         rm -f $PIDFILE
     fi

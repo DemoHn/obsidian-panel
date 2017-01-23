@@ -15,7 +15,13 @@ class WebSocket {
             instance = this;
 
             this.socket = null;
-            this.socket_port = socket_port;
+
+            // use global variable WS_PORT to set websocket server port
+            if(WS_PORT != null && WS_PORT != 'None'){
+                this.socket_port = parseInt(WS_PORT);
+            }else{
+                this.socket_port = socket_port;
+            }
             this._init();
 
             this.socketQueue = {};
