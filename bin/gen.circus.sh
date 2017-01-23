@@ -59,7 +59,7 @@ EOF
     fi
     cat >> $DEST_FILE <<- EOF
 use_sockets = True
-cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port
+cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port --ws_port=$config_websocket_listen_port
 numprocesses = $config_server_process_num
 priority = 6
 

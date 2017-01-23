@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, make_response, redirect
 from jinja2 import TemplateNotFound
 
-from app import db, proxy
+from app import db, proxy, app
 from app.model import JavaBinary
 from app.utils import returnModel
 from app.tools.mc_downloader import sourceJAVA
@@ -29,7 +29,8 @@ class _utils:
 @super_admin_only
 def render_java_binary_page(uid, priv):
     try:
-        return render_template('superadmin/index.html', ws_port = 851)
+        ws_port = app.config.get("ws_port")
+        return render_template('superadmin/index.html', ws_port = ws_port)
     except TemplateNotFound:
         abort(404)
 

@@ -102,7 +102,7 @@ def start_task_scheduler(**kwargs):
     start_task_scheduler(**kwargs)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport="])
+    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport=","ws_port="])
 except getopt.GetoptError as err:
     print(err, file=sys.stderr)
     sys.exit(2)

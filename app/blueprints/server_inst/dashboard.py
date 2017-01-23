@@ -4,7 +4,7 @@ from flask import render_template, abort, request, redirect, send_file
 from jinja2 import TemplateNotFound
 from urllib.request import urlopen, Request
 
-from app import db, logger, proxy
+from app import db, logger, proxy, app
 from app.utils import returnModel
 from app.tools.mq_proxy import WS_TAG
 from app.model import ServerInstance, ServerCORE, FTPAccount
@@ -60,15 +60,14 @@ rtn = returnModel("string")
 @check_login
 def render_new_dashboard(uid, priv):
     _q = db.session.query(ServerInstance).all()
+    ws_port = app.config["_ws_port"]
     if _q == None:
-        return render_template("server_inst/index.html", new_inst_page=1, ws_port = 851)
+        return render_template("server_inst/index.html", new_inst_page=1, ws_port = ws_port)
     else:
         if len(_q) == 0:
-            return render_template("server_inst/index.html", new_inst_page=1, ws_port = 851)
+            return render_template("server_inst/index.html", new_inst_page=1, ws_port = ws_port)
         else:
-            return render_template("server_inst/index.html", new_inst_page=0, ws_port = 851)
-
-    return render_template("/server_inst/index.html")
+            return render_template("server_inst/index.html", new_inst_page=0, ws_port = ws_port)
 
 # miscellaneouses, including basic LOGO, FTP status, server properties, etc.
 @server_inst_page.route("/api/get_miscellaneous_info/<inst_id>", methods=["GET"])

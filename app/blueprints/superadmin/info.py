@@ -3,7 +3,7 @@ __author__ = "Nigshoxiz"
 from flask import render_template, abort, request, make_response, redirect, session
 from jinja2 import TemplateNotFound
 
-from app import db
+from app import db, app
 from app.controller.global_config import GlobalConfig
 from app.utils import returnModel, get_file_hash
 from app.model import ServerCORE
@@ -18,6 +18,7 @@ rtn = returnModel("string")
 @super_admin_only
 def render_info_page(uid, priv):
     try:
-        return render_template('superadmin/index.html', ws_port = 851)
+        ws_port = app.config.get("ws_port")
+        return render_template('superadmin/index.html', ws_port = ws_port)
     except TemplateNotFound:
         abort(404)

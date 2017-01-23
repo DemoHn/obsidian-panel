@@ -5,7 +5,7 @@ from hashlib import md5
 from jinja2 import TemplateNotFound
 import os, json, shutil
 
-from app import db
+from app import db, app
 from app.controller.global_config import GlobalConfig
 from app.controller.user_inst import UserInstance
 from app.controller.ftp_controller import FTPController
@@ -22,7 +22,8 @@ rtn = returnModel("string")
 @server_inst_page.route("/new_inst", methods=["GET"])
 @check_login
 def render_index_page(uid, priv):
-    return render_template("/server_inst/index.html", new_inst_page=1, ws_port = 851)
+    ws_port = app.config["_ws_port"]
+    return render_template("/server_inst/index.html", new_inst_page=1, ws_port = ws_port)
 
 @server_inst_page.route("/api/new_inst", methods=["GET"])
 @ajax_check_login
