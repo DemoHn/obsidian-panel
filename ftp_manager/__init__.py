@@ -5,10 +5,10 @@ from ob_logger import Logger
 
 logger = Logger("FTM")
 
-def start_FTP_manager(port=2121, debug=True):
+def start_FTP_manager(port=2121, debug=True, zmq_port=852):
     logger.set_debug(debug)
 
-    proxy = MessageQueueProxy(WS_TAG.FTM)
+    proxy = MessageQueueProxy(WS_TAG.FTM, router_port=zmq_port)
     proxy.register(FTPAccountEventHandler)
     proxy.listen(background=True)
 

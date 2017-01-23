@@ -21,7 +21,7 @@ __author__ = "Nigshoxiz"
 
 import sys, getopt, os
 
-def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_port=853, ws_port=851):
+def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_port=853, ws_port=851, zmq_port=852):
     from app import app as _app
     from app import logger
     from app.controller.global_config import GlobalConfig
@@ -36,6 +36,7 @@ def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_por
     logger.set_debug(debug)
     _app.config["_circusd_end_port"] = circusd_end_port
     _app.config["_ws_port"] = ws_port
+    _app.config["_zmq_port"] = zmq_port
 
     logger.info("This is Main Server (%s)" % os.getpid())
     def init_directory():
@@ -102,7 +103,7 @@ def start_task_scheduler(**kwargs):
     start_task_scheduler(**kwargs)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport=","ws_port="])
+    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport=","ws_port=","zmq_port="])
 except getopt.GetoptError as err:
     print(err, file=sys.stderr)
     sys.exit(2)
@@ -114,6 +115,7 @@ use_reloader = False
 fd = 0
 circusd_end_port = 0
 ws_port = None
+zmq_port = None
 # parse args
 for o, a in opts:
     if o == "-b":
@@ -138,16 +140,18 @@ for o, a in opts:
         circusd_end_port = int(a)
     elif o == "--ws_port":
         ws_port = int(a)
+    elif o == "--zmq_port":
+        zmq_port = int(a)
 
 if launch_branch_name == "app":
-    start_chaussette(fd, debug=debug_flag, port=listen_port, use_reloader=use_reloader, circusd_end_port=circusd_end_port, ws_port=ws_port)
+    start_chaussette(fd, debug=debug_flag, port=listen_port, use_reloader=use_reloader, circusd_end_port=circusd_end_port, ws_port=ws_port, zmq_port=zmq_port)
 elif launch_branch_name == "ftp_manager":
-    start_ftp_manager(debug=debug_flag, port=listen_port)
+    start_ftp_manager(debug=debug_flag, port=listen_port, zmq_port=zmq_port)
 elif launch_branch_name == "process_watcher":
-    start_process_watcher(debug=debug_flag)
+    start_process_watcher(debug=debug_flag, zmq_port=zmq_port)
 elif launch_branch_name == "websocket_server":
-    start_websocket_server(port=listen_port, debug=debug_flag)
+    start_websocket_server(port=listen_port, debug=debug_flag, zmq_port=zmq_port)
 elif launch_branch_name == "zeromq_broker":
     start_zeromq_broker(router_port=listen_port, debug=debug_flag)
 elif launch_branch_name == "task_scheduler":
-    start_task_scheduler(debug=debug_flag)
+    start_task_scheduler(debug=debug_flag, zmq_port=zmq_port)

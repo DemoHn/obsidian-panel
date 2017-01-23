@@ -11,10 +11,10 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
-def start_task_scheduler(debug=True):
+def start_task_scheduler(debug=True, zmq_port=852):
     logger.set_debug(debug)
 
-    proxy = MessageQueueProxy(WS_TAG.TSR)
+    proxy = MessageQueueProxy(WS_TAG.TSR, router_port=zmq_port)
     proxy.register(TaskEventHandler)
     proxy.listen(background=True)
 

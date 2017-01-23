@@ -1,4 +1,4 @@
-import os
+import os, yaml
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from app.controller.global_config import GlobalConfig
@@ -20,7 +20,9 @@ app.config['REDIS_QUEUE_KEY'] = 'reboot_queue'
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)
 
-proxy = MessageQueueProxy( "%s_%s" % (WS_TAG.APP, os.getpid()) )
+# read config.yaml directly
+zmq_port = int(yaml.load(open("config.yaml","r")).get("broker").get("listen_port"))
+proxy = MessageQueueProxy( "%s_%s" % (WS_TAG.APP, os.getpid()) ,router_port=zmq_port)
 
 # import blueprints
 # to event circular importing, this `import` statement should be put

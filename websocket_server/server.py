@@ -36,12 +36,12 @@ def start_zeromq_broker(router_port=852, debug=True):
             logger.error(traceback.format_exc())
             continue
 
-def start_websocket_server(debug=True, port=851, router_port=852):
+def start_websocket_server(debug=True, port=851, zmq_port=852):
     logger.set_debug(debug)
 
     # start proxy
     from .mq_events import WebsocketEventHandler
-    proxy = MessageQueueProxy(WS_TAG.CLIENT)
+    proxy = MessageQueueProxy(WS_TAG.CLIENT, router_port=zmq_port)
     proxy.register(WebsocketEventHandler)
     proxy.listen(background=True)
 
