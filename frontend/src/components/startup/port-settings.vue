@@ -54,7 +54,7 @@
             </table>
         </div>
         <div style="text-align: right;">
-            <md-button class="md-raised md-primary" @click="submit" :disabled="allow_submit">完成</md-button>
+            <md-button class="md-raised md-primary" @click="submit" :disabled="!allow_submit">完成</md-button>
         </div>
     </div>
 </template>
