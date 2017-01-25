@@ -403,6 +403,11 @@
             aj_create_inst(){
                 let ws = new WebSocket();
                 let that = this;
+
+                let logo_full_url = this.$refs.LOGO.getImageURL();
+                let logo_url_arr  = logo_full_url.split("/");
+                let logo_url      = logo_url_arr[logo_url_arr.length-1];
+
                 let creat_data = {
                     "inst_name" : that.world_name,
                     "core_file_id" : that.core_file_id,
@@ -411,7 +416,7 @@
                     "max_RAM" : parseInt(that.number_RAM),
                     "max_user" : parseInt(that.number_players),
                     "server_properties" : that.server_properties,
-                    "logo_url" : this.$refs.LOGO.getImageURL(),
+                    "logo_url" : logo_url,
                     "motd" : this.$refs.motdEditor.parse(),
                     "ftp_account" : that.ftp_account_name,
                     "ftp_default_password" : that.default_ftp_password,
