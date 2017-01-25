@@ -124,7 +124,7 @@ class DownloadTaskManager(metaclass=Singleton):
                 "uid" : uid
             }
 
-            self.proxy.send("websocket.dw_response", values, WS_TAG.CLIENT, reply=False)
+            self.proxy.send("websocket.dw_response", values, WS_TAG.APP, reply=False)
 
         def _extract_file(download_result, filename):
             # for abnormal input parameters(like empty filename), the only thing is to terminate

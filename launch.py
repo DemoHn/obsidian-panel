@@ -23,7 +23,8 @@ import sys, getopt, os
 
 def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_port=853, ws_port=851, zmq_port=852):
     from app import app as _app
-    from app import logger
+    from app import logger, proxy
+    from app.mq_events import WebsocketEventHandler
     from app.controller.global_config import GlobalConfig
     from app.controller.init_main_db import init_database
 
@@ -54,11 +55,31 @@ def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_por
             if not os.path.isdir(item):
                 os.makedirs(item)
 
+    def init_mq_proxy():
+        proxy.register(WebsocketEventHandler)
+        proxy.listen(background=True)
+
+    def wrap_socketio_server():
+        import socketio
+        from websocket_server.ws_conn import WSConnections
+
+        mgr = socketio.RedisManager("redis://")
+        sio = socketio.Server(client_manager=mgr, async_mode='eventlet')
+
+        #init
+        ws = WSConnections.getInstance(sio)
+        ws.init_events()
+        app = socketio.Middleware(sio, _app)
+
+        return app
+
     def _make_server():
         try:
             # instill eventlet_server instance to `_backends` dict to bypass the restriction!
             _backends['eventlet'] = eventlet_server
-            httpd = make_server(_app, host=_host,
+
+            app = wrap_socketio_server()
+            httpd = make_server(app, host=_host,
                                 backend='eventlet')
 
             httpd.serve_forever()
@@ -67,6 +88,9 @@ def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_por
 
     # init directories
     init_directory()
+
+    # init message queue proxy
+    init_mq_proxy()
 
     # init database
     init_database(logger=logger)
@@ -85,10 +109,6 @@ def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_por
 def start_ftp_manager(**kwargs):
     from ftp_manager import start_FTP_manager
     start_FTP_manager(**kwargs)
-
-def start_websocket_server(**kwargs):
-    from websocket_server import start_websocket_server
-    start_websocket_server(**kwargs)
 
 def start_zeromq_broker(**kwargs):
     from websocket_server import start_zeromq_broker
@@ -149,8 +169,6 @@ elif launch_branch_name == "ftp_manager":
     start_ftp_manager(debug=debug_flag, port=listen_port, zmq_port=zmq_port)
 elif launch_branch_name == "process_watcher":
     start_process_watcher(debug=debug_flag, zmq_port=zmq_port)
-elif launch_branch_name == "websocket_server":
-    start_websocket_server(port=listen_port, debug=debug_flag, zmq_port=zmq_port)
 elif launch_branch_name == "zeromq_broker":
     start_zeromq_broker(router_port=listen_port, debug=debug_flag)
 elif launch_branch_name == "task_scheduler":

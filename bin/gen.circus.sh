@@ -60,7 +60,7 @@ EOF
     cat >> $DEST_FILE <<- EOF
 use_sockets = True
 cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port --ws_port=$config_websocket_listen_port --zmq_port=$config_broker_listen_port
-numprocesses = $config_server_process_num
+numprocesses = 1
 priority = 6
 
 [socket:app]
@@ -96,25 +96,6 @@ copy_env = True
 virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b process_watcher --debug=$debug --zmq_port=$config_broker_listen_port
-numprocesses = 1
-EOF
-
-    if [ "$debug" = "false" ]; then
-        cat >> $DEST_FILE <<- EOF
-stdout_stream.class = FileStream
-stdout_stream.filename = $config_global_log_file
-
-EOF
-    fi
-}
-
-write_websocket_server(){
-    cat >> $DEST_FILE <<- EOF
-[watcher:websocket_server]
-copy_env = True
-virtualenv = ./env
-working_dir = ./
-cmd = python launch.py -b websocket_server -p $config_websocket_listen_port --debug=$debug --zmq_port=$config_broker_listen_port
 numprocesses = 1
 EOF
 
@@ -170,7 +151,6 @@ EOF
 write_circus
 write_zeromq_broker
 write_app
-write_websocket_server
 write_ftp_manager
 write_task_scheduler
 write_process_watcher

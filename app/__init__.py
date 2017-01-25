@@ -22,7 +22,8 @@ db = SQLAlchemy(app)
 
 # read config.yaml directly
 zmq_port = int(yaml.load(open("config.yaml","r")).get("broker").get("listen_port"))
-proxy = MessageQueueProxy( "%s_%s" % (WS_TAG.APP, os.getpid()) ,router_port=zmq_port)
+proxy = MessageQueueProxy(WS_TAG.APP ,router_port=zmq_port)
+
 
 # import blueprints
 # to event circular importing, this `import` statement should be put

@@ -8,7 +8,6 @@ global:
   log_file: /var/log/ob-panel.log
 server:
   listen_port: 80
-  process_num: 2
   use_reloader: false
 websocket:
   listen_port: 851

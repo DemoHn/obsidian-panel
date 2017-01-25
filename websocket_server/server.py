@@ -34,29 +34,3 @@ def start_zeromq_broker(router_port=852, debug=True):
         except:
             logger.error(traceback.format_exc())
             continue
-
-def start_websocket_server(debug=True, port=851, zmq_port=852):
-    logger.set_debug(debug)
-
-    # start proxy
-    from .mq_events import WebsocketEventHandler
-
-    proxy = MessageQueueProxy(WS_TAG.CLIENT, router_port=zmq_port)
-    proxy.register(WebsocketEventHandler)
-    proxy.listen(background=True)
-
-    eventlet.monkey_patch()
-
-    mgr = socketio.RedisManager("redis://")
-    sio = socketio.Server(client_manager=mgr, async_mode='eventlet')
-    #sio = socketio.Server()
-
-    #init
-    ws = WSConnections.getInstance(sio)
-    ws.init_events()
-    app = socketio.Middleware(sio)
-
-    logger.info("This is Websocket Server.")
-    logger.info("The listening port is %s" % port)
-    # deploy as an eventlet WSGI server
-    eventlet.wsgi.server(eventlet.listen(('', port)), app)
