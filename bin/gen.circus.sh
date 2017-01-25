@@ -59,7 +59,7 @@ EOF
     fi
     cat >> $DEST_FILE <<- EOF
 use_sockets = True
-cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port --ws_port=$config_websocket_listen_port --zmq_port=$config_broker_listen_port
+cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port --redis_port=$config_redis_listen_port --zmq_port=$config_broker_listen_port
 numprocesses = 1
 priority = 6
 
@@ -68,6 +68,16 @@ host = 0.0.0.0
 port = $config_server_listen_port
 
 EOF
+}
+
+write_redis(){
+    cat >> $DEST_FILE <<- EOF
+[watcher:redis]
+cmd = redis-server --port $config_redis_listen_port
+numprocesses = 1
+priority = 7
+EOF
+
 }
 
 write_ftp_manager(){
@@ -149,6 +159,7 @@ EOF
 }
 
 write_circus
+write_redis
 write_zeromq_broker
 write_app
 write_ftp_manager

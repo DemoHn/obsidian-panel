@@ -21,7 +21,7 @@ __author__ = "Nigshoxiz"
 
 import sys, getopt, os
 
-def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_port=853, ws_port=851, zmq_port=852):
+def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_port=853, redis_port=851, zmq_port=852):
     from app import app as _app
     from app import logger, proxy
     from app.mq_events import WebsocketEventHandler
@@ -36,7 +36,6 @@ def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_por
 
     logger.set_debug(debug)
     _app.config["_circusd_end_port"] = circusd_end_port
-    _app.config["_ws_port"] = ws_port
     _app.config["_zmq_port"] = zmq_port
 
     logger.info("This is Main Server (%s)" % os.getpid())
@@ -63,7 +62,7 @@ def start_chaussette(fd, port=80, debug=True, use_reloader=True, circusd_end_por
         import socketio
         from websocket_server.ws_conn import WSConnections
 
-        mgr = socketio.RedisManager("redis://")
+        mgr = socketio.RedisManager("redis://localhost:%s/0" % redis_port)
         sio = socketio.Server(client_manager=mgr, async_mode='eventlet')
 
         #init
@@ -123,7 +122,7 @@ def start_task_scheduler(**kwargs):
     start_task_scheduler(**kwargs)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport=","ws_port=","zmq_port="])
+    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "circusd-endport=","redis_port=","zmq_port="])
 except getopt.GetoptError as err:
     print(err, file=sys.stderr)
     sys.exit(2)
@@ -134,7 +133,7 @@ launch_branch_name = None
 use_reloader = False
 fd = 0
 circusd_end_port = 0
-ws_port = None
+redis_port = None
 zmq_port = None
 # parse args
 for o, a in opts:
@@ -158,13 +157,13 @@ for o, a in opts:
         fd = int(a)
     elif o == "--circusd-endport":
         circusd_end_port = int(a)
-    elif o == "--ws_port":
-        ws_port = int(a)
+    elif o == "--redis_port":
+        redis_port = int(a)
     elif o == "--zmq_port":
         zmq_port = int(a)
 
 if launch_branch_name == "app":
-    start_chaussette(fd, debug=debug_flag, port=listen_port, use_reloader=use_reloader, circusd_end_port=circusd_end_port, ws_port=ws_port, zmq_port=zmq_port)
+    start_chaussette(fd, debug=debug_flag, port=listen_port, use_reloader=use_reloader, circusd_end_port=circusd_end_port, redis_port=redis_port, zmq_port=zmq_port)
 elif launch_branch_name == "ftp_manager":
     start_ftp_manager(debug=debug_flag, port=listen_port, zmq_port=zmq_port)
 elif launch_branch_name == "process_watcher":

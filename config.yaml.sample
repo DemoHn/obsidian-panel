@@ -9,5 +9,5 @@ global:
 server:
   listen_port: 80
   use_reloader: false
-websocket:
+redis:
   listen_port: 851
