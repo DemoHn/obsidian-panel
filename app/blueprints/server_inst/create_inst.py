@@ -270,6 +270,14 @@ def submit_new_inst(uid, priv):
 
             properties_json = json.loads(server_properties)
             properties_json["motd"] = motd
+
+            # 'true' -> True , 'false' -> False
+            for key in properties_json:
+                if properties_json.get(key) == 'true':
+                    properties_json[key] = True
+                elif properties_json.get(key) == 'false':
+                    properties_json[key] = False
+
             i.set_instance_properties(properties_json)
 
             inst_id = i.create_inst()

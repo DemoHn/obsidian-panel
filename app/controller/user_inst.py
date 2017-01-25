@@ -122,7 +122,6 @@ class UserInstance():
     def set_instance_properties(self, properties):
         for keys in properties:
             self.inst_properties[keys] = properties.get(keys)
-        pass
 
     def set_max_user(self, user_num):
         _user_num = int(user_num)

@@ -61,7 +61,7 @@ EOF
 use_sockets = True
 cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port --redis_port=$config_redis_listen_port --zmq_port=$config_broker_listen_port
 numprocesses = 1
-priority = 6
+priority = 10
 
 [socket:app]
 host = 0.0.0.0
@@ -75,7 +75,7 @@ write_redis(){
 [watcher:redis]
 cmd = redis-server --port $config_redis_listen_port
 numprocesses = 1
-priority = 7
+priority = 11
 EOF
 
 }
@@ -88,6 +88,7 @@ virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b ftp_manager -p $config_ftp_listen_port --debug=$debug --zmq_port=$config_broker_listen_port
 numprocesses = 1
+priority = 8
 EOF
 
     if [ "$debug" = "false" ]; then
@@ -107,6 +108,7 @@ virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b process_watcher --debug=$debug --zmq_port=$config_broker_listen_port
 numprocesses = 1
+priority = 7
 EOF
 
     if [ "$debug" = "false" ]; then
@@ -126,7 +128,7 @@ virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b zeromq_broker -p $config_broker_listen_port --debug=$debug
 numprocesses = 1
-priority = 5
+priority = 9
 EOF
 
     if [ "$debug" = "false" ]; then
@@ -146,7 +148,7 @@ virtualenv = ./env
 working_dir = ./
 cmd = python launch.py -b task_scheduler --debug=$debug --zmq_port=$config_broker_listen_port
 numprocesses = 1
-priority = 2
+priority = 6
 EOF
 
     if [ "$debug" = "false" ]; then

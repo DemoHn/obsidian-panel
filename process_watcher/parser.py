@@ -219,3 +219,26 @@ class ServerPropertiesParser(KVParser):
             logger.warning("The difficulty level '%s' may not work." % difficulty)
 
         self.replace("difficulty", str(difficulty))
+
+    def set_gamemode(self, gamemode):
+        '''
+        According to Minecraft Wiki, the gamemode property should be an integer
+        within set {0,1,2}. Each number represents for different gamemode:
+        0 - Survival
+        1 - Creative
+        2 - Adventure
+
+        If user still provide an integer that exceed the set above, we only print
+        a warning message, since it may be acceptable on other unofficial version
+        of MC server core.
+
+        :param difficulty: a number
+        :return: nothing
+        '''
+        gamemode = int(gamemode)
+        num_set = (0,1,2,2)
+
+        if gamemode not in num_set:
+            logger.warning("Gamemode '%s' may not work." % gamemode)
+
+        self.replace("gamemode", str(gamemode))
