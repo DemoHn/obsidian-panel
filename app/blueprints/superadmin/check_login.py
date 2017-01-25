@@ -29,12 +29,12 @@ def check_login(fn):
             session_token = request.cookies.get("session_token")
 
         if session_token == None:
-            return redirect("/super_admin/login")
+            return redirect("/login")
         else:
             # query login user via token
             user = db.session.query(UserToken).join(Users).filter(UserToken.token == session_token).first()
             if user is None:
-                return redirect("/super_admin/login")
+                return redirect("/login")
             else:
                 priv = user.ob_user.privilege
                 uid = user.uid
@@ -105,12 +105,12 @@ def super_admin_only(fn):
             session_token = request.cookies.get("session_token")
 
         if session_token == None:
-            return redirect("/super_admin/login")
+            return redirect("/login")
         else:
             # query login user via token
             user = db.session.query(UserToken).join(Users).filter(UserToken.token == session_token).first()
             if user is None:
-                return redirect("/super_admin/login")
+                return redirect("/login")
             else:
                 priv = user.ob_user.privilege
                 uid = user.uid
@@ -118,7 +118,7 @@ def super_admin_only(fn):
                 if priv == PRIVILEGES.ROOT_USER:
                     return fn(uid, priv, *args, **kwargs)
                 else:
-                    return redirect('/super_admin/login')
+                    return redirect('/login')
 
     return dec_function
 
