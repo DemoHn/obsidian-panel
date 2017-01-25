@@ -1,10 +1,26 @@
 #!/bin/bash
 # detect OS type
 # ref: https://github.com/icy/pacapt/blob/master/pacapt
+
+# ZHAO Mode.
+# If Zhao=1, then download and install code from sources in China (coding.net for hosting code, and aliyun.com for pip download).
+# If Zhao=0, then install code normally.
+ZHAO=0
+
 _SUDO=""
 _OSTYPE=""
 
-_URL="https://github.com/DemoHn/obsidian-panel.git"
+_GITHUB_URL="https://github.com/DemoHn/obsidian-panel.git"
+_MIRROR_URL="https://git.coding.net/DemoHn2016/obsidian-panel.git"
+_PIP_ALIYUN_OPTION="--index-url http://mirrors.aliyun.com/pypi/simple/ --trusted-host=mirrors.aliyun.com"
+
+if [[ "$ZHAO" -eq "1" ]]; then
+    _URL=$_MIRROR_URL
+    _PIP_OPTION=$_PIP_ALIYUN_OPTION
+else
+    _URL=$_GITHUB_URL
+    _PIP_OPTION=""
+fi
 
 _check_sudo() {
 	if [[ "$EUID" -ne 0 ]]; then
@@ -92,6 +108,16 @@ _make_install_git(){
     make install
 }
 
+_make_install_redis(){
+    echo "[INFO] compile redis"
+    wget http://download.redis.io/releases/redis-2.8.3.tar.gz -O /var/tmp/redis-2.8.3.tar.gz
+    cd /var/tmp
+    tar xzvf /var/tmp/redis-2.8.3.tar.gz
+    cd redis-2.8.3
+    make CFLAGS="-march=i686"
+    make install
+}
+
 _make_install_python3(){
     # install python 3.5.2 by compiling it
     cd /var/tmp
@@ -122,7 +148,7 @@ _make_install_pip3(){
     wget --no-check-certificate https://bootstrap.pypa.io/get-pip.py -O /var/tmp/get-pip.py
     python3 /var/tmp/get-pip.py install
     # upgrade pip
-    pip3 install --upgrade pip
+    pip3 install $_PIP_OPTION --upgrade pip
 }
 
 _check_sudo
@@ -133,9 +159,9 @@ echo "Package Manager: $_OSTYPE"
 # for Ubuntu, Debian
 if [ $_OSTYPE = "DPKG" ]; then
     $_SUDO apt-get update -y
-    $_SUDO apt-get install -y python3 python3-pip git libzmq-dev
+    $_SUDO apt-get install -y python3 python3-pip git libzmq-dev redis-server
     # install virtualenv,circusd
-    $_SUDO pip3 install virtualenv circus
+    $_SUDO pip3 install $_PIP_OPTION virtualenv circus
 fi
 
 # For CentOS, Red Hat, Fedora
@@ -149,8 +175,8 @@ if [ $_OSTYPE = "YUM" ]; then
     _detect_dpendency git && _make_install_git
     _detect_dpendency python3 && _make_install_python3
     _detect_dpendency pip3 && _make_install_pip3
-
-    $_SUDO pip3 install virtualenv circus
+    _detect_dpendency redis-server && _make_install_redis
+    $_SUDO pip3 install $_PIP_OPTION virtualenv circus
 fi
 
 #TODO other OS support
@@ -159,7 +185,7 @@ echo "[INFO] Now let's clone the source code"
 CLONE_DIR="/opt/obsidian-panel"
 ENV_DIR="/opt/obsidian-panel/env"
 if [ ! -d "$CLONE_DIR" ]; then
-    $_SUDO git clone $_URL /opt/obsidian-panel
+    $_SUDO git clone --depth 1 $_URL /opt/obsidian-panel
     $_SUDO cd $CLONE_DIR
     virtualenv /opt/obsidian-panel/env
 else
@@ -172,7 +198,7 @@ fi
 . env/bin/activate
 
 # now, install required packages!
-pip3 install -r requirement.txt
+pip3 install $_PIP_OPTION -r requirement.txt
 
 # install `ob-panel` command to /usr/local/bin
 echo "[INFO] Copying op-panel command"
