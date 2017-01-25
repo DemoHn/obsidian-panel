@@ -251,7 +251,7 @@ def submit_new_inst(uid, priv):
 
         # FTP account
         FTP_account_name = F.get("ftp_account")
-        FTP_default_password = (F.get("ftp_default_password") == "true")
+        FTP_default_password = (F.get("ftp_default_password") == True)
         FTP_password  = F.get("ftp_password")
 
         i = UserInstance(uid)
