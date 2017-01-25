@@ -169,8 +169,8 @@ EOF
 
 write_circus
 write_zeromq_broker
-write_websocket_server
 write_app
+write_websocket_server
 write_ftp_manager
 write_task_scheduler
 write_process_watcher

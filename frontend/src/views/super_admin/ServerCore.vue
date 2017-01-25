@@ -244,11 +244,11 @@ export default {
                 "core_type" : this.edit_form.core_type,
                 "mc_version" : this.edit_form.minecraft_version
             }
-
+            let ws = new WebSocket();
             let _index = this._edit_index;
             let core_file_id = this.core_list[_index]["core_id"];
             let v = this;
-            app.ajax("POST", "/super_admin/api/edit_core_file_params/"+core_file_id, ajax_data, (msg)=>{
+            ws.ajax("POST", "/super_admin/api/edit_core_file_params/"+core_file_id, ajax_data, (msg)=>{
                 for(let key in v.edit_form)
                     v.core_list[_index][key] = v.edit_form[key];
                 v.showEditModal = false;
@@ -266,11 +266,11 @@ export default {
         },
 
         confirm_delete(){
-            let app = this.$parent.$parent;
+            let ws = new WebSocket();
             let _index = this._delete_index;
             let core_file_id = this.core_list[_index]["core_id"];
             let v = this;
-            app.ajax("GET", "/super_admin/api/delete_core_file/"+core_file_id, (msg)=>{
+            ws.ajax("GET", "/super_admin/api/delete_core_file/"+core_file_id, (msg)=>{
                 // on success
                 v.showDeleteModal = false;
                 v.core_list.splice(_index, 1);

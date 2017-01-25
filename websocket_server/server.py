@@ -1,5 +1,5 @@
 from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
-import socketio, eventlet, json, re, zmq, threading, traceback
+import socketio, eventlet, json, re, zmq, threading, traceback, engineio
 from . import logger
 
 from .ws_conn import WSConnections
@@ -30,7 +30,6 @@ def start_zeromq_broker(router_port=852, debug=True):
                 forward_dest = "send-" + _msg_json.get("_dest")
 
             forward_arr = [forward_dest.encode(), msg[1]]
-
             socket.send_multipart(forward_arr)
         except:
             logger.error(traceback.format_exc())
@@ -41,6 +40,7 @@ def start_websocket_server(debug=True, port=851, zmq_port=852):
 
     # start proxy
     from .mq_events import WebsocketEventHandler
+
     proxy = MessageQueueProxy(WS_TAG.CLIENT, router_port=zmq_port)
     proxy.register(WebsocketEventHandler)
     proxy.listen(background=True)
@@ -48,7 +48,8 @@ def start_websocket_server(debug=True, port=851, zmq_port=852):
     eventlet.monkey_patch()
 
     mgr = socketio.RedisManager("redis://")
-    sio = socketio.Server(client_manager=mgr)
+    sio = socketio.Server(client_manager=mgr, async_mode='eventlet')
+    #sio = socketio.Server()
 
     #init
     ws = WSConnections.getInstance(sio)
