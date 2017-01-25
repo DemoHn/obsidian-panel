@@ -22,8 +22,7 @@ rtn = returnModel("string")
 @server_inst_page.route("/new_inst", methods=["GET"])
 @check_login
 def render_index_page(uid, priv):
-    ws_port = app.config["_ws_port"]
-    return render_template("/server_inst/index.html", new_inst_page=1, ws_port = ws_port)
+    return render_template("/server_inst/index.html", new_inst_page=1)
 
 @server_inst_page.route("/api/new_inst", methods=["GET"])
 @ajax_check_login

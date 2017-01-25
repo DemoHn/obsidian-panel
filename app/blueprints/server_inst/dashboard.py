@@ -60,14 +60,13 @@ rtn = returnModel("string")
 @check_login
 def render_new_dashboard(uid, priv):
     _q = db.session.query(ServerInstance).all()
-    ws_port = app.config["_ws_port"]
     if _q == None:
-        return render_template("server_inst/index.html", new_inst_page=1, ws_port = ws_port)
+        return render_template("server_inst/index.html", new_inst_page=1)
     else:
         if len(_q) == 0:
-            return render_template("server_inst/index.html", new_inst_page=1, ws_port = ws_port)
+            return render_template("server_inst/index.html", new_inst_page=1)
         else:
-            return render_template("server_inst/index.html", new_inst_page=0, ws_port = ws_port)
+            return render_template("server_inst/index.html", new_inst_page=0)
 
 # miscellaneouses, including basic LOGO, FTP status, server properties, etc.
 @server_inst_page.route("/api/get_miscellaneous_info/<inst_id>", methods=["GET"])

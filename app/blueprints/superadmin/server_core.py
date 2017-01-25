@@ -30,8 +30,7 @@ def render_server_core_page(uid, priv):
         else:
             _file_info = []
 
-        ws_port = app.config.get("_ws_port")
-        return render_template("superadmin/index.html", ws_port = ws_port)
+        return render_template("superadmin/index.html")
     except TemplateNotFound:
         abort(404)
 

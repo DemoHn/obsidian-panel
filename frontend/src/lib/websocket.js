@@ -10,18 +10,12 @@ const MAX_RETRY = 10;
 let instance = null;
 
 class WebSocket {
-    constructor(socket_port=851){
+    constructor(){
         if(!instance){
             instance = this;
 
             this.socket = null;
 
-            // use global variable WS_PORT to set websocket server port
-            if(WS_PORT != null && WS_PORT != 'None'){
-                this.socket_port = parseInt(WS_PORT);
-            }else{
-                this.socket_port = socket_port;
-            }
             this._init();
 
             this.socketQueue = {};
@@ -51,7 +45,7 @@ class WebSocket {
     _init(){
         if(io !== undefined){
             if(this.socket === null){
-                this.socket = io.connect(this._get_current_host()+":"+this.socket_port);
+                this.socket = io.connect(this._get_current_host());
             }
 
             this.socket.on("connect",(e)=>{

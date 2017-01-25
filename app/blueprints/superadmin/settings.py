@@ -22,8 +22,7 @@ rtn = returnModel("string")
 @super_admin_only
 def render_settings_page(uid, priv):
     try:
-        ws_port = app.config.get("_ws_port")
-        return render_template('superadmin/index.html', ws_port = ws_port)
+        return render_template('superadmin/index.html')
     except TemplateNotFound:
         abort(404)
 
