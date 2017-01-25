@@ -40,10 +40,12 @@ def render_startup_page():
 # dump yaml data
 def dump_yaml_config(new_config):
     docs = None
+    text = ""
     try:
         config_file = "config.yaml"
         fr = open(os.path.join(os.getcwd(), config_file), "r")
         docs = yaml.load(fr)
+        text = fr.read()
         fr.close()
     except:
         fr.close()
@@ -55,13 +57,14 @@ def dump_yaml_config(new_config):
         # change config
         docs["circus"]["end_port"] = int(new_config.get("pm_port"))
         docs["server"]["listen_port"] = int(new_config.get("app_port"))
-        docs["websocket"]["listen_port"] = int(new_config.get("ws_port"))
+        docs["redis"]["listen_port"] = int(new_config.get("redis_port"))
         docs["ftp"]["listen_port"] = int(new_config.get("ftp_port"))
         docs["broker"]["listen_port"] = int(new_config.get("msgQ_port"))
 
-        fw.write(yaml.dump(docs, default_flow_style=False))
+        dump_text = yaml.dump(docs, default_flow_style=False)
+        if dump_text != "" and dump_text != None:
+            fw.write(dump_text)
         fw.close()
-
         return True
     except:
         fw.close()
@@ -88,7 +91,7 @@ def starter_finish():
             "app_port" : F.get("app_port"),
             "ftp_port" : F.get("ftp_port"),
             "msgQ_port" : F.get("msgQ_port"),
-            "ws_port" : F.get("ws_port"),
+            "redis_port" : F.get("redis_port"),
             "pm_port" : F.get("pm_port")
         }
 

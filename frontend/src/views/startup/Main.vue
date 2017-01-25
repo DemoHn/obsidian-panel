@@ -138,7 +138,7 @@ export default {
             this.app_port = data.app_port;
             this.ftp_port = data.ftp_port;
             this.msgQ_port = data.msgQ_port;
-            this.ws_port = data.ws_port;
+            this.redis_port = data.redis_port;
             this.pm_port = data.pm_port;
 
             let v = {
@@ -151,7 +151,7 @@ export default {
                 "app_port" : this.app_port,
                 "ftp_port" : this.ftp_port,
                 "msgQ_port" : this.msgQ_port,
-                "ws_port" : this.ws_port,
+                "redis_port" : this.redis_port,
                 "pm_port" : this.pm_port
             }
 

@@ -24,11 +24,11 @@
                 </tr>
                 <tr><td colspan="2"><div style="text-align: center;margin-top: 1rem;color:#888;">以下端口为系统自用，如无意外，毋须更改</div></td></tr>
                 <tr>
-                    <td class="lb-wide"><span class="label"><i>Websocket Server</i></span></td>
+                    <td class="lb-wide"><span class="label"><i>Redis Server</i></span></td>
                     <td>
                         <md-input-container md-inline>
                             <label>&lt;Internal Port&gt;</label>
-                            <md-input v-model="ws_port"></md-input>
+                            <md-input v-model="redis_port"></md-input>
                         </md-input-container>
                     </td>
                 </tr>
@@ -120,7 +120,7 @@
                 app_port: 80,
                 ftp_port: 21,
                 msgQ_port: 852,
-                ws_port:851,
+                redis_port:851,
                 pm_port:853,
                 allow_submit : false
             }
@@ -131,7 +131,7 @@
                     this.app_port,
                     this.ftp_port,
                     this.msgQ_port,
-                    this.ws_port,
+                    this.redis_port,
                     this.pm_port
                 ];
 
@@ -153,7 +153,7 @@
                     app_port: this.app_port,
                     ftp_port: this.ftp_port,
                     msgQ_port: this.msgQ_port,
-                    ws_port:this.ws_port,
+                    redis_port:this.redis_port,
                     pm_port:this.pm_port
                 }
 
