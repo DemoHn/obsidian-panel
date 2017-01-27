@@ -132,11 +132,11 @@ dev(){
 }
 
 dev_publish(){
-
+    echo "_dev publish"
 }
 
 dev_commit(){
-
+    echo "_dev commit"
 }
 
 # command switch
