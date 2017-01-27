@@ -121,12 +121,12 @@ upgrade(){
 
 # dev command
 dev(){
-    case "$2" in
+    case "$1" in
         publish)
             dev_publish
             ;;
-        commit)
-            dev_commit
+        push)
+            dev_push
             ;;
         *)
             ;;
@@ -134,11 +134,21 @@ dev(){
 }
 
 dev_publish(){
-    echo "_dev publish"
+    echo "[INFO] publish changes"
+    git checkout master
+    git merge dev
+    git tag -a $(cat $DIR/../VERSION)
+    git push origin master
+    git push mirror master
 }
 
-dev_commit(){
-    echo "_dev commit"
+dev_push(){
+    echo "[INFO] push updates"
+    echo "[INFO] NOTICE: Before upload changes to upstream, you should commit all the changes"
+    # push to GitHub
+    git push origin dev
+    # push to coding.net (China mirror)
+    git push mirror dev
 }
 
 # command switch
@@ -153,7 +163,7 @@ case "$1" in
       clear
       ;;
   dev)
-      dev
+      dev $2
       ;;
   restart)
       restart
