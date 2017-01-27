@@ -110,7 +110,7 @@ upgrade(){
     git config user.email obuser@obuser.com
 
     # now pull the code from upstream
-    if git pull -f origin master; then
+    if git pull -f --no-edit origin master; then
         echo "[INFO] Update succeed. New version is $(cat $DIR/../VERSION)"
     else
         echo "[INFO] Update failed."
@@ -123,12 +123,23 @@ dev(){
         publish)
             dev_publish
             ;;
+        commit)
+            dev_commit
+            ;;
         *)
             ;;
     esac
 }
 
+dev_publish(){
 
+}
+
+dev_commit(){
+
+}
+
+# command switch
 case "$1" in
   start)
       start
