@@ -112,8 +112,10 @@ upgrade(){
     # now pull the code from upstream
     if git pull -f --no-edit origin master; then
         echo "[INFO] Update succeed. New version is $(cat $DIR/../VERSION)"
+        exit 0
     else
         echo "[INFO] Update failed."
+        exit 1
     fi
 }
 
