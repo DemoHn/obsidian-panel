@@ -117,6 +117,18 @@ upgrade(){
     fi
 }
 
+# dev command
+dev(){
+    case "$2" in
+        publish)
+            dev_publish
+            ;;
+        *)
+            ;;
+    esac
+}
+
+
 case "$1" in
   start)
       start
@@ -126,6 +138,9 @@ case "$1" in
       ;;
   clear)
       clear
+      ;;
+  dev)
+      dev
       ;;
   restart)
       restart
