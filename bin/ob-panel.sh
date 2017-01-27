@@ -134,6 +134,7 @@ dev(){
 }
 
 dev_publish(){
+    dev_push
     echo "[INFO] publish changes"
     git checkout master
     git merge dev
