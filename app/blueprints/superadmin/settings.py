@@ -30,7 +30,7 @@ def render_settings_page(uid, priv):
 @super_admin_page.route("/settings/passwd", methods=["POST"])
 @ajax_super_admin_only
 def set_password(uid, priv):
-    F = request.form
+    F = request.json
     ori_password = F.get("ori_password")
     new_password = F.get("new_password")
     try:

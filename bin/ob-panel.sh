@@ -56,7 +56,8 @@ status(){
 
 stop(){
     echo "Stop obsidian-panel..."
-    cmd_circusctl stop
+    kill -2 $(cat $PIDFILE)
+    rm -f $PIDFILE
 }
 
 clear(){
@@ -97,6 +98,25 @@ quit(){
     fi
 }
 
+upgrade(){
+    echo "[INFO] Update Obsidian-panel..."
+    # change to the root directory.
+    # ** by default, it is /opt/obsidian-panel (Linux)
+    cd $DIR/../
+
+    # set temperal username and email
+    # or `git pull` operation will not continue
+    git config user.name obuser
+    git config user.email obuser@obuser.com
+
+    # now pull the code from upstream
+    if git pull -f origin master; then
+        echo "[INFO] Update succeed. New version is $(cat $DIR/../VERSION)"
+    else
+        echo "[INFO] Update failed."
+    fi
+}
+
 case "$1" in
   start)
       start
@@ -119,6 +139,12 @@ case "$1" in
   quit)
       quit
       ;;
+  upgrade)
+      upgrade
+      ;;
+  update)
+      upgrade
+      ;;
   *)
-    echo "Usage: $0 {start|stop|restart|status|clear|debug|quit}"
+    echo "Usage: $0 {start|stop|restart|status|clear|debug|quit|upgrade|update}"
 esac
