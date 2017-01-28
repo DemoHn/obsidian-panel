@@ -42,7 +42,7 @@
 
                         <span class="sub_title">软件更新</span>
                         <div class="sub_content">
-                            
+                            <update-checker></update-checker>
                         </div>
 
                     </div>
@@ -54,7 +54,11 @@
 
 <script>
     import WebSocket from "../../lib/websocket.js"
+    import UpdateChecker from "../../components/settings/update-checker.vue"
     export default {
+        components:{
+            'update-checker' : UpdateChecker
+        },
         data(){
             return {
                 "ori_password": "",

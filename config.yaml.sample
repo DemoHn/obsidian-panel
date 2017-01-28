@@ -6,6 +6,7 @@ ftp:
   listen_port: 21
 global:
   log_file: /var/log/ob-panel.log
+  zhao: 1
 server:
   listen_port: 80
   use_reloader: false

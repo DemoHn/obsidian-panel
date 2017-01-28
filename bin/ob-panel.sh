@@ -56,7 +56,9 @@ status(){
 
 stop(){
     echo "Stop obsidian-panel..."
-    kill -2 $(cat $PIDFILE)
+    if [ -f $PIDFILE ]; then
+        kill -2 $(cat $PIDFILE)
+    fi
     rm -f $PIDFILE
 }
 
@@ -82,20 +84,12 @@ debug(){
     echo "Running in debug mode..."
 
     if [ -f $PIDFILE ]; then
-        quit
+        stop
     fi
     # generate ini file
     sh $DIR/gen.circus.sh true
     cd $DIR/../
     circusd .obsidian_panel.ini
-}
-
-quit(){
-    if [ -f $PIDFILE ]; then
-        echo "Quit circus..."
-        cmd_circusctl quit
-        rm -f $PIDFILE
-    fi
 }
 
 upgrade(){
@@ -139,8 +133,8 @@ dev_publish(){
     git checkout master
     git merge dev
     git tag -a $(cat $DIR/../VERSION)
-    git push origin master
-    git push mirror master
+    git push origin $(cat $DIR/../VERSION)
+    git push mirror $(cat $DIR/../VERSION)
 }
 
 dev_push(){
@@ -174,9 +168,6 @@ case "$1" in
       ;;
   debug)
       debug
-      ;;
-  quit)
-      quit
       ;;
   upgrade)
       upgrade
