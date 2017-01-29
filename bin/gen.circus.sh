@@ -49,6 +49,7 @@ write_app(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
+autostart = True
 EOF
     if [ "$debug" = "false" ]; then
         cat >> $DEST_FILE <<- EOF
@@ -76,6 +77,7 @@ write_redis(){
 cmd = redis-server --port $config_redis_listen_port
 numprocesses = 1
 priority = 11
+autostart = True
 EOF
 
 }
@@ -89,6 +91,7 @@ working_dir = ./
 cmd = python launch.py -b ftp_manager -p $config_ftp_listen_port --debug=$debug --zmq_port=$config_broker_listen_port
 numprocesses = 1
 priority = 8
+autostart = True
 EOF
 
     if [ "$debug" = "false" ]; then
@@ -109,6 +112,7 @@ working_dir = ./
 cmd = python launch.py -b process_watcher --debug=$debug --zmq_port=$config_broker_listen_port
 numprocesses = 1
 priority = 7
+autostart = True 
 EOF
 
     if [ "$debug" = "false" ]; then
@@ -129,6 +133,7 @@ working_dir = ./
 cmd = python launch.py -b zeromq_broker -p $config_broker_listen_port --debug=$debug
 numprocesses = 1
 priority = 9
+autostart = True
 EOF
 
     if [ "$debug" = "false" ]; then
@@ -149,6 +154,7 @@ working_dir = ./
 cmd = python launch.py -b task_scheduler --debug=$debug --zmq_port=$config_broker_listen_port
 numprocesses = 1
 priority = 6
+autostart = True
 EOF
 
     if [ "$debug" = "false" ]; then

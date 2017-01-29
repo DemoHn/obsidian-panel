@@ -161,7 +161,7 @@ if [ $_OSTYPE = "DPKG" ]; then
     $_SUDO apt-get update -y
     $_SUDO apt-get install -y python3 python3-pip git libzmq-dev redis-server
     # install virtualenv,circusd
-    $_SUDO pip3 install $_PIP_OPTION virtualenv circus
+    $_SUDO pip3 install $_PIP_OPTION virtualenv circus pyyaml
 fi
 
 # For CentOS, Red Hat, Fedora
@@ -176,7 +176,7 @@ if [ $_OSTYPE = "YUM" ]; then
     _detect_dpendency python3 && _make_install_python3
     _detect_dpendency pip3 && _make_install_pip3
     _detect_dpendency redis-server && _make_install_redis
-    $_SUDO pip3 install $_PIP_OPTION virtualenv circus
+    $_SUDO pip3 install $_PIP_OPTION virtualenv circus pyyaml
 fi
 
 #TODO other OS support

@@ -133,8 +133,8 @@ dev_publish(){
     git checkout master
     git merge dev
     git tag -a $(cat $DIR/../VERSION)
-    git push origin $(cat $DIR/../VERSION)
-    git push mirror $(cat $DIR/../VERSION)
+    git push origin master
+    git push mirror master
 }
 
 dev_push(){

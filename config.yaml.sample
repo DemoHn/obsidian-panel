@@ -8,6 +8,7 @@ global:
   log_file: /var/log/ob-panel.log
   zhao: 1
 server:
+  host: 0.0.0.0
   listen_port: 80
   use_reloader: false
 redis:

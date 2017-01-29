@@ -17,6 +17,11 @@ app.config["SQLALCHEMY_ECHO"] = False
 app.config['SECRET_KEY'] = 'secret!'
 app.config['REDIS_QUEUE_KEY'] = 'reboot_queue'
 
+gc = GlobalConfig.getInstance()
+# set sqlalchemy database uri
+if gc.get("database_uri") != None:
+    app.config["SQLALCHEMY_DATABASE_URI"] = gc.get("database_uri")
+
 # init flask-SQLAlchemy
 db = SQLAlchemy(app)
 
@@ -36,13 +41,6 @@ from app.blueprints.server_inst import server_inst_page
 app.register_blueprint(start_page)
 app.register_blueprint(super_admin_page)
 app.register_blueprint(server_inst_page)
-
-# set sqlalchemy database uri
-gc = GlobalConfig.getInstance()
-
-
-if gc.get("database_uri") != None:
-    app.config["SQLALCHEMY_DATABASE_URI"] = gc.get("database_uri")
 
 # import main views
 from app import views
