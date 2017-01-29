@@ -13,7 +13,13 @@
                         </div>
                     </div>
                     <div class="box-body">
-                        <div class="table-responsive">
+                        <div v-if="status == 2">
+                            <load-error></load-error>
+                        </div>
+                        <div v-if="status == 0">
+                            <c-loading></c-loading>
+                        </div>
+                        <div class="table-responsive" v-if="status == 1">
                             <table class="table no-margin text-center" id="java_list">
                                 <thead>
                                     <tr>
@@ -73,6 +79,8 @@
 
 <script>
     import WebSocket from "../../lib/websocket.js"
+    import Loading from '../../components/c-loading.vue';
+    import LoadError from '../../components/c-error.vue';
     const WAIT = 1,
 DOWNLOADING = 2,
 EXTRACTING = 3,
@@ -82,8 +90,13 @@ EXTRACT_FAIL = 6;
 
 export default {
     name: 'JavaBinary',
+    components:{
+        'c-loading': Loading,
+        'load-error': LoadError,
+    },
     data : function(){
         return {
+            status : 0,
             versions : []
         }
     },
@@ -195,9 +208,12 @@ export default {
 
     mounted(){
         let ws = new WebSocket();
-
+        let v = this;
         ws.ajax("GET","/super_admin/api/get_java_download_list", (msg)=>{
+            v.status = 1;
             this.init_download_list(msg);
+        },(code)=>{
+            v.status = 2;
         })
         ws.bind("_download_start", this.on_download_start);
         ws.bind("_extract_finish", this.on_extract_finish);

@@ -37,6 +37,10 @@
                     <span class="lb-gray">更新完成，请点击「重新启动」以重启面板！</span><br>
                     <button class="btn btn-danger btn-sm" @click="reboot">重新启动</button>
                 </div>
+                <div v-if="update_status == 4">
+                    <span class="lb-gray">请注意，此页面将不提示重启结果。请默念5秒后再刷新页面!</span><br>
+                    <button class="btn btn-danger btn-sm" @click="reboot">重启中 <i class="fa fa-spinner fa-spin fa-fw"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -80,7 +84,7 @@
                     if(!msg.is_newest){
                         v.newest_version = msg.version;
                         v.newest_release_date = msg.publish_date;
-                        v.newest_release_note = msg.release_note;
+                        v.newest_release_note = msg.release_note.replace(/\n/g, "<br>");
                     }
                 },(code)=>{
                     v.check_status = 1; // fail
@@ -119,6 +123,7 @@
                         callback(msg);
                     }
                 })
+                this.update_status = 4; // rebooting
             },
             aj_get_current_version(callback){
                 ws.ajax("GET","/super_admin/settings/get_current_version",(msg)=>{

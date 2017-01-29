@@ -1,10 +1,10 @@
-<template>
+<template lang="html">
     <section class="content">
         <div class="row">
             <div class="col-md-5">
                 <div class="box box-info">
                     <div class="box-header with-border">
-
+                        <h3 class="box-title">基本信息</h3>
                         <div class="box-tools pull-right">
                             <button class="btn btn-box-tool" type="button" data-widget="collapse">
                                 <i class="fa fa-minus"></i>

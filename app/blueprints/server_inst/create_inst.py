@@ -105,6 +105,9 @@ def assert_input(uid, priv):
                 d = int(data)
             except:
                 return rtn.success(False)
+            # port range
+            if d < 1 or d > 65535:
+                return rtn.success(False)
             q = db.session.query(ServerInstance).filter(ServerInstance.listening_port == d).first()
 
             if q == None:
