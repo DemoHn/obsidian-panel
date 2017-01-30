@@ -17,7 +17,9 @@
                         <span class="lb-gray">发布时间:</span> <div class="lb-blue info_note">{{ newest_release_date }}</div>
                     </div>
                     <div>
-                        <span class="lb-gray">更新说明:</span><div class="lb-blue info_note">{{ newest_release_note }}</div>
+                        <span class="lb-gray">更新说明:</span><div class="lb-blue info_note" v-for="note_line in newest_release_note">
+                            <div>{{ note_line }}</div>
+                        </div>
                     </div>
                 </div>
                 <div><a class="toggle_a" v-if="!expand_version_info" @click="toggle_exp">展开版本信息</a><a class="toggle_a" v-if="expand_version_info" @click="toggle_exp">收回版本信息</a></div>
@@ -84,7 +86,7 @@
                     if(!msg.is_newest){
                         v.newest_version = msg.version;
                         v.newest_release_date = msg.publish_date;
-                        v.newest_release_note = msg.release_note.replace(/\n/g, "<br>");
+                        v.newest_release_note = msg.release_note.split("\n");
                     }
                 },(code)=>{
                     v.check_status = 1; // fail

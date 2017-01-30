@@ -89,6 +89,8 @@ def get_newest_version(uid, priv):
                 if B > A:
                     is_newest = False
                     break
+                elif B < A:
+                    break
 
             _model = {
                 "is_newest" : is_newest,
