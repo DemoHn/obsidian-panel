@@ -141,14 +141,13 @@ class DownloadTaskManager(metaclass=Singleton):
             _send_dw_signal("_extract_start", hash, True)
 
             # run tar command
-            cmd = "tar -xzf --overwrite %s -C %s" % (filename, root_dir)
+            cmd = "tar -xzf %s -C %s" % (filename, root_dir)
             # open archive
             #archive = tarfile.open(filename)
             p = subprocess.Popen(cmd, shell=True)
             rc = p.wait()
             # If untar file error
             if rc != 0:
-                logger.error(traceback.format_exc())
                 self.tasks_pool.update(hash, status=_utils.EXTRACT_FAIL)
                 # send extract_finish event (when extract failed)
                 _send_dw_signal("_extract_finish", hash, False)

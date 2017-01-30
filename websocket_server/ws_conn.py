@@ -100,10 +100,6 @@ class WSConnections(object):
     def _init_message_event(self):
         @self.sio.on('message', namespace="/")
         def emit_message(sid, data):
-            from . import logger
-            #proxy = MessageQueueProxy(WS_TAG.CONTROL)
-
-            _flag  = data.get("flag")
             _event = data.get("event")
             _props = data.get("props")
 
@@ -112,13 +108,7 @@ class WSConnections(object):
             avail = self.sid_available(sid, permission=PRIVILEGES.ROOT_USER)
 
             if avail == True:
-                # from CLIENT -> CONTROL
-                #
                 logger.debug("send <-- event = %s, props = %s" % (_event, _props))
-                #proxy.send(_flag, _event, _props, WS_TAG.CONTROL,
-                #           uid = ws.find_uid(sid),
-                #           sid = sid,
-                #           _src= WS_TAG.CLIENT)
             else:
                 logger.debug("reject <-- event = %s, props = %s" % (_event, _props))
 
