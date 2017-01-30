@@ -9,8 +9,9 @@ from app.tools.mc_downloader import DownloaderPool, sourceJAVA
 from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
 
 from apscheduler.schedulers.background import BackgroundScheduler
+
 from datetime import datetime
-import tarfile
+import tarfile, subprocess
 import traceback
 import os, json
 
@@ -139,12 +140,14 @@ class DownloadTaskManager(metaclass=Singleton):
             self.tasks_pool.update(hash, status=_utils.EXTRACTING)
             _send_dw_signal("_extract_start", hash, True)
 
+            # run tar command
+            cmd = "tar -xzf --overwrite %s -C %s" % (filename, root_dir)
             # open archive
-            archive = tarfile.open(filename)
-            try:
-                archive.extractall(path=root_dir)
-            except:
-                archive.close()
+            #archive = tarfile.open(filename)
+            p = subprocess.Popen(cmd, shell=True)
+            rc = p.wait()
+            # If untar file error
+            if rc != 0:
                 logger.error(traceback.format_exc())
                 self.tasks_pool.update(hash, status=_utils.EXTRACT_FAIL)
                 # send extract_finish event (when extract failed)
@@ -152,8 +155,6 @@ class DownloadTaskManager(metaclass=Singleton):
                 return None
 
             logger.debug("extract dir: %s, finish!" % root_dir)
-            archive.close()
-
             try:
                 # save the version info into the database
                 version_data = JavaBinary(

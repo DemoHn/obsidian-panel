@@ -334,14 +334,16 @@ class Downloader(object):
                         _header = resp.info()
                         _len = _header.get("Content-Length")
                         self.filesize = _len
+
                     #self.fd.write(resp.read())
                     #shutil.copyfileobj(resp, self.fd,length=8*1024)
                     while not self.stopping:
-                        buf = resp.read(8 * 1024)
-                        if not buf:
-                            break
-                        self.fd.write(buf)
+                       buf = resp.read(32 * 1024)
+                       if not buf:
+                           break
+                       self.fd.write(buf)
 
+                    time.sleep(1)
                     if self.stopping == True:
                         while self.stopping:
                             time.sleep(1)
@@ -431,14 +433,16 @@ class Downloader(object):
             __repeat_file_counter = 0
             _fn = os.path.join(self.download_dir, self.filename)
             _filename = _fn
-            while True:
-                if os.path.exists(_filename):
-                    __repeat_file_counter += 1
-                    _filename = _fn + "." + str(__repeat_file_counter)
-                else:
-                    _tmp_file = _fn + ".tmp"
-                    shutil.move(_tmp_file, _filename)
-                    break
+
+            shutil.move(_filename + ".tmp", _filename)
+            #while True:
+            #    if os.path.exists(_filename):
+            #        __repeat_file_counter += 1
+            #        _filename = _fn + "." + str(__repeat_file_counter)
+            #    else:
+            #        _tmp_file = _fn + ".tmp"
+            #        shutil.move(_tmp_file, _filename)
+            #        break
 
             _report_file = os.path.join(self.download_dir, self.filename + ".report")
             if os.path.exists(_report_file):
