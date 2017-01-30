@@ -5,7 +5,7 @@ from ob_logger import Logger
 
 logger = Logger("FTM")
 
-def start_FTP_manager(port=2121, debug=True, zmq_port=852):
+def start_FTP_manager(port=21, debug=True, zmq_port=852):
     logger.set_debug(debug)
 
     proxy = MessageQueueProxy(WS_TAG.FTM, router_port=zmq_port)
@@ -14,4 +14,6 @@ def start_FTP_manager(port=2121, debug=True, zmq_port=852):
 
     manager = FTPManager()
     manager.set_port(port)
+
+    logger.info("This is FTP Manager, listening port %s" % port)
     manager.launch(background=False)

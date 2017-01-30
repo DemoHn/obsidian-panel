@@ -40,6 +40,7 @@ def start_chaussette(fd=None, host="0.0.0.0", port=80, debug=True, use_reloader=
     logger.set_debug(debug)
     _app.config["_circusd_end_port"] = circusd_end_port
     _app.config["_zmq_port"] = zmq_port
+    _app.config["_debug"] = debug
 
     logger.info("This is Main Server (%s)" % os.getpid())
     def init_directory():
