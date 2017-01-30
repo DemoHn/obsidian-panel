@@ -18,7 +18,21 @@ class MCInstanceInfo(object):
         self.current_player = None
 
     def append_log(self, pipe, log_data):
-        self.log.append(log_data)
+        # pipe = 1 --> 'type' --> 'O'
+        # pipe = 2 --> 'type' --> 'E'
+
+        _model = {
+            "type" : 'O',
+            'log' : log_data
+        }
+        if pipe == 0:
+            _model['type'] = 'I'
+        elif pipe == 1:
+            _model['type'] = 'O'
+        elif pipe == 2:
+            _model['type'] = 'E'
+
+        self.log.append(_model)
         pass
 
     def set_RAM(self, RAM):

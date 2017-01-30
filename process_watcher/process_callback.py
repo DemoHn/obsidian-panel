@@ -30,7 +30,18 @@ class MCProcessCallback():
         inst_info = self._proc_pool.get_info(inst_id)
         inst_info.append_log(pipe, log)
         self._log_string_analyse(inst_id, log)
-        self.broadcast(inst_id, "log_update", log)
+
+        _model = {
+            "type" : 'O',
+            'log' : log
+        }
+
+        if pipe == 1:
+            _model['type'] = 'O'
+        elif pipe == 2:
+            _model['type'] = 'E'
+
+        self.broadcast(inst_id, "log_update", _model)
 
     def on_instance_start(self, inst_id):
         self._proc_pool.set_status(inst_id, SERVER_STATE.STARTING)

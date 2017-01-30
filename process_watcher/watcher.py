@@ -138,6 +138,7 @@ class Watcher(metaclass=Singleton):
         _proc    = inst_obj.get("proc")
         _status  = inst_obj.get("status")
         _daemon  = inst_obj.get("daemon")
+        _info    = inst_obj.get("info")
 
         # limit max command length to send
         if _status == SERVER_STATE.RUNNING and len(command) < 10000:
@@ -148,3 +149,6 @@ class Watcher(metaclass=Singleton):
                 _daemon.set_normal_exit(True)
 
             _proc.send_command(command)
+            # record the input into log object
+            _cmd_log = "⟹ %s\n" % command
+            _info.append_log(0,_cmd_log)

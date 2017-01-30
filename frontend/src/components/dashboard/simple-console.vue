@@ -2,7 +2,7 @@
     <div>
         <div class="embeded-console">
             <!--<vue-editor v-model="editor_content" @init="editorInit" theme="dawn" ref="editorComponent" width="100%" height="100%"></vue-editor>-->
-            <pre class="console-pre"><code v-for="line in content_arr">{{ line }}</code></pre>
+            <pre class="console-pre"><code v-for="line in content_arr" :class="line['type']">{{ line["log"] }}</code></pre>
         </div>
         <div class="input_cmd_bar">
             <input type="text" class="input_cmd" v-model="command_content" @keyup.13="input_command"/>
@@ -29,19 +29,15 @@
             },
             // $ref API
             init_history_log(history_log){
-                let _arr = history_log.split("\n");
-                _arr = _arr.map((item)=>{
-                    return item + "\n";
-                })
-                this.content_arr = _arr;
+                this.content_arr = history_log;
                 let v = this;
                 this.$nextTick(()=>{
                     v.scroll_to_bottom();
                 })
             },
             // $ref API
-            append_log(str){
-                this.content_arr.push(str);
+            append_log(log_obj){
+                this.content_arr.push(log_obj);
                 let v = this;
                 this.$nextTick(()=>{
                     v.scroll_to_bottom();
@@ -53,6 +49,13 @@
                 if(command != null){
                     if(command.length > 0){
                         this.$emit("input", command);
+
+                        let _log_obj = {
+                            "type" : "I",
+                            "log" : "⟹ " + command + "\n"
+                        }
+
+                        this.append_log(_log_obj)
                     }
                 }
                 //clear input
@@ -89,6 +92,19 @@ div.embeded-console pre{
 
 code{
     font-size: 12px;
+}
+
+/* styles */
+code.O{
+    color: black;
+}
+
+code.E{
+    color:#e50404;
+}
+
+code.I{
+    color:blue;
 }
 div.input_cmd_bar{
     height: 3rem;

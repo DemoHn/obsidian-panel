@@ -277,7 +277,9 @@ export default {
                     let log_obj = msg.val;
                     let log = log_obj["log"]
                     if(log != null){
-                        Console.init_history_log(log.join(""));
+                        // log model:
+                        // {type:"E|I|O", "log":<data>}
+                        Console.init_history_log(log);
                     }
                 });
             }
@@ -439,5 +441,4 @@ span#motd{
     display: inline-block;
     max-width: 20rem;
 }
-
 </style>
