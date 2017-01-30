@@ -93,6 +93,8 @@ debug(){
 }
 
 upgrade(){
+    eval $(_parse_yaml $(dirname "$DIR")/config.yaml "config_")
+
     echo "[INFO] Update Obsidian-panel..."
     # change to the root directory.
     # ** by default, it is /opt/obsidian-panel (Linux)
@@ -106,7 +108,24 @@ upgrade(){
     # now pull the code from upstream
     if git pull -f --no-edit origin master; then
         echo "[INFO] Update succeed. New version is $(cat $DIR/../VERSION)"
-        exit 0
+
+        # install python packages if requirement.txt has updated
+        cd $DIR/../
+        . env/bin/activate
+
+        if [ "$config_global_zhao" -eq "1" ]; then
+            _PIP_OPTION="--index-url http://mirrors.aliyun.com/pypi/simple/ --trusted-host=mirrors.aliyun.com"
+        else
+            _PIP_OPTION=""
+        fi
+        # pip install
+        if pip3 install $_PIP_OPTION -r requirement.txt; then
+            deactivate
+            exit 0
+        else
+            deactivate
+            exit 1
+        fi
     else
         echo "[INFO] Update failed."
         exit 1
