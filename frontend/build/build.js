@@ -25,7 +25,7 @@ cp('-R','server_inst.index.html',assetsPath+"/../templates/server_inst/index.htm
 cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html");
 cp('-R','startup.index.html',assetsPath+"/../templates/startup/index.html");
 webpack(webpackConfig, function (err, stats) {
-    fs.writeFileSync("stats.json", JSON.stringify(stats.toJson("verbose")));
+    //fs.writeFileSync("stats.json", JSON.stringify(stats.toJson("verbose")));
     /*console.log(stats.toString({
         modules: true,
         reasons: false,

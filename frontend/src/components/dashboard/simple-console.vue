@@ -1,7 +1,8 @@
 <template lang="html">
     <div>
         <div class="embeded-console">
-            <vue-editor v-model="editor_content" @init="editorInit" theme="dawn" ref="editorComponent" width="100%" height="100%"></vue-editor>
+            <!--<vue-editor v-model="editor_content" @init="editorInit" theme="dawn" ref="editorComponent" width="100%" height="100%"></vue-editor>-->
+            <pre class="console-pre"><code v-for="line in content_arr">{{ line }}</code></pre>
         </div>
         <div class="input_cmd_bar">
             <input type="text" class="input_cmd" v-model="command_content" @keyup.13="input_command"/>
@@ -14,60 +15,38 @@
 <script>
     export default {
         name:"simple-console",
-        components:{
-            "vue-editor": require("../vue2-ace-editor")
-        },
         data(){
             return {
-                editor_content : "",
+                content_arr : [],
                 command_content : "",
                 input_disabled : false
             }
         },
         methods:{
-            editorInit:function () {
-                require('brace/theme/dawn');
-                this._init_editor_config(this.$refs.editorComponent.editor);
+            scroll_to_bottom(){
+                let container = this.$el.querySelector("div.embeded-console");
+                container.scrollTop = container.scrollHeight;
             },
-
-            _init_editor_config(editor){
-                editor.$blockScrolling = Infinity;
-
-                // set read only
-                editor.setReadOnly(true);
-
-                // set a light theme
-                editor.setTheme("ace/theme/dawn");
-
-                // not show line number
-                editor.renderer.setOption('showLineNumbers', false);
-
-                // set font size
-                editor.setFontSize(12);
-                editor.setShowPrintMargin(false);
-                // wrap lines when a line is too long to show all
-                editor.session.setOption('indentedSoftWrap', false);
-                editor.session.setUseWrapMode(true);
-            },
-
             // $ref API
             init_history_log(history_log){
-                this.editor_content = history_log;
-                let editor = this.$refs.editorComponent.editor;
-                let row = editor.session.getLength();
-                editor.gotoLine(row+1, 0);
+                let _arr = history_log.split("\n");
+                _arr = _arr.map((item)=>{
+                    return item + "\n";
+                })
+                this.content_arr = _arr;
+                let v = this;
+                this.$nextTick(()=>{
+                    v.scroll_to_bottom();
+                })
             },
             // $ref API
             append_log(str){
-                let editor = this.$refs.editorComponent.editor;
-                editor.session.insert({
-                    row: editor.session.getLength(),
-                    column: 0
-                }, str);
+                this.content_arr.push(str);
+                let v = this;
+                this.$nextTick(()=>{
+                    v.scroll_to_bottom();
+                })
 
-                // keep the cursor in the last line
-                let row = editor.session.getLength();
-                editor.gotoLine(row+1, 0);
             },
             input_command(){
                 let command = this.command_content;
@@ -89,8 +68,28 @@
 div.embeded-console{
     width: 100%;
     height: 25rem;
+    overflow-y: auto;
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    background-color: rgba(245,245,245, 0.8);
 }
 
+div.embeded-console pre{
+    background-color: rgba(245,245,245, 0.8);
+    border:none;
+    border-radius: 0;
+    margin: 0 !important;
+    padding: 0.25rem 1rem !important;
+    text-align:left;
+    overflow-y: hidden;
+    box-sizing: border-box;
+    line-height: 1.3em;
+}
+
+code{
+    font-size: 12px;
+}
 div.input_cmd_bar{
     height: 3rem;
     width: 100%;
@@ -106,17 +105,16 @@ input.input_cmd{
     width: 100%;
     box-sizing: border-box;
     background-color: #fcfcfc;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
+    border: 1px solid #ccc;
     line-height: 2em;
     font-size: 13px;
-    padding-left: 38px;
+    padding-left: 2.5rem;
     font-family: "Monaco", "Consolas", monospace;
 }
 
 div.input_hint{
     position: absolute;
-    width: 33px;/*ace's width*/
+    width: 20px;/*ace's width*/
     padding-right:0.3rem;
     height: 100%;
     line-height: 3rem;
