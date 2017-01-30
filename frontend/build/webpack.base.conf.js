@@ -25,7 +25,7 @@ module.exports = {
         new webpack.ProvidePlugin({
             $: "jquery",
             jQuery: "jquery"
-        }),
+        })
     ],
   output: {
     path: config.build.assetsRoot,

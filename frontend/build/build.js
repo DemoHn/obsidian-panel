@@ -9,7 +9,7 @@ var config = require('../config')
 var ora = require('ora')
 var webpack = require('webpack')
 var webpackConfig = require('./webpack.prod.conf')
-
+var fs = require("fs")
 console.log(
   '  Tip:\n' +
   '  Built files are meant to be served over an HTTP server.\n' +
@@ -25,12 +25,13 @@ cp('-R','server_inst.index.html',assetsPath+"/../templates/server_inst/index.htm
 cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html");
 cp('-R','startup.index.html',assetsPath+"/../templates/startup/index.html");
 webpack(webpackConfig, function (err, stats) {
-/*    console.log(stats.toString({
+    fs.writeFileSync("stats.json", JSON.stringify(stats.toJson("verbose")));
+    /*console.log(stats.toString({
         modules: true,
         reasons: false,
         colors: true,
         modulesSort : "size"
-    })); */
+    }));*/
   spinner.stop()
   if (err) throw err
   process.stdout.write(stats.toString({
