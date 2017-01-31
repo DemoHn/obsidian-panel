@@ -30,10 +30,10 @@
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu">
             <br><br>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/info"> <i class="fa fa-info-circle"></i><span class="link-text">基本信息</span></router-link></li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/server_core"> <i class="fa fa-photo"></i><span class="link-text">服务器核心</span></router-link></li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/java_binary"><i class="fa fa-coffee"></i><span class="link-text">Java版本管理</span></router-link></li>
-          <li class="pageLink" v-on:click="toggleMenu"><router-link to="/super_admin/settings"> <i class="fa fa-gear"></i><span class="link-text">设置</span></router-link></li>
+          <li class="pageLink" :class="{'active' : route == 'info'}" v-on:click="toggleMenu"><router-link to="/super_admin/info"> <i class="fa fa-info-circle"></i><span class="link-text">基本信息</span></router-link></li>
+          <li class="pageLink" :class="{'active' : route == 'server_core'}" v-on:click="toggleMenu"><router-link to="/super_admin/server_core"> <i class="fa fa-photo"></i><span class="link-text">服务器核心</span></router-link></li>
+          <li class="pageLink" :class="{'active' : route == 'java_binary'}" v-on:click="toggleMenu"><router-link to="/super_admin/java_binary"><i class="fa fa-coffee"></i><span class="link-text">Java版本管理</span></router-link></li>
+          <li class="pageLink" :class="{'active' : route == 'settings'}" v-on:click="toggleMenu"><router-link to="/super_admin/settings"> <i class="fa fa-gear"></i><span class="link-text">设置</span></router-link></li>
           <br>
           <li class="pageLink" v-on:click="toggleMenu"><a href="/server_inst/dashboard"><i class="fa fa-arrow-circle-left"></i><span class="link-text">返回控制台</span></a></li>
 
@@ -57,7 +57,7 @@
         </ol>
       </section>-->
 
-      <router-view @route-data-loaded="changeTitle"></router-view>
+      <router-view></router-view>
     </div>
     <!-- /.content-wrapper -->
 
@@ -70,47 +70,23 @@
 </template>
 
 <script>
-import $ from 'jquery'
-
 module.exports = {
-  name: 'Dash',
-  data: function () {
-    return {
-      section: 'Dash',
-      me: '',
-      error: '',
-      api: {
-        servers: {
-          url: '', // Back end server
-          result: []
+    name: 'Dash',
+    data: function () {
+        return {
+            route : ""
         }
-      }
-    }
-  },
-  computed: {
-    store: function () {
-      return this.$parent.$store
     },
-    state: function () {
-      return this.store.state
+    computed: {
     },
-  },
     methods: {
-        changeTitle(vm){
-            console.log(vm);
-        },
-        changeloading: function () {
-            this.store.dispatch('TOGGLE_SEARCHING')
-        },
         toggleMenu: function (event) {
-            // remove active from li
-      $('li.pageLink').removeClass('active')
-
-      // Add it to the item that was clicked
-      event.toElement.parentElement.className = 'pageLink active'
-    }
-  },
-  mounted: function () {
+            let p = this.$route.path.split("/")
+            this.route = p[p.length-1];
+        }
+    },
+    mounted: function () {
+        this.toggleMenu();
   }
 }
 </script>

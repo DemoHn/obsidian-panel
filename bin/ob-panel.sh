@@ -151,9 +151,12 @@ dev_publish(){
     echo "[INFO] publish changes"
     git checkout master
     git merge dev
-    git tag -a $(cat $DIR/../VERSION)
+    VERSION=$(cat $DIR/../VERSION)
+    git tag -a $VERSION
     git push origin master
+    git push origin $VERSION
     git push mirror master
+    git push mirror $VERSION
 }
 
 dev_push(){

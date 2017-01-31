@@ -5,18 +5,9 @@ import VueRouter from 'vue-router';
 
 import routes_inst from './server_inst.routes';
 
-// Import Helpers for filters
-import { domain, count, prettyDate, pluralize } from './filters';
-
 // Import Views - Top level
 
 import AppView from './views/App.vue';
-
-// Import Install and register helper items
-Vue.filter('count', count);
-Vue.filter('domain', domain);
-Vue.filter('prettyDate', prettyDate);
-Vue.filter('pluralize', pluralize);
 
 // Resource logic
 Vue.use(Resource);

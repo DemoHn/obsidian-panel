@@ -1,6 +1,6 @@
 <template lang="html">
-  <div class="wrapper">
-    <header class="main-header">
+    <div class="wrapper">
+        <header class="main-header">
       <a href="/" class="logo">
         <!-- LOGO -->
         <b>Obsidian</b> Panel
@@ -30,7 +30,7 @@
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu">
             <br><br>
-            <li class="active pageLink" v-on:click="toggleMenu"><router-link to="/server_inst/dashboard"> <i class="fa fa-dashboard"></i><span class="link-text">仪表盘</span></router-link></li>
+            <li class="pageLink" :class="{'active' : route == 'dashboard'}" v-on:click="toggleMenu"><router-link to="/server_inst/dashboard"> <i class="fa fa-dashboard"></i><span class="link-text">仪表盘</span></router-link></li>
             <br>
             <li class="pageLink" v-on:click="toggleMenu"><a href="/super_admin/info"><i class="fa fa-arrow-circle-right"></i><span class="link-text">前往管理员界面</span></a></li>
         </ul>
@@ -54,42 +54,24 @@
 </template>
 
 <script>
-import $ from 'jquery'
-
 module.exports = {
-  name: 'Dash',
-  data: function () {
-    return {
-      section: 'Dash',
-      me: '',
-      error: '',
-      api: {
-        servers: {
-          url: '', // Back end server
-          result: []
+    name: 'Dash',
+    data: function () {
+        return {
+            route : ""
         }
-      }
-    }
-  },
-  computed: {
-    store: function () {
-      return this.$parent.$store
     },
-    state: function () {
-      return this.store.state
+    computed: {
     },
-  },
-  methods: {
-    toggleMenu: function (event) {
-      // remove active from li
-      $('li.pageLink').removeClass('active')
-
-      // Add it to the item that was clicked
-      event.toElement.parentElement.className = 'pageLink active'
+    methods: {
+        toggleMenu: function (event) {
+            let p = this.$route.path.split("/")
+            this.route = p[p.length-1];
+        }
+    },
+    mounted() {
+        this.toggleMenu();
     }
-  },
-  mounted: function () {
-  }
 }
 </script>
 
