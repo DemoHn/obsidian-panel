@@ -91,11 +91,12 @@ export default{
                 {
                     name:"imageFilter",
                     fn(file){
-                        var type = file.type.slice(file.type.lastIndexOf('/') + 1);
-                        var re   = /java/;
-                        console.log("upload file type:" + type);
-                        return re.test(type);
-                        //return '|x-java-archive|'.indexOf(type) !== -1;
+                        var extension = file.name.slice(file.name.lastIndexOf('.') + 1);
+                        if(extension === "jar"){
+                            return true;
+                        }else{
+                            return false;
+                        }
                     }
                 }
             ],
@@ -127,7 +128,6 @@ export default{
                 withCredentials:false
             },
             // internal v-modal
-            file_name: "",
             core_type: 'vanilla',
             minecraft_version: "",
             core_version: "",
