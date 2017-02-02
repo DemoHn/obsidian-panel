@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/static/css/pace.css">
 
     <script src="/static/js/socketio.min.js"></script>
-    <script src="/vendors.js"></script>
+    <script src="{{ '/vendors-' + version + '.js' }}"></script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -27,6 +27,6 @@
 
       <div id="root"></div>
       <!-- built files will be auto injected. Static files below -->
-      <script src="/super_admin.app.js"></script>
+      <script src="{{ '/super_admin.app-' + version + '.js' }}"></script>
   </body>
 </html>

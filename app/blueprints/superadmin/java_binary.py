@@ -9,7 +9,7 @@ from app.utils import returnModel
 from app.tools.mc_downloader import sourceJAVA
 from app.tools.mq_proxy import WS_TAG
 
-from . import super_admin_page, logger
+from . import super_admin_page, logger, version
 from .check_login import super_admin_only, ajax_super_admin_only
 
 rtn = returnModel("string")
@@ -29,7 +29,7 @@ class _utils:
 @super_admin_only
 def render_java_binary_page(uid, priv):
     try:
-        return render_template('superadmin/index.html')
+        return render_template('superadmin/index.html', version=version)
     except TemplateNotFound:
         abort(404)
 

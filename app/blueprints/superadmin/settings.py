@@ -8,7 +8,7 @@ from app.controller.global_config import GlobalConfig
 from app.utils import returnModel
 from app.model import Users
 
-from . import super_admin_page, logger
+from . import super_admin_page, logger, version
 from .check_login import super_admin_only, ajax_super_admin_only
 from app.controller.update_check import UpdateChecker
 
@@ -24,7 +24,7 @@ uc  = UpdateChecker()
 @super_admin_only
 def render_settings_page(uid, priv):
     try:
-        return render_template('superadmin/index.html')
+        return render_template('superadmin/index.html', version=version)
     except TemplateNotFound:
         abort(404)
 

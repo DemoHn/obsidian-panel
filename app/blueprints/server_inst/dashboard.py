@@ -11,7 +11,7 @@ from app.model import ServerInstance, ServerCORE, FTPAccount
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 from app.controller.global_config import GlobalConfig
 
-from . import server_inst_page
+from . import server_inst_page, version, logger
 import os, re, traceback
 
 # copied from process_watcher/parser.py
@@ -61,12 +61,12 @@ rtn = returnModel("string")
 def render_new_dashboard(uid, priv):
     _q = db.session.query(ServerInstance).all()
     if _q == None:
-        return render_template("server_inst/index.html", new_inst_page=1)
+        return render_template("server_inst/index.html", new_inst_page=1, version = version)
     else:
         if len(_q) == 0:
-            return render_template("server_inst/index.html", new_inst_page=1)
+            return render_template("server_inst/index.html", new_inst_page=1, version = version)
         else:
-            return render_template("server_inst/index.html", new_inst_page=0)
+            return render_template("server_inst/index.html", new_inst_page=0, version = version)
 
 # miscellaneouses, including basic LOGO, FTP status, server properties, etc.
 @server_inst_page.route("/api/get_miscellaneous_info/<inst_id>", methods=["GET"])

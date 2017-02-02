@@ -12,7 +12,7 @@ from app.model import ServerCORE
 
 from psutil import virtual_memory
 
-from . import super_admin_page, logger
+from . import super_admin_page, logger, version
 from .check_login import super_admin_only, ajax_super_admin_only
 
 rtn = returnModel("string")
@@ -22,7 +22,7 @@ rtn = returnModel("string")
 @super_admin_only
 def render_info_page(uid, priv):
     try:
-        return render_template('superadmin/index.html')
+        return render_template('superadmin/index.html', version=version)
     except TemplateNotFound:
         abort(404)
 

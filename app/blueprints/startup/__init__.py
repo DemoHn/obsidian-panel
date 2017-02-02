@@ -32,10 +32,16 @@ def only_on_startup(fn):
             return fn(*args, **kwargs)
     return decorated_function
 
+def get_version():
+    f = open("VERSION", "r")
+    version = f.read()
+    return version.strip()
+
 @start_page.route("/", methods=["GET"])
 @only_on_startup
 def render_startup_page():
-    return render_template("startup/index.html", login_flag = 0)
+    version = get_version()
+    return render_template("startup/index.html", login_flag = 0, version = version)
 
 # dump yaml data
 def dump_yaml_config(new_config):

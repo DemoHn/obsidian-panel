@@ -8,7 +8,7 @@ from app.controller.global_config import GlobalConfig
 from app.utils import returnModel, get_file_hash
 from app.model import ServerCORE
 
-from . import super_admin_page, logger
+from . import super_admin_page, logger, version
 from .check_login import super_admin_only, ajax_super_admin_only
 
 import traceback
@@ -22,6 +22,6 @@ rtn = returnModel("string")
 @super_admin_only
 def render_file_backup_page(uid, priv):
     try:
-        return render_template('superadmin/file_backup.html')
+        return render_template('superadmin/file_backup.html', version = version)
     except TemplateNotFound:
         abort(404)

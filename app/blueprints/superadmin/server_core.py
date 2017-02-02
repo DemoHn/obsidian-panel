@@ -8,7 +8,7 @@ from app.controller.global_config import GlobalConfig
 from app.utils import returnModel, get_file_hash
 from app.model.ob_server_core import ServerCORE
 
-from . import super_admin_page, logger
+from . import super_admin_page, logger, version
 from .check_login import super_admin_only, ajax_super_admin_only
 
 import traceback
@@ -30,7 +30,7 @@ def render_server_core_page(uid, priv):
         else:
             _file_info = []
 
-        return render_template("superadmin/index.html")
+        return render_template("superadmin/index.html", version=version)
     except TemplateNotFound:
         abort(404)
 

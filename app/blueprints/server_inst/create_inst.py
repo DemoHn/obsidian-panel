@@ -12,7 +12,7 @@ from app.controller.ftp_controller import FTPController
 from app.utils import returnModel, generate_random_string
 from app.model import JavaBinary, ServerCORE, ServerInstance, FTPAccount, Users
 
-from . import server_inst_page, logger
+from . import server_inst_page, logger, version
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
 
 import traceback
@@ -22,7 +22,7 @@ rtn = returnModel("string")
 @server_inst_page.route("/new_inst", methods=["GET"])
 @check_login
 def render_index_page(uid, priv):
-    return render_template("/server_inst/index.html", new_inst_page=1)
+    return render_template("/server_inst/index.html", new_inst_page=1, version = version)
 
 @server_inst_page.route("/api/new_inst", methods=["GET"])
 @ajax_check_login
