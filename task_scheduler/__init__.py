@@ -1,8 +1,22 @@
 from ob_logger import Logger
-from .mq_events import TaskEventHandler
+from functools import wraps
+
 from app.tools.mq_proxy import MessageQueueProxy, WS_TAG
+from apscheduler.schedulers.blocking import BlockingScheduler
+
+from .mq_events import TaskEventHandler
 
 logger = Logger("TSR")
+
+# A dict which stores all timing tasks
+# model format:
+# <task name>:{
+#    "cron" : <cron data>,
+#    "kwargs" : <kwargs>,
+#    "fn" : <function>
+# }
+global task_map
+task_map = {}
 
 class Singleton(type):
     _instances = {}
@@ -11,15 +25,50 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+def register_task(cron_data, kwargs_dict={}):
+    def real_function(fn):
+        func_name = fn.__name__
+        _model = {
+            "cron" : cron_data,
+            "kwargs" : kwargs_dict,
+            "fn" : fn
+        }
+
+        task_map[func_name] = _model
+
+    return real_function
+
 def start_task_scheduler(debug=True, zmq_port=852):
+    from . import tasks
+
     logger.set_debug(debug)
 
+    # init proxy
     proxy = MessageQueueProxy(WS_TAG.TSR, router_port=zmq_port)
     proxy.register(TaskEventHandler)
     proxy.listen(background=True)
 
     logger.info("This is Task Scheduler")
-    import time
-    # just for test, waiting for apscheduler
-    while True:
-        time.sleep(1)
+
+    scheduler = BlockingScheduler()
+
+    # add job
+    for task in task_map:
+        task_obj = task_map[task]
+        cron     = task_map[task]["cron"].split(" ")
+        scheduler.add_job(
+            func = task_obj["fn"],
+            trigger = 'cron',
+            kwargs = task_obj["kwargs"],
+            # cron data
+            year = cron[0],
+            month = cron[1],
+            day = cron[2],
+            week = cron[3],
+            day_of_week = cron[4],
+            hour = cron[5],
+            minute = cron[6],
+            second = cron[7]
+        )
+
+    scheduler.start()

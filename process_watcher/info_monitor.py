@@ -28,6 +28,9 @@ class MCInstanceInfoMonitor(MCProcessCallback):
                         inst_info.set_RAM(memory)
                         self.on_memory_change(inst_id, memory)
 
+    def tick_read_online_player(self, timer_handle):
+        pass
+
     def start_timer(self, interval = 5.0):
         if not self.read_memory_timer.active:
             self.read_memory_timer.start(self.tick_read_memory, 0.0, interval)

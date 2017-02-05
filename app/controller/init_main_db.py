@@ -15,6 +15,7 @@ from app.utils import PRIVILEGES
 def init_database(logger=None):
 
     gc = GlobalConfig.getInstance()
+
     db_env = DatabaseEnv()
 
     if logger == None:
@@ -90,8 +91,6 @@ def migrate_superadmin():
     _email    = gc.get("temp_superadmin_email")
     _hash     = gc.get("temp_superadmin_hash")
 
-    _java_bin_arr = gc.get("temp_java_binary")
-
     #for superadmin, privilege = 1
     try:
         super_admin_user = Users(username=_username, privilege = PRIVILEGES.ROOT_USER, email=_email, hash= _hash)
@@ -105,26 +104,7 @@ def migrate_superadmin():
         gc.set("temp_superadmin_email", "")
         gc.set("temp_superadmin_hash", "")
 
-        g_logger.debug(_java_bin_arr)
-
         # for empty value, just emit it
-        if _java_bin_arr == None:
-            gc.set("temp_java_binary", "")
-            return True
-
-        if _java_bin_arr == "":
-            return True
-
-        for java_binary in json.loads(_java_bin_arr):
-            j = JavaBinary(
-                major_version = java_binary.get("major_version"),
-                minor_version = java_binary.get("minor_version"),
-                bin_directory = java_binary.get("bin_directory"),
-                install_time  = datetime.fromtimestamp(java_binary.get("install_time"))
-            )
-            db.session.add(j)
-        db.session.commit()
-        gc.set("temp_java_binary", "")
         return True
     except:
         g_logger.error(traceback.format_exc())

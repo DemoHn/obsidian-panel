@@ -17,5 +17,5 @@ class TaskLog(db.Model):
     # issue result
     issue_result = db.Column(db.Boolean)
 
-    # cost duration
+    # execute duration (unit: second)
     duration = db.Column(db.Float)
