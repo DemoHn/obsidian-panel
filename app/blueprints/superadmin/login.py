@@ -2,7 +2,7 @@ __author__ = "Nigshoxiz"
 
 from flask import render_template, abort, request, make_response, redirect, session
 from jinja2 import TemplateNotFound
-from . import super_admin_page, logger
+from . import super_admin_page, logger, version
 from .check_login import super_admin_only
 
 from app.model import Users, UserToken
@@ -78,7 +78,7 @@ def main_page(uid, priv):
         if priv == PRIVILEGES.ROOT_USER:
             #return render_template("superadmin/index.html")
             # TEST
-            return redirect("/super_admin/info")
+            return redirect("/super_admin/info", version=version)
         else:
             abort(403)
     except TemplateNotFound:

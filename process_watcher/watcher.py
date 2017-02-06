@@ -52,7 +52,8 @@ class Watcher(metaclass=Singleton):
         info = {
             "total_RAM": item.max_RAM,
             "total_player": item.max_user,
-            "owner": item.owner_id
+            "owner": item.owner_id,
+            "inst_id" : item.inst_id
         }
 
         # adding initial data into proc_pool

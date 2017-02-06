@@ -6,3 +6,4 @@ from .ob_server_instance import ServerInstance
 from .ob_ftp_account import FTPAccount
 from .ob_background_task import BackgroundTask
 from .ob_task_log import TaskLog
+from .ob_history_data import HistoryData
