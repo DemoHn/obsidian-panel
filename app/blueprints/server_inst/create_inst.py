@@ -116,7 +116,7 @@ def assert_input(uid, priv):
                 return rtn.success(False)
 
         elif type == "inst_name":
-            q = db.session.query(ServerInstance).filter(ServerInstance.inst_name == data and ServerInstance.owner_id == uid).first()
+            q = db.session.query(ServerInstance).filter(ServerInstance.inst_name == data).filter(ServerInstance.owner_id == uid).first()
 
             if q == None:
                 if data == "" or data == None:
@@ -147,7 +147,7 @@ def assert_input(uid, priv):
             if p == None:
                 _model["port"] = True
             # inst_name
-            q = db.session.query(ServerInstance).filter(ServerInstance.inst_name == d[1] and ServerInstance.owner_id == uid).first()
+            q = db.session.query(ServerInstance).filter(ServerInstance.inst_name == d[1]).filter(ServerInstance.owner_id == uid).first()
             if q == None:
                 _model["inst_name"] = True
             if d[1] == "" or d[1] == None:

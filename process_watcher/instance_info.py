@@ -30,7 +30,7 @@ class MCInstanceInfo(object):
         if self.inst_id == None:
             return
 
-        _index_q = db.session.query(HistoryData).filter(HistoryData.inst_id == self.inst_id and HistoryData.key == "log_index").first()
+        _index_q = db.session.query(HistoryData).filter(HistoryData.inst_id == self.inst_id).filter(HistoryData.key == "log_index").first()
         # init log index
         if _index_q == None:
             _log_index = HistoryData(
