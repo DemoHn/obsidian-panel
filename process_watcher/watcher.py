@@ -142,7 +142,7 @@ class Watcher(metaclass=Singleton):
         _info    = inst_obj.get("info")
 
         # limit max command length to send
-        if _status == SERVER_STATE.RUNNING and len(command) < 10000:
+        if _status == SERVER_STATE.RUNNING and len(command) < 1000:
 
             # if input 'stop', just stop it, do not restart the server.
             # Because this command is surely propmted by user.
