@@ -21,6 +21,10 @@ spinner.start()
 
 var assetsPath = path.join(config.build.assetsRoot, config.build.assetsSubDirectory);
 rm("-R", assetsPath+"/js/*")
+rm("-R", assetsPath+"/css/startup.*")
+rm("-R", assetsPath+"/css/server_inst.*")
+rm("-R", assetsPath+"/css/super_admin.*")
+
 cp('-R','server_inst.index.html',assetsPath+"/../templates/server_inst/index.html");
 cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html");
 cp('-R','startup.index.html',assetsPath+"/../templates/startup/index.html");

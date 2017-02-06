@@ -105,6 +105,8 @@ upgrade(){
     git config user.name obuser
     git config user.email obuser@obuser.com
 
+    # checkout master branch
+    git checkout master
     # now pull the code from upstream
     if git pull -f --no-edit origin master; then
         echo "[INFO] Update succeed. New version is $(cat $DIR/../VERSION)"

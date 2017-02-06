@@ -143,7 +143,7 @@ class FTPManager(metaclass=Singleton):
 
     def launch(self, background=False):
         def _launch(self):
-            address = ("127.0.0.1", self.listening_port)
+            address = ("0.0.0.0", self.listening_port)
             self.server = FTPServer(address, self.handler)
             self.server.serve_forever()
 

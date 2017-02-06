@@ -89,8 +89,7 @@ class MCInstanceInfo(object):
             return []
         _index = int(_index_obj.value)
 
-        #if len(self.log) < MCInstanceInfo.LOG_BLOCK_SIZE / 4:
-        if True:
+        if len(self.log) < MCInstanceInfo.LOG_BLOCK_SIZE / 4:
             _log_obj = db.session.query(HistoryData).filter(HistoryData.inst_id == self.inst_id).filter(HistoryData.key == "log_%s" % _index).first()
             log_val = _log_obj.value
             log_arr = json.loads(log_val)
