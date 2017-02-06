@@ -21,6 +21,9 @@ class MCProcess(MCProcessCallback):
         # You know, one MC instance only ownes one process class
         self.inst_id = inst_id
 
+        # timer handler
+        self._stop_timeout_timer = pyuv.Timer(self._loop)
+
     def _init_env(self, proc_cwd, port):
         if not os.path.isdir(proc_cwd):
             os.makedirs(proc_cwd)
@@ -142,12 +145,18 @@ class MCProcess(MCProcessCallback):
             logger.info("kill process pid=(%s)" % self._pid)
             self.send_command("stop")
         else:
-            logger.error("kill process Failed!")
+            logger.error("Kill process failed!")
 
-    # this only happens when no response even prompting `stop` command
-    # TODO
+    # Stop the process brutally
+    # It's used when no response even prompting `stop` command
+    # Notice, this method is only for emergency usage,
+    # It won't give MC processes enough time to save world.
     def terminate_process(self):
-        pass
+        if self.get_pid() != None:
+            # kill -9 <pid>
+            os.kill(self.get_pid(), 9)
+        else:
+            logger.error("Terminate process failed!")
 
     def send_command(self, command):
         _command = (command + "\n").encode()

@@ -202,7 +202,7 @@ def get_my_ip(uid, priv):
 @ajax_check_login
 def get_instance_status(uid, priv, inst_id):
     # don't forget to check if this user is allowed to get inst info
-    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).filter(ServerInstance.inst_id == inst_id)
 
     if is_user == None:
         return rtn.error(403)
@@ -220,7 +220,7 @@ def get_instance_status(uid, priv, inst_id):
 @check_login
 def get_instance_log(uid, priv, inst_id):
     # don't forget to check if this user is allowed to get inst info
-    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).filter(ServerInstance.inst_id == inst_id)
 
     if is_user == None:
         return rtn.error(403)
@@ -240,7 +240,7 @@ def get_instance_log(uid, priv, inst_id):
 @check_login
 def start_instance(uid, priv, inst_id):
     # don't forget to check if this user is allowed to get inst info
-    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).filter(ServerInstance.inst_id == inst_id)
     if is_user == None:
         return rtn.error(403)
     props = {
@@ -254,7 +254,7 @@ def start_instance(uid, priv, inst_id):
 @check_login
 def stop_instance(uid, priv, inst_id):
     # don't forget to check if this user is allowed to get inst info
-    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).filter(ServerInstance.inst_id == inst_id)
     if is_user == None:
         return rtn.error(403)
     props = {
@@ -264,11 +264,25 @@ def stop_instance(uid, priv, inst_id):
     proxy.send("process.stop_instance", props, WS_TAG.MPW, reply=False)
     return rtn.success(200)
 
+@server_inst_page.route("/api/terminate_instance/<inst_id>", methods=["GET"])
+@check_login
+def terminate_instance(uid, priv, inst_id):
+    # don't forget to check if this user is allowed to get inst info
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).filter(ServerInstance.inst_id == inst_id)
+    if is_user == None:
+        return rtn.error(403)
+    props = {
+        "inst_id" : inst_id
+    }
+
+    proxy.send("process.terminate_instance", props, WS_TAG.MPW, reply=False)
+    return rtn.success(200)
+
 @server_inst_page.route("/api/restart_instance/<inst_id>", methods=["GET"])
 @check_login
 def restart_instance(uid, priv, inst_id):
     # don't forget to check if this user is allowed to get inst info
-    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).filter(ServerInstance.inst_id == inst_id)
     if is_user == None:
         return rtn.error(403)
     props = {
@@ -282,7 +296,7 @@ def restart_instance(uid, priv, inst_id):
 @check_login
 def send_command(uid, priv, inst_id):
     # don't forget to check if this user is allowed to get inst info
-    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid and ServerInstance.inst_id == inst_id)
+    is_user = db.session.query(ServerInstance).filter(ServerInstance.owner_id == uid).filter(ServerInstance.inst_id == inst_id)
     if is_user == None:
         return rtn.error(403)
 

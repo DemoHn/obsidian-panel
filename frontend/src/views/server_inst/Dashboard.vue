@@ -9,6 +9,7 @@
                          @start_inst="inst_cmd('start')"
                          @stop_inst="inst_cmd('stop')"
                          @restart_inst="inst_cmd('restart')"
+                         @terminate_inst="inst_cmd('terminate')"
                          ></ctrl-button>
         </div>
 
@@ -209,6 +210,8 @@ export default {
                 ws.ajax("GET", "/server_inst/api/stop_instance/"+this.inst_id, (msg)=>{});
             }else if(command == "restart"){
                 ws.ajax("GET", "/server_inst/api/restart_instance/"+this.inst_id, (msg)=>{});
+            }else if(command == "terminate"){
+                ws.ajax("GET", "/server_inst/api/terminate_instance/"+this.inst_id, (msg)=>{});
             }
         },
 

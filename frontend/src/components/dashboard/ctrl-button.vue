@@ -3,8 +3,10 @@
         <div class="ctrl-switch">
             <div style="margin-top:1.5rem;margin-bottom:1rem;"><b>控制掣</b></div>
                 <button v-if="btn_status == 'pause'" class="btn btn-primary" :disabled="btn_disable" @click="stop_inst">停止</button>
-                <button v-if="btn_status == 'start'" class="btn btn-primary" :disabled="btn_disable" @click="start_inst">启动</button>
+                <button v-if="btn_status == 'start' || btn_status == 'starting'" class="btn btn-primary" :disabled="btn_disable" @click="start_inst">启动</button>
+                <button v-if="btn_status == 'starting' || btn_status == 'pause'" class="btn btn-success" @click="terminate_inst">强行停止</button>
                 <button v-if="btn_status == 'pause'" class="btn btn-danger" :disabled="btn_disable" @click="restart_inst">重新启动</button>
+
         </div>
 
         <!--this button will vanish on desktop but exist on mobile device and pad-->
@@ -42,7 +44,7 @@
                     this.change_button_status("start");
                 }else if(work_status == 1){
                     this.lock_button();
-                    this.change_button_status("start");
+                    this.change_button_status("starting");
                 }else if(work_status == 2){
                     this.unlock_button();
                     this.change_button_status("pause");
@@ -61,6 +63,9 @@
             },
             restart_inst(){
                 this.$emit("restart_inst");
+            },
+            terminate_inst(){
+                this.$emit("terminate_inst");
             }
         }
     }

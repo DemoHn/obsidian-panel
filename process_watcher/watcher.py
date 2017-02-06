@@ -131,6 +131,16 @@ class Watcher(metaclass=Singleton):
         # and deduct active count. Don't do them HERE!
         _proc.stop_process()
 
+    def terminate_instance(self, inst_id):
+        inst_obj = self.proc_pool.get(inst_id)
+
+        if inst_obj == None:
+            return None
+        _proc    = inst_obj.get("proc")
+        _status  = inst_obj.get("status")
+
+        _proc.terminate_process()
+
     def send_command(self, inst_id, command):
         inst_obj = self.proc_pool.get(inst_id)
 

@@ -210,6 +210,28 @@ class WatcherEvents(MessageEventHandler):
         inst_daemon.set_normal_exit(True)
         self.watcher.stop_instance(inst_id)
 
+    def terminate_instance(self, flag, values):
+        '''
+        DESCRIPTION: stop an instance brutally.
+        This is only used when instance process is experiencing fatal error or lose user's control
+
+        :param values: { "inst_id" : <inst_id> }
+        :return:
+        '''
+        inst_id = int(values.get("inst_id"))
+        if inst_id == None:
+            return None
+
+        inst_info = self.proc_pool.get_info(inst_id)
+        inst_daemon = self.proc_pool.get_daemon(inst_id)
+
+        if inst_info == None:
+            return None
+
+        # normal exit, do not restart the instance anymore
+        inst_daemon.set_normal_exit(True)
+        self.watcher.terminate_instance(inst_id)
+
     def restart_instance(self, flag, values):
         inst_id = int(values.get("inst_id"))
 
