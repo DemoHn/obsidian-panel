@@ -78,7 +78,7 @@ def main_page(uid, priv):
         if priv == PRIVILEGES.ROOT_USER:
             #return render_template("superadmin/index.html")
             # TEST
-            return redirect("/super_admin/info", version=version)
+            return redirect("/super_admin/info")
         else:
             abort(403)
     except TemplateNotFound:
