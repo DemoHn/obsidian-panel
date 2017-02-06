@@ -30,20 +30,20 @@ def login():
 # proxies
 @app.route("/vendors-%s.js" % version)
 def proxy_vendors_js():
-    return send_file("static/js/vendors.build.js")
+    return send_file("static/js/vendors-%s.build.js" % version)
     pass
 
 @app.route("/super_admin.app-%s.js" % version)
 def proxy_sa():
-    return send_file("static/js/super_admin.app.build.js")
+    return send_file("static/js/super_admin.app-%s.build.js" % version)
     pass
 
 @app.route("/server_inst.app-%s.js" % version)
 def proxy_inst():
-    return send_file("static/js/server_inst.app.build.js")
+    return send_file("static/js/server_inst.app-%s.build.js" % version)
     pass
 
 @app.route("/startup.app-%s.js" % version)
 def proxy_startup():
-    return send_file("static/js/startup.app.build.js")
+    return send_file("static/js/startup.app-%s.build.js" % version)
     pass

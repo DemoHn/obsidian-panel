@@ -72,6 +72,7 @@
     "shelljs": "^0.7.4",
     "sinon": "^1.17.3",
     "sinon-chai": "^2.8.0",
+    "socket.io-client": "^1.7.2",
     "url-loader": "^0.5.7",
     "vue-file-upload": "^0.1.1",
     "vue-loader": "^9.4.0",

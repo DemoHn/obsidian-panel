@@ -3,6 +3,8 @@ var config = require('../config');
 var utils = require('./utils');
 var projectRoot = path.resolve(__dirname, '../');
 var webpack = require("webpack");
+var fs = require("fs");
+
 var env = process.env.NODE_ENV;
 // check env & config/index.js to decide weither to enable CSS Sourcemaps for the
 // various preprocessor loaders added to vue-loader at the end of this file
@@ -10,8 +12,10 @@ var cssSourceMapDev = (env === 'development' && config.dev.cssSourceMap);
 var cssSourceMapProd = (env === 'production' && config.build.productionSourceMap);
 var useCssSourceMap = cssSourceMapDev || cssSourceMapProd;
 
-module.exports = {
-  entry: {
+var version = fs.readFileSync("../VERSION", "utf-8"); 
+version = version.trim();
+
+var _entry = {
       "super_admin.app": './src/super_admin.main.js',
       "server_inst.app":'./src/server_inst.main.js',
       "startup.app":'./src/startup.main.js',
@@ -20,7 +24,16 @@ module.exports = {
           "./static/js/plugins/AdminLTE/app.js",
           "./static/js/plugins/pace/pace.js",
       ],
-  },
+};
+
+// add version tag of each item
+var entry = {};
+for(item in _entry){
+    entry[item + "-" + version] = _entry[item];
+}
+
+module.exports = {
+    entry: entry,
     plugins:[
         new webpack.ProvidePlugin({
             $: "jquery",

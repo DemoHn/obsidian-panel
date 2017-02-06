@@ -8,6 +8,7 @@ const MAX_RETRY = 10;
 // this is a hackable way to make a global
 //window.WS_INSTANCE = null;
 let instance = null;
+let io = require("socket.io-client");
 
 class WebSocket {
     constructor(){
@@ -45,7 +46,7 @@ class WebSocket {
     _init(){
         if(io !== undefined){
             if(this.socket === null){
-                this.socket = io.connect(this._get_current_host());
+                this.socket = io(this._get_current_host());
             }
 
             this.socket.on("connect",(e)=>{

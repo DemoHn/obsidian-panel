@@ -20,7 +20,7 @@ var spinner = ora('building for production...')
 spinner.start()
 
 var assetsPath = path.join(config.build.assetsRoot, config.build.assetsSubDirectory);
-//rm("-R", assetsPath)
+rm("-R", assetsPath+"/js/*")
 cp('-R','server_inst.index.html',assetsPath+"/../templates/server_inst/index.html");
 cp('-R','super_admin.index.html',assetsPath+"/../templates/superadmin/index.html");
 cp('-R','startup.index.html',assetsPath+"/../templates/startup/index.html");
