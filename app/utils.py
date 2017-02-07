@@ -6,11 +6,15 @@ import datetime
 import re, os
 import json
 from random import randint
-import hashlib
+import hashlib, traceback
+import yaml
 from app.error_code import errcode
 
 # password hash salt
 salt = b"\x87\x93\xfb\x00\xfa\xc2\x88\xba$\x86\x98\'\xba\xa8\xc6"
+
+from ob_logger import Logger
+_logger = Logger("_utils", debug=False)
 
 # consts
 class PRIVILEGES:
@@ -35,6 +39,77 @@ def generate_random_string(bits):
     for i in range(0,bits):
         _str += chr(randint(0,25) + 65)
     return _str
+
+# read VERSION
+def get_version():
+    f = open("VERSION", "r")
+    version = f.read()
+    return version.strip()
+
+# debug mode
+def is_debug():
+    DEBUG_LOCK = "debug.lock"
+    if os.path.exists(DEBUG_LOCK):
+        return True
+    else:
+        return False
+
+# read config.yaml
+def read_config_yaml():
+
+    def _merge_dict(dict_data, dict_tmpl):
+        for item in dict_tmpl:
+            if dict_data.get(item) == None:
+                dict_data[item] = dict_tmpl[item]
+            elif type(dict_tmpl[item]) == dict:
+                if type(dict_data[item]) != dict:
+                    # e.g. : A['a'] = 1, B['a'] = {'c' : 'b'}
+                    # then -> A['a'] = {'c' : 'b'}
+                    dict_data[item] = dict_tmpl[item]
+                else:
+                    _merge_dict(dict_data[item], dict_tmpl[item])
+
+        return dict_data
+
+    config_yaml = "config.yaml"
+    config_yaml_sample = "config.yaml.sample"
+
+    fsr_docs = None
+    fr_docs  = None
+    try:
+        fsr = open(config_yaml_sample, "r")
+        fsr_docs = yaml.load(fsr)
+        fsr.close()
+    except:
+        _logger.error(traceback.format_exc())
+        fsr.close()
+        return None
+
+    if os.path.exists(config_yaml):
+        try:
+            fr = open(config_yaml, "r")
+            fr_docs = yaml.load(fr)
+            fr.close()
+        except:
+            _logger.error(traceback.format_exc())
+            fr.close()
+            return None
+    else:
+        fr_docs = {}
+
+    # update config.yaml if config.yaml.sample has some new keys
+    fr_docs = _merge_dict(fr_docs, fsr_docs)
+    merged_config_text = yaml.dump(fr_docs, default_flow_style=False)
+
+    try:
+        f = open(config_yaml, "w+")
+        f.write(merged_config_text)
+        f.close()
+    except:
+        f.close()
+        return None
+
+    return fr_docs
 
 class returnModel:
     def __init__(self,type="json"):
@@ -72,16 +147,6 @@ class returnModel:
             return json.dumps(rtn)
         else:
             return rtn
-
-class testUtil:
-    def compare(item,return_info,code=0,info=""):
-        pass
-        # standard return_info:
-        # {
-        #    "status" : "success" | "error",
-        #    "code" : XXX,
-        #    "info" : YYY
-        # }
 
 # 统计本目录下所有*.py文件加在一起的总行数
 def get_line_number(directory):

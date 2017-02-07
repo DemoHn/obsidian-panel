@@ -38,11 +38,13 @@ def register_task(cron_data, kwargs_dict={}):
 
     return real_function
 
-def start_task_scheduler(debug=True, zmq_port=852):
+def start_task_scheduler():
     from . import tasks
+    from app.utils import is_debug, read_config_yaml
 
-    logger.set_debug(debug)
-
+    logger.set_debug(is_debug())
+    _config = read_config_yaml()
+    zmq_port = _config['broker']['listen_port']
     # init proxy
     proxy = MessageQueueProxy(WS_TAG.TSR, router_port=zmq_port)
     proxy.register(TaskEventHandler)

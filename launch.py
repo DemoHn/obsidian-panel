@@ -21,9 +21,10 @@ __author__ = "Nigshoxiz"
 
 import sys, getopt, os
 
-def start_chaussette(fd=None, host="0.0.0.0", port=80, debug=True, use_reloader=True, circusd_end_port=853, redis_port=851, zmq_port=852):
+def start_chaussette():
     from app import app as _app
     from app import logger, proxy
+    from app.utils import read_config_yaml, is_debug
     from app.mq_events import WebsocketEventHandler
     from app.controller.global_config import GlobalConfig
     from app.controller.init_main_db import init_database
@@ -32,10 +33,16 @@ def start_chaussette(fd=None, host="0.0.0.0", port=80, debug=True, use_reloader=
     from chaussette.backend._eventlet import Server as eventlet_server
     from chaussette.server import make_server
 
-    if fd != None:
-        _host = "fd://%d" % int(fd)
-    else:
-        _host = None
+    _config = read_config_yaml()
+    debug = is_debug()
+
+    # variables
+    host = _config['server']['host']
+    port = int(_config['server']['listen_port'])
+    use_reloader = _config['server']['use_reloader']
+    circusd_end_port = _config['circus']['end_port']
+    redis_port = _config['redis']['listen_port']
+    zmq_port   = _config['broker']['listen_port']
 
     logger.set_debug(debug)
     _app.config["_circusd_end_port"] = circusd_end_port
@@ -51,7 +58,10 @@ def start_chaussette(fd=None, host="0.0.0.0", port=80, debug=True, use_reloader=
             gc.get("files_dir"),
             gc.get("servers_dir"),
             gc.get("lib_bin_dir"),
-            gc.get("sqlite_dir")
+            gc.get("sqlite_dir"),
+            # it's totally useless to store a directory's name into database
+            # why not just name it?
+            # 2017-2-7
         ]
 
         for item in dirs:
@@ -82,13 +92,7 @@ def start_chaussette(fd=None, host="0.0.0.0", port=80, debug=True, use_reloader=
             _backends['eventlet'] = eventlet_server
 
             app = wrap_socketio_server()
-
-            # use fd://
-            if _host != None:
-                httpd = make_server(app, host=_host, backend='eventlet')
-            # use 0.0.0.0:<port>
-            else:
-                httpd = make_server(app, host=host, port=port, backend='eventlet')
+            httpd = make_server(app, host=host, port=port, backend='eventlet')
 
             httpd.serve_forever()
         except KeyboardInterrupt:
@@ -131,57 +135,25 @@ def start_task_scheduler(**kwargs):
     start_task_scheduler(**kwargs)
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "b:p:d", ["debug=", "use_reloader=", "fd=", "host=","port=", "circusd-endport=","redis_port=","zmq_port="])
+    opts, args = getopt.getopt(sys.argv[1:], "b:")
 except getopt.GetoptError as err:
     print(err, file=sys.stderr)
     sys.exit(2)
 
-debug_flag = False
-listen_port = None
 launch_branch_name = None
-use_reloader = False
-fd = None
-circusd_end_port = 0
-redis_port = None
-zmq_port = None
-host = None
-
 # parse args
 for o, a in opts:
     if o == "-b":
         launch_branch_name = a
-    elif o == "-d":
-        debug_flag = True
-    elif o == "-p" or o == "--port":
-        listen_port = int(a)
-    elif o == "--use_reloader":
-        if a == "true":
-            use_reloader = True
-        else:
-            use_reloader = False
-    elif o == "--debug":
-        if a == "true":
-            debug_flag = True
-        else:
-            debug_flag = False
-    elif o == "--fd":
-        fd = int(a)
-    elif o == "--circusd-endport":
-        circusd_end_port = int(a)
-    elif o == "--redis_port":
-        redis_port = int(a)
-    elif o == "--zmq_port":
-        zmq_port = int(a)
-    elif o == "--host":
-        host = a
 
-if launch_branch_name == "app":
-    start_chaussette(fd=fd, host=host, debug=debug_flag, port=listen_port, use_reloader=use_reloader, circusd_end_port=circusd_end_port, redis_port=redis_port, zmq_port=zmq_port)
-elif launch_branch_name == "ftp_manager":
-    start_ftp_manager(debug=debug_flag, port=listen_port, zmq_port=zmq_port)
-elif launch_branch_name == "process_watcher":
-    start_process_watcher(debug=debug_flag, zmq_port=zmq_port)
-elif launch_branch_name == "zeromq_broker":
-    start_zeromq_broker(router_port=listen_port, debug=debug_flag)
-elif launch_branch_name == "task_scheduler":
-    start_task_scheduler(debug=debug_flag, zmq_port=zmq_port)
+launch_map = {
+    "app" : start_chaussette,
+    "ftp_manager" : start_ftp_manager,
+    "process_watcher" : start_process_watcher,
+    "zeromq_broker" : start_zeromq_broker,
+    "task_scheduler" : start_task_scheduler
+}
+
+if launch_map.get(launch_branch_name) != None:
+    func = launch_map.get(launch_branch_name)
+    func()

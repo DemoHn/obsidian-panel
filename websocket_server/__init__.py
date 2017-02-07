@@ -1,7 +1,9 @@
 __author__ = "Nigshoxiz"
 
 from ob_logger import Logger
-logger = Logger("WS")
+from app.utils import is_debug
+
+logger = Logger("MsgQ", debug = is_debug())
 
 class PRIVILEGES:
     NONE = 0x0000

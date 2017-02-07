@@ -37,7 +37,6 @@ write_circus(){
     cat >> $DEST_FILE <<- EOF
 [circus]
 endpoint = tcp://127.0.0.1:$config_circus_end_port
-
 EOF
 
 }
@@ -60,13 +59,9 @@ EOF
     fi
     cat >> $DEST_FILE <<- EOF
 use_sockets = True
-cmd = python launch.py -b app --fd=\$(circus.sockets.app) --debug=$debug --use_reloader=$config_server_use_reloader --circusd-endport=$config_circus_end_port --redis_port=$config_redis_listen_port --zmq_port=$config_broker_listen_port
+cmd = python launch.py -b app
 numprocesses = 1
 priority = 10
-
-[socket:app]
-host = 0.0.0.0
-port = $config_server_listen_port
 
 EOF
 }
@@ -88,7 +83,7 @@ write_ftp_manager(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-cmd = python launch.py -b ftp_manager -p $config_ftp_listen_port --debug=$debug --zmq_port=$config_broker_listen_port
+cmd = python launch.py -b ftp_manager
 numprocesses = 1
 priority = 8
 autostart = True
@@ -109,7 +104,7 @@ write_process_watcher(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-cmd = python launch.py -b process_watcher --debug=$debug --zmq_port=$config_broker_listen_port
+cmd = python launch.py -b process_watcher
 numprocesses = 1
 priority = 7
 autostart = True 
@@ -130,7 +125,7 @@ write_zeromq_broker(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-cmd = python launch.py -b zeromq_broker -p $config_broker_listen_port --debug=$debug
+cmd = python launch.py -b zeromq_broker
 numprocesses = 1
 priority = 9
 autostart = True
@@ -151,7 +146,7 @@ write_task_scheduler(){
 copy_env = True
 virtualenv = ./env
 working_dir = ./
-cmd = python launch.py -b task_scheduler --debug=$debug --zmq_port=$config_broker_listen_port
+cmd = python launch.py -b task_scheduler
 numprocesses = 1
 priority = 6
 autostart = True

@@ -1,6 +1,7 @@
 # import python library
 
 from ob_logger import Logger
+
 logger = Logger("MPW")
 
 class SERVER_STATE(object):
@@ -20,14 +21,17 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
-def start_process_watcher(debug=True, zmq_port=852):
-    logger.set_debug(debug)
-
+def start_process_watcher():
     from .mq_events import WatcherEvents
     from .watcher import Watcher
     from app.tools.mq_proxy import WS_TAG, MessageQueueProxy
+    from app.utils import is_debug, read_config_yaml
 
-    proxy = MessageQueueProxy(WS_TAG.MPW, router_port=852)
+    logger.set_debug(is_debug())
+    _config = read_config_yaml()
+    router_port = _config['broker']['listen_port']
+
+    proxy = MessageQueueProxy(WS_TAG.MPW, router_port= router_port)
     proxy.register(WatcherEvents)
 
     logger.info("This is Minecraft Process Watcher.")

@@ -82,14 +82,15 @@ restart(){
 
 debug(){
     echo "Running in debug mode..."
-
     if [ -f $PIDFILE ]; then
         stop
     fi
     # generate ini file
     sh $DIR/gen.circus.sh true
     cd $DIR/../
+    touch debug.lock
     circusd .obsidian_panel.ini
+    rm debug.lock
 }
 
 upgrade(){
@@ -143,6 +144,12 @@ dev(){
         push)
             dev_push
             ;;
+        install)
+            dev_install
+            ;;
+        run)
+            dev_run
+            ;;
         *)
             ;;
     esac
@@ -168,6 +175,30 @@ dev_push(){
     git push origin dev
     # push to coding.net (China mirror)
     git push mirror dev
+}
+
+dev_install(){
+    echo "[INFO] NOTICE: This command is only used when you barely clone the project."
+    echo "[INFO]         It's supposed that you have installed prequisities like Node.js, Python 3 and pip already."
+    echo "[INFO]         This command only helps you install pip and npm packages."
+    cd $DIR/../
+    virtualenv env
+    . env/bin/activate
+    # enter virtualenv
+    # and install pip packages
+    pip install -r requirement.txt
+    # install npm packages
+    cd $DIR/../frontend
+    npm install
+}
+
+dev_run(){
+    cd $DIR/../frontend
+    npm run dev &
+    echo "pid = $!"
+    # restart the panel
+    cd $DIR/../
+    debug
 }
 
 # command switch

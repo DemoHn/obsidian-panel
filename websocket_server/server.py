@@ -3,10 +3,11 @@ import socketio, eventlet, json, re, zmq, threading, traceback, engineio
 from . import logger
 
 from .ws_conn import WSConnections
+from app.utils import read_config_yaml
 
-
-def start_zeromq_broker(router_port=852, debug=True):
-    logger.set_debug(debug)
+def start_zeromq_broker():
+    _config = read_config_yaml()
+    router_port = _config['broker']['listen_port']
     # bind broker port
     context = zmq.Context()
     socket  = context.socket(zmq.ROUTER)
