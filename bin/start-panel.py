@@ -1,12 +1,36 @@
-import os, platform
+import os, platform, getopt, sys, subprocess
 from string import Template
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "b:", ["pidfile=", "daemon", "logfile="])
+except getopt.GetoptError as err:
+    print(err, file=sys.stderr)
+    sys.exit(1)
 
 if platform.system() == "Linux":
 
-    ENV_DIR = os.path.normpath(os.path.join(os.getcwd(), "../", "env"))
-    ROOT_DIR = os.path.normpath(os.path.join(os.getcwd(), ".."))
+    logfile = "/var/log/ob-panel.log"
+    pidfile = ""
+    daemon = ""
 
-    circusd_ini = ""
+    # read opts
+    for o, a in opts:
+        if o == "--pidfile":
+            pidfile = "--pidfile %s" % a
+        elif o == "--daemon":
+            daemon  = "--daemon"
+        elif o == "--logfile":
+            logfile = a
+
+    FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+    ENV_DIR = os.path.normpath(os.path.join(FILE_PATH, "../", "env"))
+    ROOT_DIR = os.path.normpath(os.path.join(FILE_PATH, ".."))
+
+    circusd_ini = '''
+[circus]
+endpoint = ipc:///tmp/circus.sock
+pubsub_endpoint = ipc:///tmp/circus_pubsub.sock
+'''
     watchers = ['redis', 'app' , 'ftp_manager', 'process_watcher', 'zeromq_broker', 'task_scheduler']
 
     tmpl = Template('''
@@ -31,17 +55,19 @@ autostart = True
 
         _index -= 1
 
-        # not in debug mode
-        if not os.path.exists("../debug.lock"):
+        # debug mode?
+        if not os.path.exists(os.path.join(FILE_PATH, "..", "debug.lock")):
             conf +='''
 stdout_stream.class = FileStream
-stdout_stream.filename = /var/log/ob-panel.log
-'''
+stdout_stream.filename = %s
+''' % logfile
         circusd_ini += conf
 
     # write config file
-    f = open(".obsidian_panel.ini", 'w+')
+    ini_file = os.path.join(FILE_PATH, ".obsidian_panel.ini")
+
+    f = open(ini_file, 'w+')
     f.write(circusd_ini)
     f.close()
 
-    os.system("circusd .obsidian_panel.ini")
+    p = os.system("circusd %s %s %s" % (pidfile, ini_file, daemon))

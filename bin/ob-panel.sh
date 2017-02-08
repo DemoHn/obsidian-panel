@@ -11,6 +11,7 @@
 DIR=$(dirname $([ -L $0 ] && readlink -f $0 || echo $0))
 
 PIDFILE=/var/run/ob-panel.pid
+LOGFILE=/var/log/ob-panel.log
 
 _parse_yaml() {
    local prefix=$2
@@ -30,18 +31,16 @@ _parse_yaml() {
 
 _start_circus(){
     echo "[INFO] Start Obsidian Panel LEVEL - 2"
-    circusd --pidfile $PIDFILE .obsidian_panel.ini --daemon
+    python3 $DIR/start-panel.py --pidfile=$PIDFILE --daemon --logfile=$LOGFILE
 }
 
 cmd_circusctl(){
     eval $(_parse_yaml $(dirname "$DIR")/config.yaml "config_")
-    circusctl --endpoint=tcp://127.0.0.1:$config_circus_end_port --timeout 3 $@
+    circusctl --endpoint=ipc:///tmp/circus.sock --timeout 3 $@
 }
 
 start(){
     echo "Start obsidian-panel..."
-    sh $DIR/gen.circus.sh
-    cd $DIR/../
     if [ ! -f $PIDFILE ]; then
         _start_circus
     else
@@ -69,8 +68,6 @@ clear(){
 restart(){
     echo "Restart obsidian-panel..."
     # generate ini file
-    sh $DIR/gen.circus.sh
-    cd $DIR/../
     if [ ! -f $PIDFILE ]; then
         _start_circus
     else
@@ -85,11 +82,9 @@ debug(){
     if [ -f $PIDFILE ]; then
         stop
     fi
-    # generate ini file
-    sh $DIR/gen.circus.sh true
     cd $DIR/../
     touch debug.lock
-    circusd .obsidian_panel.ini
+    python3 $DIR/start-panel.py
     rm debug.lock
 }
 

@@ -2,10 +2,10 @@ __author__ = "Nigshoxiz"
 from urllib.error import HTTPError
 from urllib.request import urlopen, Request
 import os, ssl, json, inspect, random, string, copy, time, traceback, threading, shutil
-
+from app.utils import is_debug
 # add logger
 from ob_logger import Logger
-logger = Logger("dlMC", debug=True)
+logger = Logger("dlMC", debug=is_debug())
 
 class AbruptException(Exception):
     def __init__(self):
