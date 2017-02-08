@@ -134,6 +134,15 @@ def start_task_scheduler(**kwargs):
     from task_scheduler import start_task_scheduler
     start_task_scheduler(**kwargs)
 
+def start_redis(**kwargs):
+    from app.utils import read_config_yaml, is_debug
+
+    _config = read_config_yaml()
+    debug = is_debug()
+
+    redis_port = _config['redis']['listen_port']
+    os.system('redis-server --port %s 1>/dev/null 2>/dev/null' % redis_port)
+
 try:
     opts, args = getopt.getopt(sys.argv[1:], "b:")
 except getopt.GetoptError as err:
@@ -151,7 +160,8 @@ launch_map = {
     "ftp_manager" : start_ftp_manager,
     "process_watcher" : start_process_watcher,
     "zeromq_broker" : start_zeromq_broker,
-    "task_scheduler" : start_task_scheduler
+    "task_scheduler" : start_task_scheduler,
+    'redis' : start_redis
 }
 
 if launch_map.get(launch_branch_name) != None:
