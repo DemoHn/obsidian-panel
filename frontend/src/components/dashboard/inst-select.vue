@@ -26,6 +26,7 @@
                 <div class="box-body no-padding" style="display:block">
                     <div v-for="inst_item in user_list" :class="{selected: inst_item.is_selected}" class="inst_item">
                         <a :href="'#'+inst_item.inst_id"  @click="click_menu(inst_item.inst_id)">{{ inst_item.inst_name }}</a>
+                        <span class="fright" v-if="inst_item.is_selected"><a :href="'/server_inst/edit_inst/'+inst_item.inst_id" style="width: 15px;"><i class="ion-edit" data-placement="right" data-toggle="tooltip" data-original-title="编辑"></i></a></span>
                     </div>
                     <!--new instance-->
                     <div class="inst_item">
@@ -234,7 +235,7 @@ section.mobile-header-bar{
 
     div.inst-sel a{
         display: inline-block;
-        width:170px;
+        width: 135px;
         line-height: 30px;
         height:30px;
         color: black;
@@ -254,6 +255,16 @@ section.mobile-header-bar{
 
     div.inst-sel a:hover{
         text-decoration: underline;
+    }
+
+    /* edit button*/
+    span.fright{
+        position:relative;
+        float:right;
+        line-height: 3rem;
+        margin-right: 1rem;
+        cursor: pointer;
+        color: #666;
     }
 }
 

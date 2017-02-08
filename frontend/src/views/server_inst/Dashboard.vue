@@ -14,52 +14,51 @@
         </div>
 
         <div class="inst-content">
-            <div class="row">
-                <div class="col-md-7" id="dash_board">
-                    <div class="box box-solid">
-                        <div class="box-body">
-                            <server-status ref="StatusF"></server-status>
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="box box-solid">
+                            <div class="box-body">
+                                <server-status ref="StatusF"></server-status>
+                            </div>
+                        </div>
+                    </div><div class="col-md-5">
+                        <div class="box box-solid">
+                            <div class="box-body no-padding">
+                                <table class="table table-striped inst-info-table">
+                                    <tbody>
+                                        <tr>
+                                            <td>LOGO</td>
+                                            <td>
+                                                <span id="show-instance-logo">
+                                                    <img :src="miscellaneous.image_source" alt="" id="preview_image" v-if="miscellaneous.image_soure != ''">
+                                                    <div id="bottom-image" v-else>
+                                                        此处无图
+                                                    </div>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>每日讯息</td>
+                                            <td>
+                                                <span id="motd">
+                                                    <motd-display :content="miscellaneous.motd"></motd-display>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>IP / PORT</td>
+                                            <td>{{ ip_port }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>MC 版本</td>
+                                            <td>{{miscellaneous.mc_version}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-5">
-                    <div class="box box-solid">
-                        <div class="box-body no-padding">
-                            <table class="table table-striped inst-info-table">
-                                <tbody>
-                                    <tr>
-                                        <td>LOGO</td>
-                                        <td>
-                                            <span id="show-instance-logo">
-                                                <img :src="miscellaneous.image_source" alt="" id="preview_image" v-if="miscellaneous.image_soure != ''">
-                                                <div id="bottom-image" v-else>
-                                                    此处无图
-                                                </div>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>每日讯息</td>
-                                        <td>
-                                            <span id="motd">
-                                                <motd-display :content="miscellaneous.motd"></motd-display>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>IP / PORT</td>
-                                        <td>{{ ip_port }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>MC 版本</td>
-                                        <td>{{miscellaneous.mc_version}}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="row">
                 <div class="col-md-7">
@@ -71,8 +70,7 @@
                                 ></simple-console>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-5">
+                </div><div class="col-md-5">
                     <div class="box box-solid">
                         <div class="box-body no-padding">
                             <table class="table table-striped inst-info-table">
@@ -363,8 +361,8 @@ export default {
 <style>
     @media(min-width: 1201px){
         div.inst-content{
-            position: absolute;
-            padding-left:260px;
+            position: relative;
+            padding-left:215px;
             width:100%;
             z-index: 10;
             padding-top: 2rem;
@@ -372,13 +370,12 @@ export default {
         }
 
         div.ctrl-bar{
-            width : 250px;
-            position: relative;
+            width : 205px;
+            position: absolute;
             float: left;
             margin-top: 2rem;
-            padding-left: 10px;
-            padding-right: 10px;
             z-index: 12;
+            padding-right: 10px;
         }
 
         div.ctrl-title{
