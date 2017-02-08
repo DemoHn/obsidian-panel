@@ -364,7 +364,7 @@ export default {
     @media(min-width: 1201px){
         div.inst-content{
             position: absolute;
-            padding-left:250px;
+            padding-left:260px;
             width:100%;
             z-index: 10;
             padding-top: 2rem;
@@ -372,13 +372,19 @@ export default {
         }
 
         div.ctrl-bar{
-            width : 220px;
+            width : 250px;
             position: relative;
             float: left;
             margin-top: 2rem;
             padding-left: 10px;
             padding-right: 10px;
             z-index: 12;
+        }
+
+        div.ctrl-title{
+            font-size: 2.4rem;
+            margin-bottom: 1.5rem;
+            color:navy;
         }
     }
 
@@ -387,6 +393,10 @@ export default {
             padding-left: 1.5rem;
             padding-right: 1.5rem;
             padding-top: 2rem;
+        }
+
+        div.ctrl-title{
+            display: none;
         }
     }
 

@@ -3,6 +3,7 @@ import NotFoundView from './views/404.vue'
 
 // Import Views - Dash
 import DashView from './views/server_inst/Dash.vue'
+import EditInstanceView from './views/server_inst/EditInstance.vue'
 import DashboardView from './views/server_inst/Dashboard.vue'
 import NewInstanceView from './views/server_inst/NewInstance.vue'
 
@@ -24,6 +25,12 @@ const routes = [
                 component: NewInstanceView,
                 name: "新的世界",
                 description: "create new world"
+            },
+            {
+                path: 'edit_inst/:id',
+                component: EditInstanceView,
+                name: "编辑",
+                description: "edit pages"
             }
     ]
   }, {

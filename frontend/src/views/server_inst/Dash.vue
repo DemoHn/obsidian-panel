@@ -93,6 +93,9 @@ hr.visible-xs-block {
   border-color: transparent;
 }
 
+h3.box-title{
+    font-size: 16px !important;
+}
 @media(min-width: 1201px){
     div.content-wrapper{
         padding-left:15px;

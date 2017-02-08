@@ -22,3 +22,4 @@ from . import dashboard
 from . import console
 from . import ftp
 from . import create_inst
+from . import edit_inst

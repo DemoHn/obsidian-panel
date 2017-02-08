@@ -9,6 +9,7 @@
                     <div v-for="inst_item in user_list">
                         <a @click="click_menu(inst_item.inst_id)" v-bind:href="'#'+inst_item.inst_id">{{ inst_item.inst_name }}</a>
                     </div>
+
                     <router-link to="/server_inst/new_inst"><i class="ion-plus"></i> <span class="new_inst_txt">新的世界</span></router-link>
                     <div class="padding"></div>
                 </div>
@@ -17,18 +18,20 @@
         </section>
 
         <div class="inst-sel">
-            <div style="margin-bottom:1rem;"><b>实例列表</b></div>
-            <div v-for="inst_item in user_list">
-                <span class="star">
-                    <i class="ion-android-star" v-if="inst_item.star == true"></i>
-                    <i class="ion-android-star-outline" v-else></i>
-                </span>
-                <a :href="'#'+inst_item.inst_id" :class="{selected: inst_item.is_selected}" @click="click_menu(inst_item.inst_id)">{{ inst_item.inst_name }}</a>
-            </div>
-            <!--new instance-->
-            <div>
-                <span class="star"> </span>
-                <router-link to="/server_inst/new_inst"><i class="ion-plus"></i>&nbsp;&nbsp;&nbsp;<span class="new_inst_txt">新的世界</span></router-link>
+            <div class="box box-default box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title" style="font-size:16px;">我的世界</h3>
+                </div>
+
+                <div class="box-body no-padding" style="display:block">
+                    <div v-for="inst_item in user_list" :class="{selected: inst_item.is_selected}" class="inst_item">
+                        <a :href="'#'+inst_item.inst_id"  @click="click_menu(inst_item.inst_id)">{{ inst_item.inst_name }}</a>
+                    </div>
+                    <!--new instance-->
+                    <div class="inst_item">
+                        <span><i class="ion-plus"></i>&nbsp;&nbsp;&nbsp;<router-link to="/server_inst/new_inst"><span class="new_inst_txt">新的世界</span></router-link></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -236,9 +239,8 @@ section.mobile-header-bar{
         height:30px;
         color: black;
         font-size:1.5rem;
-        padding-left:0.8rem;
         margin: 0;
-        margin-left: 0.2rem;
+        padding-left: 0;
     }
 
     div.inst-sel span.star{
@@ -250,16 +252,26 @@ section.mobile-header-bar{
         line-height: 30px;
     }
 
-    div.inst-sel a.selected{
-        color:white;
-        background-color: mediumpurple;
-    }
-
     div.inst-sel a:hover{
         text-decoration: underline;
     }
 }
 
+div.inst_item{
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-left: 1.5rem;
+    border-bottom: 1px solid #dedede;
+    box-sizing: border-box;
+}
+
+div.inst_item.selected{
+    border-left: 3px solid orange;
+    font-weight: bold;
+}
+div.no-padding{
+    padding: 0 !important;
+}
 span.new_inst_txt{
     color: #555;
 }

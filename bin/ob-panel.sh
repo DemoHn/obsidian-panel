@@ -189,8 +189,9 @@ dev_install(){
 
 dev_run(){
     cd $DIR/../frontend
+    jobs &>/dev/null
     npm run dev &
-    echo "pid = $!"
+
     # restart the panel
     cd $DIR/../
     debug

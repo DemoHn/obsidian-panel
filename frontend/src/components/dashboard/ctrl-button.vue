@@ -1,14 +1,38 @@
 <template lang="html">
     <div>
         <div class="ctrl-switch">
-            <div style="margin-top:1.5rem;margin-bottom:1rem;"><b>控制掣</b></div>
-                <button v-if="btn_status == 'pause'" class="btn btn-primary" :disabled="btn_disable" @click="stop_inst">停止</button>
-                <button v-if="btn_status == 'start' || btn_status == 'starting'" class="btn btn-primary" :disabled="btn_disable" @click="start_inst">启动</button>
-                <button v-if="btn_status == 'starting' || btn_status == 'pause'" class="btn btn-success" @click="terminate_inst">强行停止</button>
-                <button v-if="btn_status == 'pause'" class="btn btn-danger" :disabled="btn_disable" @click="restart_inst">重新启动</button>
+            <div class="box box-default box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title" style="font-size:16px;">控制掣</h3>
+                </div>
 
+                <div class="box-body no-padding" style="display:block">
+                    <div class="box-btn-container" style="color: darkorange;" v-if="btn_status == 'pause'">
+                        <button class="box-btn" :disabled="btn_disable" @click="stop_inst">
+                            <i class="ion-ios-pause"></i><span class="gap">停止</span>
+                        </button>
+                    </div>
+
+                    <div class="box-btn-container" style="color:#4c63e8;" v-if="btn_status == 'start' || btn_status == 'starting'">
+                        <button class="box-btn" :disabled="btn_disable" @click="start_inst">
+                            <i class="ion-ios-play"></i><span class="gap">启动</span>
+                        </button>
+                    </div>
+
+                    <div class="box-btn-container" style="color: red;" v-if="btn_status == 'starting' || btn_status == 'pause'">
+                        <button class="box-btn" @click="terminate_inst">
+                            <i class="ion-close-round"></i><span class="gap">强行停止</span>
+                        </button>
+                    </div>
+
+                    <div class="box-btn-container" style="color: green;"  v-if="btn_status == 'pause'">
+                        <button class="box-btn" :disabled="btn_disable" @click="restart_inst">
+                            <i class="ion-ios-loop-strong"></i><span class="gap">重新启动</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-
         <!--this button will vanish on desktop but exist on mobile device and pad-->
         <button v-if="btn_status == 'start'" class="corner" :disabled="btn_disable" @click="start_inst" v-cloak>
             <i class="ion-ios-play" style="margin-left:4px;/*to make it more 'in center'*/"></i>
@@ -76,10 +100,42 @@ button.corner{
     display: none;
 }
 
+span.gap{
+    margin-left: 1rem;
+}
+div.box-btn-container{
+    height: 3.8rem;
+    width: 100%;
+    border-bottom: 1px solid #dedede;
+}
+
+div.box-btn-container i{
+    width: 1.25rem;
+    display: inline-block;
+    text-align: center;
+}
+button.box-btn{
+    display: block;
+    width: 100%;
+    height:100%;
+    border: none;
+    outline: none;
+    text-align:left;
+    padding-left: 1.25rem;
+    background: none;
+    font-size: 1.5rem;
+}
+
+button.box-btn[disabled]{
+    color: #bcbcbc;
+}
 div.ctrl-switch{
     display: none;
 }
 
+div.no-padding{
+    padding: 0 !important;
+}
 @media(min-width: 1201px){
     div.ctrl-switch{
         display: block;
