@@ -301,7 +301,7 @@ def submit_new_inst(uid, priv):
             return rtn.success(inst_id)
             # return redirect("/server_inst/dashboard/%s" % inst_id)
         except:
-            traceback.print_exc()
+            logger.error(traceback.format_exc())
             return rtn.error(500)
     except Exception as e:
         logger.error(traceback.format_exc())

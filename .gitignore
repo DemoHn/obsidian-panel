@@ -11,3 +11,4 @@ bin/.obsidian_panel.ini
 ob-panel.log
 tests/.cache/
 frontend/node_modules/
+debug.lock
