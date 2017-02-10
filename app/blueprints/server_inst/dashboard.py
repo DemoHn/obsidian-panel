@@ -5,7 +5,7 @@ from jinja2 import TemplateNotFound
 from urllib.request import urlopen, Request
 
 from app import db, logger, proxy, app
-from app.utils import returnModel
+from app.utils import returnModel, KVParser
 from app.tools.mq_proxy import WS_TAG
 from app.model import ServerInstance, ServerCORE, FTPAccount
 from app.blueprints.superadmin.check_login import check_login, ajax_check_login
@@ -13,46 +13,6 @@ from app.controller.global_config import GlobalConfig
 
 from . import server_inst_page, version, logger
 import os, re, traceback
-
-# copied from process_watcher/parser.py
-class KVParser(object):
-    """
-    A general Key-Value Parser
-    Parsed File Format :
-
-    # here is comment
-    server-ip=12.23.43.3
-    motd=This is a Minecraft Server # inline comment
-
-    """
-    def __init__(self,file):
-        """
-        :param file: filename being parsed.
-        """
-        self.conf_items = {}
-        self.file = file
-        self.loads()
-
-    def loads(self):
-        """
-        read the whole config file and make config index
-        :return:
-        """
-        fd = open(os.path.normpath(self.file),"r+")
-
-        if fd == None:
-            raise FileNotFoundError
-        for line in fd.readlines():
-            if line.find("#") == 0:
-                continue
-            else:
-                pattern = "^([a-zA-Z\-_ ]+)=([^#]*)"
-                result  = re.match(pattern,line)
-                if result != None:
-                    key = result.group(1)
-                    val = result.group(2).strip()
-                    self.conf_items[key] = val
-        fd.close()
 
 rtn = returnModel("string")
 
@@ -70,7 +30,7 @@ def render_new_dashboard(uid, priv):
 
 # miscellaneouses, including basic LOGO, FTP status, server properties, etc.
 @server_inst_page.route("/api/get_miscellaneous_info/<inst_id>", methods=["GET"])
-@check_login
+@ajax_check_login
 def render_dashboard_page(uid, priv, inst_id):
     try:
         # get info
@@ -121,13 +81,9 @@ def render_dashboard_page(uid, priv, inst_id):
                 return rtn.error(403)
         else:
             return rtn.error(500)
-
-    except TemplateNotFound:
-        abort(404)
     except:
         logger.error(traceback.format_exc())
-    pass
-
+        return rtn.error(500)
 
 @server_inst_page.route("/api/get_inst_list", methods=["GET"])
 @ajax_check_login

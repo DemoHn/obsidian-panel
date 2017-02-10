@@ -7,6 +7,12 @@ Vue.use(VueMaterial);
 
 import StartupView from './views/startup/Main.vue';
 
+window.paceOptions = {
+    ajax: {
+        trackWebSockets: false
+    }
+};
+
 // Start out app!
 // eslint-disable-next-line no-new
 new Vue({

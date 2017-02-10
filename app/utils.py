@@ -148,6 +148,46 @@ class returnModel:
         else:
             return rtn
 
+# copied from process_watcher/parser.py
+class KVParser(object):
+    """
+    A general Key-Value Parser
+    Parsed File Format :
+
+    # here is comment
+    server-ip=12.23.43.3
+    motd=This is a Minecraft Server # inline comment
+
+    """
+    def __init__(self,file):
+        """
+        :param file: filename being parsed.
+        """
+        self.conf_items = {}
+        self.file = file
+        self.loads()
+
+    def loads(self):
+        """
+        read the whole config file and make config index
+        :return:
+        """
+        fd = open(os.path.normpath(self.file),"r+")
+
+        if fd == None:
+            raise FileNotFoundError
+        for line in fd.readlines():
+            if line.find("#") == 0:
+                continue
+            else:
+                pattern = "^([a-zA-Z\-_ ]+)=([^#]*)"
+                result  = re.match(pattern,line)
+                if result != None:
+                    key = result.group(1)
+                    val = result.group(2).strip()
+                    self.conf_items[key] = val
+        fd.close()
+
 # 统计本目录下所有*.py文件加在一起的总行数
 def get_line_number(directory):
     num = 0

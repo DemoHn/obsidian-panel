@@ -49,7 +49,7 @@ class WebSocket {
                 this.socket = io(this._get_current_host());
             }
 
-            this.socket.on("connect",(e)=>{
+            this.socket.on("connection",(e)=>{
                 this.connected = true;
             });
 

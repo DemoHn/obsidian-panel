@@ -52,6 +52,11 @@ router.beforeEach((to, from, next) => {
     }
 });
 
+window.paceOptions = {
+    ajax: {
+        trackWebSockets: false
+    }
+};
 // Start out app!
 // eslint-disable-next-line no-new
 new Vue({

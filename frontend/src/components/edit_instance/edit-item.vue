@@ -55,6 +55,7 @@ div.description{
     padding-bottom: 0.25rem;
     font-size: 13px;
     color: #666;
+    max-width: 75%;
 }
 
 div.item-body{
