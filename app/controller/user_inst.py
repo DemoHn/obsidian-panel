@@ -5,15 +5,13 @@ import shutil
 import math
 import time
 
-#from app.tools.mc_wrapper import MCProcessPool
-#from app.tools.mc_wrapper.instance import MCServerInstanceThread
 from process_watcher.parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
 
 # models
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users
 from app.blueprints.server_inst import logger
-from app import db#, watcher
+from app import db
 
 class UserInstance():
     def __init__(self, uid):

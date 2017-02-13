@@ -85,16 +85,122 @@
             </div>
 
             <!-- properties -->
-            <div class="col-md-5" v-show="sel_val == 'properties'">
+            <div class="col-md-6" v-show="sel_val == 'properties'">
                 <div class="box box-solid">
                     <div class="box-body">
                          <edit-item>
                              <span slot="title">游戏属性</span>
-                             <div slot="description"></div>
+                             <div slot="description">设置游戏内属性。其他属性可以到server.properties文件中修改。</div>
                              <div slot="body">
-                                 <input name="" type="number" value="" class="form-control input-text" />
-                                 <span style="margin-right: 1rem;">G</span>
-                                 <button class="btn btn-default btn-v">保存</button>
+                                 <div class="row">
+                                     <div class="col-md-6">
+                                         <div class="setting-item"><span class="item-text"><i class="red-star"></i>正版验证</span>
+                                             <span class="input-element">
+                                                 <select name="online-mode" class="form-control" v-model="s_online_mode">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+
+                                         <div class="setting-item"><span class="item-text">PVP模式</span>
+                                             <span class="input-element">
+                                                 <select  class="form-control" v-model="s_pvp">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+
+                                         <div class="setting-item"><span class="item-text">游戏难度</span>
+                                             <span class="input-element">
+                                                 <select  class="form-control" v-model="s_difficulty">
+                                                     <option :value="0">0</option>
+                                                     <option :value="1">1</option>
+                                                     <option :value="2">2</option>
+                                                     <option :value="3">3</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+
+                                         <div class="setting-item"><span class="item-text">游戏模式</span>
+                                             <span class="input-element">
+                                                 <select  class="form-control" v-model="s_gamemode">
+                                                     <option :value="0">0</option>
+                                                     <option :value="1">1</option>
+                                                     <option :value="2">2</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+
+                                         <div class="setting-item"><span class="item-text">怪物生成</span>
+                                             <span class="input-element">
+                                                 <select class="form-control" v-model="s_spawn_monsters">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+
+                                         <div class="setting-item"><span class="item-text">生成下界</span>
+                                             <span class="input-element">
+                                                 <select class="form-control" v-model="s_allow_nether">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+
+                                     </div>
+                                     <div class="col-md-6" style="margin-left: -5rem;">
+                                         <div class="setting-item"><span class="item-text">世界种子</span>
+                                             <span class="input-element">
+                                                 <input class="form-control w-input" type="text" />
+                                             </span>
+                                         </div>
+                                         <div class="setting-item"><span class="item-text">最大建筑高度</span>
+                                             <span class="input-element">
+                                                 <input class="form-control w-input" type="text" />
+                                             </span>
+                                         </div>
+                                         <div class="setting-item"><span class="item-text">命令方块</span>
+                                             <span class="input-element">
+                                                 <select class="form-control" v-model="s_allow_nether">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+                                         <div class="setting-item"><span class="item-text">生成NPC</span>
+                                             <span class="input-element">
+                                                 <select class="form-control" v-model="s_allow_nether">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+                                         <div class="setting-item"><span class="item-text">生成动物</span>
+                                             <span class="input-element">
+                                                 <select class="form-control" v-model="s_allow_nether">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+                                         <div class="setting-item"><span class="item-text">锁定游戏模式</span>
+                                             <span class="input-element">
+                                                 <select class="form-control" v-model="s_allow_nether">
+                                                     <option :value="'true'">开启</option>
+                                                     <option :value="'false'">关闭</option>
+                                                 </select>
+                                             </span>
+                                         </div>
+                                     </div>
+
+                                 </div>
+                                 <div style="text-align: right;">
+                                     <button class="btn btn-default btn-v">保存</button>
+                                 </div>
                              </div>
                          </edit-item>
                     </div>
@@ -238,9 +344,21 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 select{
-    max-width: 50%;
+    max-width: 80% !important;
+    margin-bottom: 0 !important;
+}
+
+input.w-input{
+    width: 80% !important;
+}
+
+div.setting-item{
+    width:100%;
+    min-height: 6rem !important;
+    padding: 0.5rem 2rem 0.5rem 0 !important;
+    display: inline-block;
 }
 
 div.wrap{
@@ -288,5 +406,14 @@ div.conf_category a:hover{
 
 .btn-v{
     vertical-align: top !important;
+}
+
+div.setting-item span.item-text{
+    width: 40%;
+    float:left;
+    height:100%;
+    display: inline-block;
+    text-align: center;
+    line-height: 2.5em;
 }
 </style>

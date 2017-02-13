@@ -473,7 +473,7 @@
     }
 </script>
 
-<style>
+<style scoped>
 div.main-frame{
     max-width: 1080px;
     padding-top: 1rem;
@@ -530,8 +530,7 @@ div.margin-s{
     padding-bottom:1em;
 }
 div.setting-item span.item-text{
-    position:relative;
-    width: 30%;
+    width: 35%;
     float:left;
     height:100%;
     display: inline-block;

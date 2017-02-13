@@ -106,7 +106,8 @@ class ServerPropertiesParser(KVParser):
 
     def get_motd(self):
         _motd_str = self.get("motd")
-
+        return _motd_str
+    '''
         _len = len(_motd_str)
         _index = 0
 
@@ -129,6 +130,7 @@ class ServerPropertiesParser(KVParser):
             else:
                 _rtn_str += _motd_str[_index]
                 _index += 1
+    '''
 
     def set_server_port(self, server_port):
         # server_port range : [1,65535]
@@ -187,7 +189,7 @@ class ServerPropertiesParser(KVParser):
 
     def set_pvp(self, pvp):
         '''
-        :param allow_nether: if set to True, nether will be
+        :param pvp: if set to True, PVP mode is on.
         value : True or False.
         :return: nothing
         '''
@@ -195,6 +197,46 @@ class ServerPropertiesParser(KVParser):
             self.replace("pvp", "true")
         else:
             self.replace("pvp", "false")
+
+    def set_enable_command_block(self, cmd_block):
+        if cmd_block == True:
+            self.replace("enable-command-block", "true")
+        else:
+            self.replace("enable-command-block", "false")
+
+    def set_spawn_animals(self, spawn_animals):
+        if spawn_animals == True:
+            self.replace("spawn-animals", "true")
+        else:
+            self.replace("spawn-animals", "false")
+
+    def set_spawn_npcs(self, npc):
+        if npc == True:
+            self.replace("spawn-npcs", "true")
+        else:
+            self.replace("spawn-npcs", "false")
+
+    def set_level_seed(self, seed):
+        if seed == None:
+            self.replace("level-seed", "")
+        else:
+            if type(seed) == int:
+                self.replace("level-seed", str(seed))
+
+    def set_force_gamemode(self, force_gamemode):
+        if force_gamemode == True:
+            self.replace("force-gamemode", "true")
+        else:
+            self.replace("force-gamemode", "false")
+
+    def set_max_build_height(self, max_build_height):
+        if type(max_build_height) == int:
+            if max_build_height > 0:
+                self.replace("max-build-height", str(max_build_height))
+            else:
+                self.replace("max-build-height", "256")
+        else:
+            self.replace("max-build-height", "256")
 
     def set_difficulty(self, difficulty):
         '''
