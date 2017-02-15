@@ -20,37 +20,37 @@
             <div class="col-md-5" v-show="sel_val == 'general'">
                 <div class="box box-solid">
                     <div class="box-body">
-                        <edit-item>
+                        <edit-item :JR_status="s_world_name">
                             <span slot="title">世界名称</span>
                             <div slot="description">此项仅表示为面板里的「世界名称」。</div>
                             <div slot="body">
                                 <input type="text" v-model="world_name" class="form-control input-text" />
-                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('world_name')">保存</button>
+                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('world_name')" @click="edit_config('world_name')">保存</button>
                             </div>
                         </edit-item>
-                        <edit-item>
+                        <edit-item :JR_status="s_listen_port">
                             <span slot="title">侦听端口</span>
                             <div slot="description">设置服务器侦听端口。重启服务器方能生效。</div>
                             <div slot="body">
                                 <input v-model="listen_port" type="number" class="form-control input-text" />
-                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('listen_port')">保存</button>
+                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('listen_port')" @click="edit_config('listen_port')">保存</button>
                             </div>
                         </edit-item>
-                        <edit-item>
+                        <edit-item :JR_status="s_number_players">
                             <span slot="title">最大玩家数</span>
                             <div slot="description">可同时登录此服务器的最大用户数目。重启服务器方能生效。</div>
                             <div slot="body">
                                 <input v-model="number_players" type="number" class="form-control input-text" />
-                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('number_players')">保存</button>
+                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('number_players')" @click="edit_config('number_players')">保存</button>
                             </div>
                         </edit-item>
-                        <edit-item>
+                        <edit-item :JR_status="s_number_RAM">
                             <span slot="title">最大运行内存</span>
                             <div slot="description">可以分配给此服务器的最大内存，以GB为单位。亦即java的 -Xmx 参数。重启服务器方能生效。</div>
                             <div slot="body">
                                 <input v-model="number_RAM" type="number" class="form-control input-text" />
                                 <span style="margin-right: 1rem;">G</span>
-                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('number_RAM')">保存</button>
+                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('number_RAM')" @click="edit_config('number_RAM')" >保存</button>
                             </div>
                         </edit-item>
                     </div>
@@ -198,7 +198,7 @@
                                      </div>
 
                                  </div>
-                                 <div style="text-align: right;">
+                                 <div>
                                      <button class="btn btn-default btn-v">保存</button>
                                  </div>
                              </div>
@@ -215,7 +215,7 @@
                             <span slot="title">LOGO</span>
                             <div slot="description">服务器的LOGO。要求为64x64像素的PNG图像。</div>
                             <div slot="body">
-                                233
+                                <logo-uploader ref="LOGO"></logo-uploader>
                             </div>
                         </edit-item>
                         <edit-item>
@@ -268,38 +268,39 @@
 <script>
 import WebSocket from "../../lib/websocket";
 import EditInstanceItem from "../../components/edit_instance/edit-item.vue"
+import LogoUploader from "../../components/new_instance/logo-uploader.vue"
 
 let deepcopy = require("deepcopy");
 let ws       = new WebSocket();
 
 export default {
     components:{
-        "edit-item" : EditInstanceItem
+        "edit-item" : EditInstanceItem,
+        "logo-uploader" : LogoUploader
     },
     data(){
-        return {
+        let assert_keys = ["world_name", "number_RAM", "listen_port", "core_file_id", "java_bin_id", "server_properties", "ftp_account_name", "default_ftp_password", "number_players"];
+        let dt = {
             'sel_val' : 'general',
             'inst_id' : this.$route.params.id,
             'init_conf' : {},
-            "number_players" : null,
-            "world_name" : "",
-            "number_RAM" : null,
-            "listen_port" : null,
 
             // core & java version
             "server_cores_list" : [],
             "java_versions_list" : [],
 
-            "core_file_id" : null,
-            "java_bin_id" : null,
             // server properties
             "server_properties" : {},
-
-            // FTP account
-            "ftp_account_name" : null,
-            "default_ftp_password" : null
-
         }
+        // append assert keys
+        for(var i=0;i<assert_keys.length;i++){
+            let key = assert_keys[i];
+            dt[key] = "";
+            // assert hint (tick or cross or loading icon)
+            dt["s_" + key] = null;
+        }
+
+        return dt;
     },
     methods:{
         is_selected(item){
@@ -323,6 +324,20 @@ export default {
                     return true;
                 }
             }
+        },
+
+        edit_config(item){
+            let payload = {
+                "key" : item,
+                "value" : this[item]
+            };
+
+            this["s_" + item ] = 0; //loading state 
+            ws.ajax("POST", "/server_inst/edit_inst/" + this.inst_id + "/edit_config", payload, (msg)=>{
+                this["s_" + item ] = 2; //success
+            },(code)=>{
+                this["s_" + item ] = 1; //fail
+            })
         },
         aj_get_init_data(callback){
             ws.ajax("GET", "/server_inst/edit_inst/" + this.inst_id + "/init_edit_data", (msg)=>{

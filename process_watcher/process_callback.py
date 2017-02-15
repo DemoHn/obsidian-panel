@@ -108,7 +108,7 @@ class MCProcessCallback():
         re_online_user_str = "There are ([0-9]+)/([0-9]+) players"
 
         if re.search(re_done_str, log_str) != None \
-                and self._proc_pool.get_status(inst_id) == SERVER_STATE.STARTING:  # prevent misjudgement by player inputting 'Done'
+                and self._proc_pool.get_status(inst_id) == SERVER_STATE.STARTING:  # prevent misjudgement when player inputs 'Done'
 
             m = re.search(re_done_str, log_str)
             start_time = 0.0
@@ -130,7 +130,6 @@ class MCProcessCallback():
             _info = self._proc_pool.get_info(inst_id)
             _info.incr_current_player()
             self.on_player_login(inst_id, (player_name, player_ip))
-#            self._run_hook("inst_player_login", inst_id, (player_name, player_UUID, player_ip, u["current_player"]))
         # user logout
         elif re.search(re_logout_str, log_str) != None \
                 and self._proc_pool.get_status(inst_id) == SERVER_STATE.RUNNING:
@@ -142,7 +141,6 @@ class MCProcessCallback():
             _info.decr_current_player()
             self.on_player_logout(inst_id, (player_name))
 
-            #self._run_hook("inst_player_logout", inst_id, (player_name, player_UUID, u["current_player"]))
         # bind UUID
         elif re.search(re_UUID_str, log_str) != None \
                 and self._proc_pool.get_status(inst_id) == SERVER_STATE.RUNNING:

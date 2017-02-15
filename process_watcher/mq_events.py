@@ -73,7 +73,7 @@ class WatcherEvents(MessageEventHandler):
         }
 
         inst_info = self.proc_pool.get_info(inst_id)
-
+        inst_conf = self.proc_pool.get_config(inst_id)
         _curr_player = -1
         _RAM = -1
         if inst_info.get_current_player() != None:
@@ -84,9 +84,9 @@ class WatcherEvents(MessageEventHandler):
 
         _model = {
             "current_player": _curr_player,
-            "total_player": inst_info.get_total_player(),
+            "total_player": inst_conf.max_player,
             "RAM": _RAM,
-            "total_RAM": inst_info.get_total_RAM(),
+            "total_RAM": inst_conf.max_RAM,
             "status": self.proc_pool.get_status(inst_id)
         }
         rtn_data["val"] = _model
@@ -111,6 +111,7 @@ class WatcherEvents(MessageEventHandler):
             return None
 
         inst_info = self.proc_pool.get_info(inst_id)
+        inst_conf = self.proc_pool.get_config(inst_id)
 
         rtn_data = {
             "inst_id" : inst_id,

@@ -44,6 +44,7 @@ class Watcher(metaclass=Singleton):
             "jar_file": os.path.join(item.ob_server_core.file_dir, item.ob_server_core.file_name),
             "java_bin": item.ob_java_bin.bin_directory,
             "max_RAM": int(item.max_RAM),
+            "max_player" : int(item.max_user),
             "min_RAM": math.floor(int(item.max_RAM) / 2),
             "proc_cwd": item.inst_dir,
             "port": item.listening_port

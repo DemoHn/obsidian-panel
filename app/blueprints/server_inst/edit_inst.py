@@ -5,6 +5,7 @@ import os, json, shutil, traceback
 
 from app import db, app
 from app.controller.global_config import GlobalConfig
+from app.controller.user_inst import EditInstance
 from app.utils import returnModel, generate_random_string, KVParser
 from app.model import JavaBinary, ServerCORE, ServerInstance, FTPAccount, Users
 
@@ -102,3 +103,40 @@ def get_init_edit_data(uid, priv, inst_id):
     except:
         logger.error(traceback.format_exc())
         return rtn.error(500)
+
+# edit items
+@server_inst_page.route("/edit_inst/<inst_id>/edit_config", methods=["POST"])
+@ajax_check_login
+def edit_config(uid, priv, inst_id):
+    '''
+    :params:
+    :key: the config name that is going to be edited.
+    :value: the new value to edit.
+
+    :result:
+    - success : 200
+    - fail: 404, 403, 500, etc.
+    '''
+    F = request.json
+    key = F.get("key")
+    value = F.get("value")
+
+    if not inst_id.isdigit():
+        return rtn.error(500)
+
+    editor = EditInstance(inst_id, uid)
+
+    # check existance
+    if not editor.check_existance():
+        return rtn.error(404)
+
+    # check permission
+    if not editor.check_permission():
+        return rtn.error(403)
+
+    result, code = editor.edit_config(key, value)
+
+    if result == True:
+        return rtn.success(code)
+    else:
+        return rtn.error(code)

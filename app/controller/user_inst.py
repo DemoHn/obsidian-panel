@@ -9,7 +9,7 @@ from process_watcher.parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
 
 # models
-from app.model import ServerInstance, JavaBinary, ServerCORE, Users
+from app.model import ServerInstance, JavaBinary, ServerCORE, Users, FTPAccount
 from app.blueprints.server_inst import logger
 from app import db
 
@@ -238,3 +238,114 @@ class UserInstance():
 
             db.session.query(ServerInstance).filter(ServerInstance.inst_id == _inst_id).delete()
             db.session.commit()
+
+class EditInstance():
+    def __init__(self, inst_id, uid):
+        self.uid     = int(uid)
+        self.inst_id = int(inst_id)
+        self.keys =  (
+            "world_name", "number_RAM", "number_players", "listen_port", "core_file_id",
+            "java_bin_id", "server_properties", "ftp_account_name", "default_ftp_password"
+        )
+
+        self._q_obj = None
+
+    @property
+    def q_obj(self):
+        if not self._q_obj:
+            self._q_obj = db.session.query(ServerInstance).filter(ServerInstance.inst_id == self.inst_id)
+        return self._q_obj
+
+    def check_permission(self):
+        # check if inst_id is allowed to operate
+        _q_obj = db.session.query(ServerInstance).filter(ServerInstance.inst_id == self.inst_id).filter(ServerInstance.owner_id == self.uid)
+        if _q_obj.first() == None:
+            return False
+        else:
+            return True
+
+    def check_existance(self):
+        _q_obj = db.session.query(ServerInstance).filter(ServerInstance.inst_id == self.inst_id)
+
+        if _q_obj.first() == None:
+            return False
+        else:
+            self._q_obj = _q_obj
+            return True
+
+    # return value : (<bool:success>, <code>)
+    # e.g.: (True, 200)
+    # e.g.: (False, 406)
+    def edit_config(self, key, value):
+        if not key in self.keys:
+            return False
+        else:
+            method_name = "_set_%s" % key
+            method      = getattr(self, method_name)
+            try:
+                # execute method
+                result = method(value)
+                return result
+            except:
+                logger.error(traceback.format_exc())
+                return (False, 500)
+
+    # set config
+    # notice: prefixed with "_set_"
+    def _set_world_name(self, value):
+        # check input value
+        if value == "" or value == None:
+            return (False, 405)
+        else:
+            world_name_obj = db.session.query(ServerInstance).filter(ServerInstance.inst_name == value).filter(ServerInstance.owner_id == self.uid)
+            if world_name_obj.first() != None:
+                # duplicated!
+                return (False, 406)
+            else:
+                self.q_obj.update({ "inst_name" : value })
+                db.session.commit()
+                return (True, 200)
+
+    def _set_number_RAM(self, value):
+        if value == "" or type(value) != int:
+            return (False, 405)
+        else:
+            v = int(value) * 1024
+            self.q_obj.update({"max_RAM" : v})
+            db.session.commit()
+            return (True, 200)
+
+    def _set_number_players(self, value):
+        if value == "" or type(value) != int:
+            return (False, 405)
+        else:
+            v = int(value)
+            self.q_obj.update({"max_user" : v})
+            db.session.commit()
+            return (True, 200)
+
+    def _set_listen_port(self, value):
+        if type(value) != int:
+            return (False, 405)
+        else:
+            v = int(value)
+            port_obj = db.session.query(ServerInstance).filter(ServerInstance.listening_port == v)
+
+            if port_obj.first() != None:
+                # duplicated!
+                return (False, 406)
+            else:
+                self.q_obj.update({ "listening_port" : v })
+                db.session.commit()
+                return (True, 200)
+
+    def _set_core_file_id(self, value):
+        pass
+    def _set_java_bin_id(self, value):
+        pass
+    def _set_server_properties(self, value):
+        pass
+    def _set_ftp_account_name(self, value):
+        pass
+    def _set_default_ftp_password(self, value):
+        pass

@@ -40,6 +40,17 @@ class MCWrapperConfig:
             self._max_RAM = int(RAM)
 
     @property
+    def max_player(self):
+        return self._max_player
+
+    @max_player.setter
+    def max_player(self, player):
+        if player == None:
+            self._max_player = 10
+        else:
+            self._max_player = int(player)
+
+    @property
     def jar_file(self):
         return self._jar_file
 
@@ -80,12 +91,12 @@ class MCWrapperConfig:
                 java_bin : java executable location. (On Linux with java installed, it's /usr/bin/java)
                 min_RAM   : minimum RAM allocated for this process. (unit : MB)
                 max_RAM   : maximum RAM allocated for this process. (unit: MB)
+                max_player : maximum player numbers.
                 jar_file : MC server jar file's location. (generally, the name is `minecraft_server_**.jar`)
                 proc_cwd : literally, it means MC server's working directory. But here, it determines where to save
                   the world's data.
 
         """
-        MCWrapperConfig.__counter += 1
 
         self._java_bin = None
         self._min_RAM  = None
@@ -93,11 +104,12 @@ class MCWrapperConfig:
         self._jar_file = None
         self._proc_cwd = None
         self._port     = None
+        self._max_player = None
 
         self.java_bin = kwargs.get("java_bin")
         self.min_RAM  = kwargs.get("min_RAM")
         self.max_RAM  = kwargs.get("max_RAM")
+        self.max_player = kwargs.get("max_player")
         self.jar_file = kwargs.get("jar_file")
         self.proc_cwd = kwargs.get("proc_cwd")
         self.port     = kwargs.get("port")
-        pass
