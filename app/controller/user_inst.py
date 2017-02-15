@@ -340,9 +340,31 @@ class EditInstance():
                 return (True, 200)
 
     def _set_core_file_id(self, value):
-        pass
+        if type(value) != int:
+            return (False, 405)
+        else:
+            # check existance
+            _q = db.session.query(ServerCORE).filter(ServerCORE.core_id == value)
+            if _q.first() == None:
+                return (False, 404)
+            else:
+                self.q_obj.update({ "core_file_id" : value })
+                db.session.commit()
+                return (True, 200)
+
     def _set_java_bin_id(self, value):
-        pass
+        if type(value) != int:
+            return (False, 405)
+        else:
+            # check existance
+            _q = db.session.query(JavaBinary).filter(JavaBinary.id == value)
+            if _q.first() == None:
+                return (False, 404)
+            else:
+                self.q_obj.update({ "java_bin_id" : value })
+                db.session.commit()
+                return (True, 200)
+
     def _set_server_properties(self, value):
         pass
     def _set_ftp_account_name(self, value):

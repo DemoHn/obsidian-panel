@@ -60,21 +60,21 @@
             <div class="col-md-5" v-show="sel_val == 'core'">
                 <div class="box box-solid">
                     <div class="box-body">
-                        <edit-item>
+                        <edit-item :JR_status="s_core_file_id">
                             <span slot="title">服务器核心</span>
                             <div slot="description">选择用于启动服务器的核心。如果服务器已经运行，不建议随意更换。重启服务器方能生效。</div>
                             <div slot="body">
-                                <select name="core_file_id" class="form-control" v-model="core_file_id" >
+                                <select name="core_file_id" class="form-control" v-model="core_file_id" @change="edit_config('core_file_id')">
                                     <option :value="null" v-if="server_cores_list.length === 0">-- 还没有选择 --</option>
                                     <option :value="item['index']" v-for="item in server_cores_list">{{ item['name'] }}</option>
                                 </select>
                             </div>
                         </edit-item>
-                        <edit-item>
+                        <edit-item :JR_status="s_java_bin_id">
                             <span slot="title">Java版本</span>
                             <div slot="description">用于启动此服务器的java之版本。推荐选择Java8。重启服务器方能生效。</div>
                             <div slot="body">
-                                <select class="form-control" v-model="java_bin_id">
+                                <select class="form-control" v-model="java_bin_id" @change="edit_config('java_bin_id')">
                                     <option :value="null" v-if="java_versions_list.length === 0">-- 还没有选择 --</option>
                                     <option :value="item['index']" v-for="item in java_versions_list">{{ item['name'] }}</option>
                                 </select>
@@ -361,12 +361,13 @@ export default {
 
 <style scoped>
 select{
-    max-width: 80% !important;
+    max-width: 55% !important;
     margin-bottom: 0 !important;
+    display: inline-block;
 }
 
 input.w-input{
-    width: 80% !important;
+    width: 55% !important;
 }
 
 div.setting-item{
@@ -384,6 +385,7 @@ div.wrap{
 div.no-padding{
     padding: 0 !important;
 }
+
 div.conf_category{
     padding-top: 0.25rem;
     padding-bottom: 0.25rem;
@@ -394,6 +396,9 @@ div.conf_category{
     line-height: 3.5rem;
 }
 
+div.conf_category a{
+    cursor: pointer;
+}
 div.conf_category.selected{
     border-left: 3px solid orange;
     font-weight: bold;
