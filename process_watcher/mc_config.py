@@ -86,26 +86,29 @@ class MCWrapperConfig:
     def port(self, port):
         self._port = int(port)
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         """Config entries:
-                java_bin : java executable location. (On Linux with java installed, it's /usr/bin/java)
-                min_RAM   : minimum RAM allocated for this process. (unit : MB)
-                max_RAM   : maximum RAM allocated for this process. (unit: MB)
-                max_player : maximum player numbers.
-                jar_file : MC server jar file's location. (generally, the name is `minecraft_server_**.jar`)
-                proc_cwd : literally, it means MC server's working directory. But here, it determines where to save
-                  the world's data.
+            java_bin : java executable location. (On Linux with java installed, it's /usr/bin/java)
+            min_RAM   : minimum RAM allocated for this process. (unit : MB)
+            max_RAM   : maximum RAM allocated for this process. (unit: MB)
+            max_player : maximum player numbers.
+            jar_file : MC server jar file's location. (generally, the name is `minecraft_server_**.jar`)
+            proc_cwd : literally, it means MC server's working directory. But here, it determines where to save
+              the world's data.
 
-        """
-
+    """
+        # init config variable
         self._java_bin = None
-        self._min_RAM  = None
-        self._max_RAM  = None
+        self._min_RAM = None
+        self._max_RAM = None
         self._jar_file = None
         self._proc_cwd = None
-        self._port     = None
+        self._port = None
         self._max_player = None
+        # update values on initial state
+        self.update(kwargs)
 
+    def update(self,kwargs):
         self.java_bin = kwargs.get("java_bin")
         self.min_RAM  = kwargs.get("min_RAM")
         self.max_RAM  = kwargs.get("max_RAM")

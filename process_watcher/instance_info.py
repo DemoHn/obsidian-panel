@@ -7,11 +7,9 @@ from datetime import datetime
 class MCInstanceInfo(object):
 
     LOG_BLOCK_SIZE = 512
-    def __init__(self, total_RAM=None,total_player=None, owner=None, inst_id=None):
-        self.total_RAM = total_RAM
+    def __init__(self, owner=None, inst_id=None):
         self.RAM     = None
         self.current_player = None
-        self.total_player = total_player
         self.owner = owner
         self.inst_id = inst_id
 
@@ -144,17 +142,12 @@ class MCInstanceInfo(object):
     def get_owner(self):
         return self.owner
 
-    def get_total_player(self):
-        return self.total_player
-
-    def get_total_RAM(self):
-        return self.total_RAM
-
     def get_log(self):
         # if the length of remaining is too short, display the last stored log too.
         try:
             log_arr = self._read_log_from_db()
         except:
             logger.error(traceback.format_exc())
+            return self.log
         log_arr += self.log
         return log_arr

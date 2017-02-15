@@ -1,12 +1,11 @@
 from app import db
 from app.model import ServerInstance, JavaBinary, ServerCORE
-from app.controller.global_config import GlobalConfig
-from app.tools.mq_proxy import WS_TAG, MessageEventHandler, MessageQueueProxy, Singleton
+from app.tools.mq_proxy import WS_TAG, MessageEventHandler
 
-from . import SERVER_STATE, logger
 from .watcher import Watcher
 from .process_pool import MCProcessPool
 
+import os, math
 class WatcherEvents(MessageEventHandler):
     '''
     This class handles control events from other side (app,websocket and so on).
@@ -29,6 +28,20 @@ class WatcherEvents(MessageEventHandler):
         for item in _q:
             if self.proc_pool.get(item.inst_id) == None:
                 self.watcher._add_instance_to_pool(item)
+            else:
+                # update inst config whenever there's change in config items such as
+                update_config = {
+                    "jar_file": os.path.join(item.ob_server_core.file_dir, item.ob_server_core.file_name),
+                    "java_bin": item.ob_java_bin.bin_directory,
+                    "max_RAM": int(item.max_RAM),
+                    "max_player": int(item.max_user),
+                    "min_RAM": math.floor(int(item.max_RAM) / 2),
+                    "proc_cwd": item.inst_dir,
+                    "port": item.listening_port
+                }
+
+                inst_conf = self.proc_pool.get_config(item.inst_id)
+                inst_conf.update(update_config)
 
     def get_instance_status(self, flag, values):
         '''
