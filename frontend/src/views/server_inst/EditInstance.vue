@@ -219,7 +219,7 @@
                             <span slot="title">LOGO</span>
                             <div slot="description">服务器的LOGO。要求为64x64像素的PNG图像。</div>
                             <div slot="body">
-                                <logo-uploader ref="LOGO"></logo-uploader>
+                                <logo-uploader ref="LOGO" :edit_mode="true" :inst_id="inst_id"></logo-uploader>
                             </div>
                         </edit-item>
                         <edit-item>

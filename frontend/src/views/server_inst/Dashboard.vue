@@ -322,9 +322,18 @@ export default {
         aj_get_properties(){
             let ws = new WebSocket();
             let inst_id = this.inst_id;
+            let v = this;
             ws.ajax("GET","/server_inst/api/get_miscellaneous_info/"+inst_id, (msg)=>{
                 for(let key in msg){
-                    this.miscellaneous[key] = msg[key];
+                    if(key == "image_source"){
+                        if(msg[key] !== ""){
+                            v.miscellaneous[key] = msg[key] + "?random=" + new Date().getTime();
+                        }else{
+                            v.miscellaneous[key] = msg[key];
+                        }
+                    }else{
+                        v.miscellaneous[key] = msg[key];
+                    }
                 }
             },(msg)=>{
                 // on error

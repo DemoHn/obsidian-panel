@@ -405,8 +405,8 @@ class EditInstance():
         default = value.get("default")
         password = value.get("password")
 
-        print(default)
-        print(password)
+        if password == None:
+            password = ""
         if not default:
             _ftp_hash = hashlib.md5(password.encode("utf-8") + salt).hexdigest()
         else:
@@ -420,4 +420,4 @@ class EditInstance():
         db.session.commit()
         proxy.send("ftp.update_users", {}, WS_TAG.FTM, reply=False)
         return (True, 200)
-        
+

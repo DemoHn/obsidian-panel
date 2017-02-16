@@ -140,3 +140,78 @@ def edit_config(uid, priv, inst_id):
         return rtn.success(code)
     else:
         return rtn.error(code)
+
+# upload logo
+@server_inst_page.route("/edit_inst/<inst_id>/upload_logo", methods=["POST"])
+@ajax_check_login
+def upload_inst_logo(uid, priv, inst_id):
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1] in ['png','jpeg','jpg']
+
+    _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+
+    if _q == None:
+        return rtn.error(404)
+    elif _q.owner_id != uid:
+        return rtn.error(403)
+    else:
+        try:
+            if 'file' not in request.files:
+                return rtn.error(500)
+
+            # get file object
+            file = request.files['file']
+
+            if file.filename == "":
+                return rtn.error(500)
+            if file and allowed_file(file.filename):
+
+                # delete exist file
+                logo_file = os.path.join(_q.inst_dir, "server-icon.png")
+
+                if os.path.exists(logo_file):
+                    os.remove(logo_file)
+                # and save file...
+                file.save(logo_file)
+                return rtn.success(True)
+
+            return rtn.error(500)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return rtn.error(500)
+
+@server_inst_page.route("/edit_inst/<inst_id>/delete_logo", methods=["GET"])
+@ajax_check_login
+def delete_logo(uid, priv, inst_id):
+    _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+
+    if _q == None:
+        return rtn.error(404)
+    elif _q.owner_id != uid:
+        return rtn.error(403)
+    else:
+        # delete exist file
+        logo_file = os.path.join(_q.inst_dir, "server-icon.png")
+
+        if os.path.exists(logo_file):
+            os.remove(logo_file)
+
+        return rtn.success(200)
+
+@server_inst_page.route("/edit_inst/<inst_id>/has_logo", methods=["GET"])
+@ajax_check_login
+def inst_if_has_logo(uid, priv, inst_id):
+    _q = db.session.query(ServerInstance).filter(ServerInstance.inst_id == inst_id).first()
+
+    if _q == None:
+        return rtn.error(404)
+    elif _q.owner_id != uid:
+        return rtn.error(403)
+    else:
+        # delete exist file
+        logo_file = os.path.join(_q.inst_dir, "server-icon.png")
+
+        if os.path.exists(logo_file):
+            return rtn.success(True)
+        else:
+            return rtn.success(False)
