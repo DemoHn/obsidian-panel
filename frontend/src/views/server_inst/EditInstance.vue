@@ -152,7 +152,7 @@
                                          </div>
 
                                      </div>
-                                     <div class="col-md-6" style="margin-left: -5rem;">
+                                     <div class="col-md-6" style="margin-left: -3rem;">
                                          <div class="setting-item"><span class="item-text">世界种子</span>
                                              <span class="input-element">
                                                  <input class="form-control w-input" type="number" v-model="server_properties.level_seed" placeholder="留空即随机生成地图"/>
@@ -233,20 +233,21 @@
             <div class="col-md-5" v-show="sel_val == 'ftp'">
                 <div class="box box-solid">
                     <div class="box-body">
-                        <edit-item>
+                        <edit-item :JR_status="s_ftp_account_name">
                             <span slot="title">FTP账户</span>
-                            <div slot="description"></div>
+                            <div slot="description">设置此MC服务器对应的FTP账户名。</div>
                             <div slot="body">
-                                <input name="" type="number" value="" class="form-control input-text" />
-                                <button class="btn btn-default btn-v">保存</button>
+                                <input name="" type="text" value="" v-model="ftp_account_name" class="form-control input-text w-input" />
+                                <button class="btn btn-default btn-v" :disabled="!changed_from_initial('ftp_account_name')" @click="edit_config('ftp_account_name')">保存</button>
                             </div>
                         </edit-item>
-                        <edit-item>
-                            <span slot="title">FTP密码</span>
-                            <div slot="description"></div>
+                        <edit-item :JR_status="s_ftp_password">
+                            <span slot="title">重置FTP密码</span>
+                            <div slot="description">重新设置FTP用户的密码。</div>
                             <div slot="body">
-                                <input name="" type="number" value="" class="form-control input-text" />
-                                <button class="btn btn-default btn-v">保存</button>
+                                <input name="" type="text" value="" v-model="ftp_password.password" class="form-control input-text w-input" :disabled="ftp_password.default"/>
+                                <label class="checkbox-inline"><input type="checkbox" v-model="ftp_password.default">与登录密码相同</label>
+                                &nbsp;&nbsp;<button class="btn btn-default btn-v" @click="edit_config('ftp_password')">保存</button>
                             </div>
                         </edit-item>
                     </div>
@@ -279,7 +280,7 @@ export default {
         "logo-uploader" : LogoUploader
     },
     data(){
-        let assert_keys = ["world_name", "number_RAM", "listen_port", "core_file_id", "java_bin_id", "ftp_account_name", "default_ftp_password", "number_players"];
+        let assert_keys = ["world_name", "number_RAM", "listen_port", "core_file_id", "java_bin_id", "ftp_account_name", "number_players"];
         // items of game properties
         let sp_keys = ["online_mode", "pvp", "difficulty", "gamemode","spawn_monsters", "allow_nether","level_seed", "max_build_height", "enable_command_block", "spawn_npcs", "sp_spawn_animals", "sp_force_gamemode"];
         let dt = {
@@ -294,6 +295,12 @@ export default {
             // server properties
             "server_properties" : {},
             "s_server_properties" : null,
+
+            "ftp_password": {
+                "default" : null,
+                "password" : ""
+            },
+            "s_ftp_password" : null
         }
         // append assert keys
         for(var i=0;i<assert_keys.length;i++){
@@ -314,7 +321,11 @@ export default {
         server_properties:{
             deep : true,
             handler(){
-                
+            }
+        },
+        ftp_password:{
+            deep: true,
+            handler(){
             }
         }
     },
@@ -383,6 +394,11 @@ export default {
                     msg["server_properties"][new_key] = msg["server_properties"][key];
                     delete msg["server_properties"][key];
                 }
+            }
+
+            msg["ftp_password"] = {
+                "default" : msg["default_ftp_password"],
+                "password" : msg["ftp_password"]
             }
             v.init_conf = deepcopy(msg);
             for(let item in msg){
@@ -470,4 +486,26 @@ div.setting-item span.item-text{
     text-align: center;
     line-height: 2.5em;
 }
+
+span.input-element div.mask{
+    position: absolute;
+    width: 54%;
+    height: 35px;
+    background-color: rgba(255,255,255, 0.75);
+    text-align: center;
+}
+
+span.input-element div.mask span.mask-text{
+    font-size: 14px;
+    line-height: 30px;
+    display: inline-block;
+    color: rgba(100,100,100,0.75);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 </style>

@@ -2,17 +2,16 @@ import os
 import traceback
 import random
 import shutil
-import math
-import time
+import hashlib
 
 from process_watcher.parser import ServerPropertiesParser
 from app.controller.global_config import GlobalConfig
-
+from app.tools.mq_proxy import WS_TAG
 # models
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users, FTPAccount
 from app.blueprints.server_inst import logger
-from app.utils import KVParser
-from app import db
+from app.utils import salt
+from app import db, proxy
 
 class UserInstance():
     def __init__(self, uid):
@@ -246,7 +245,7 @@ class EditInstance():
         self.inst_id = int(inst_id)
         self.keys =  (
             "world_name", "number_RAM", "number_players", "listen_port", "core_file_id",
-            "java_bin_id", "server_properties", "ftp_account_name", "default_ftp_password"
+            "java_bin_id", "server_properties", "ftp_account_name", "ftp_password"
         )
 
         self._q_obj = None
@@ -387,6 +386,38 @@ class EditInstance():
                 return (True, 200)
 
     def _set_ftp_account_name(self, value):
-        pass
-    def _set_default_ftp_password(self, value):
+        if value == "" or value == None:
+            return (False, 405)
+        else:
+            port_obj = db.session.query(FTPAccount).filter(FTPAccount.username == value)
+            if port_obj.first() != None:
+                # duplicated!
+                return (False, 406)
+            else:
+                q = db.session.query(FTPAccount).filter(FTPAccount.inst_id == self.inst_id)
+                q.update({"username": value})
+                db.session.commit()
+                # announce FTP manager to update user
+                proxy.send("ftp.update_users", {}, WS_TAG.FTM, reply=False)
+                return (True, 200)
+
+    def _set_ftp_password(self, value):
+        default = value.get("default")
+        password = value.get("password")
+
+        print(default)
+        print(password)
+        if not default:
+            _ftp_hash = hashlib.md5(password.encode("utf-8") + salt).hexdigest()
+        else:
+            _ftp_hash = None
+
+        q = db.session.query(FTPAccount).filter(FTPAccount.inst_id == self.inst_id)
+        q.update({
+            "default_password" : default,
+            "hash" : _ftp_hash
+        })
+        db.session.commit()
+        proxy.send("ftp.update_users", {}, WS_TAG.FTM, reply=False)
+        return (True, 200)
         pass
