@@ -220,8 +220,7 @@ class ServerPropertiesParser(KVParser):
         if seed == None:
             self.replace("level-seed", "")
         else:
-            if type(seed) == int:
-                self.replace("level-seed", str(seed))
+            self.replace("level-seed", str(seed))
 
     def set_force_gamemode(self, force_gamemode):
         if force_gamemode == True:
@@ -230,11 +229,9 @@ class ServerPropertiesParser(KVParser):
             self.replace("force-gamemode", "false")
 
     def set_max_build_height(self, max_build_height):
-        if type(max_build_height) == int:
-            if max_build_height > 0:
-                self.replace("max-build-height", str(max_build_height))
-            else:
-                self.replace("max-build-height", "256")
+        max_build_height = int(max_build_height)
+        if max_build_height > 0:
+            self.replace("max-build-height", str(max_build_height))
         else:
             self.replace("max-build-height", "256")
 

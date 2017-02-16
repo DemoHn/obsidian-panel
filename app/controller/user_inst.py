@@ -11,6 +11,7 @@ from app.controller.global_config import GlobalConfig
 # models
 from app.model import ServerInstance, JavaBinary, ServerCORE, Users, FTPAccount
 from app.blueprints.server_inst import logger
+from app.utils import KVParser
 from app import db
 
 class UserInstance():
@@ -366,7 +367,25 @@ class EditInstance():
                 return (True, 200)
 
     def _set_server_properties(self, value):
-        pass
+        if type(value) != dict:
+            return (False, 405)
+        else:
+            query_result = self.q_obj.first()
+            if query_result == None:
+                return (False, 404)
+            else:
+                s_p_config = {}
+
+                for item in value:
+                    new_key = item.replace("_", "-")
+                    s_p_config[new_key] = value[item]
+
+                working_dir = query_result.inst_dir
+                s_p_file = os.path.join(working_dir, "server.properties")
+                parser = ServerPropertiesParser(s_p_file)
+                parser.write_config(s_p_config)
+                return (True, 200)
+
     def _set_ftp_account_name(self, value):
         pass
     def _set_default_ftp_password(self, value):

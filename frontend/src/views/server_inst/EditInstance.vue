@@ -88,7 +88,7 @@
             <div class="col-md-6" v-show="sel_val == 'properties'">
                 <div class="box box-solid">
                     <div class="box-body">
-                         <edit-item>
+                         <edit-item :JR_status="s_server_properties">
                              <span slot="title">游戏属性</span>
                              <div slot="description">设置游戏内属性。其他属性可以到server.properties文件中修改。</div>
                              <div slot="body">
@@ -96,36 +96,36 @@
                                      <div class="col-md-6">
                                          <div class="setting-item"><span class="item-text"><i class="red-star"></i>正版验证</span>
                                              <span class="input-element">
-                                                 <select name="online-mode" class="form-control" v-model="s_online_mode">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select name="online-mode" class="form-control" v-model="server_properties.online_mode">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
 
                                          <div class="setting-item"><span class="item-text">PVP模式</span>
                                              <span class="input-element">
-                                                 <select  class="form-control" v-model="s_pvp">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select  class="form-control" v-model="server_properties.pvp">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
 
                                          <div class="setting-item"><span class="item-text">游戏难度</span>
                                              <span class="input-element">
-                                                 <select  class="form-control" v-model="s_difficulty">
-                                                     <option :value="0">0</option>
-                                                     <option :value="1">1</option>
-                                                     <option :value="2">2</option>
-                                                     <option :value="3">3</option>
+                                                 <select  class="form-control" v-model="server_properties.difficulty">
+                                                     <option :value="+0">0</option>
+                                                     <option :value="+1">1</option>
+                                                     <option :value="+2">2</option>
+                                                     <option :value="+3">3</option>
                                                  </select>
                                              </span>
                                          </div>
 
                                          <div class="setting-item"><span class="item-text">游戏模式</span>
                                              <span class="input-element">
-                                                 <select  class="form-control" v-model="s_gamemode">
+                                                 <select  class="form-control" v-model="server_properties.gamemode">
                                                      <option :value="0">0</option>
                                                      <option :value="1">1</option>
                                                      <option :value="2">2</option>
@@ -135,18 +135,18 @@
 
                                          <div class="setting-item"><span class="item-text">怪物生成</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="s_spawn_monsters">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select class="form-control" v-model="server_properties.spawn_monsters">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
 
                                          <div class="setting-item"><span class="item-text">生成下界</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="s_allow_nether">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select class="form-control" v-model="server_properties.allow_nether">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
@@ -155,43 +155,43 @@
                                      <div class="col-md-6" style="margin-left: -5rem;">
                                          <div class="setting-item"><span class="item-text">世界种子</span>
                                              <span class="input-element">
-                                                 <input class="form-control w-input" type="text" />
+                                                 <input class="form-control w-input" type="number" v-model="server_properties.level_seed" placeholder="留空即随机生成地图"/>
                                              </span>
                                          </div>
                                          <div class="setting-item"><span class="item-text">最大建筑高度</span>
                                              <span class="input-element">
-                                                 <input class="form-control w-input" type="text" />
+                                                 <input class="form-control w-input" type="number" v-model="server_properties.max_build_height"/>
                                              </span>
                                          </div>
                                          <div class="setting-item"><span class="item-text">命令方块</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="s_allow_nether">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select class="form-control" v-model="server_properties.enable_command_block">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
                                          <div class="setting-item"><span class="item-text">生成NPC</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="s_allow_nether">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select class="form-control" v-model="server_properties.spawn_npcs">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
                                          <div class="setting-item"><span class="item-text">生成动物</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="s_allow_nether">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select class="form-control" v-model="server_properties.spawn_animals">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
                                          <div class="setting-item"><span class="item-text">锁定游戏模式</span>
                                              <span class="input-element">
-                                                 <select class="form-control" v-model="s_allow_nether">
-                                                     <option :value="'true'">开启</option>
-                                                     <option :value="'false'">关闭</option>
+                                                 <select class="form-control" v-model="server_properties.force_gamemode">
+                                                     <option :value="true">开启</option>
+                                                     <option :value="false">关闭</option>
                                                  </select>
                                              </span>
                                          </div>
@@ -199,7 +199,7 @@
 
                                  </div>
                                  <div>
-                                     <button class="btn btn-default btn-v">保存</button>
+                                     <button class="btn btn-default btn-v" :disabled="!changed_from_initial('server_properties')" @click="edit_config('server_properties')">保存</button>
                                  </div>
                              </div>
                          </edit-item>
@@ -279,7 +279,9 @@ export default {
         "logo-uploader" : LogoUploader
     },
     data(){
-        let assert_keys = ["world_name", "number_RAM", "listen_port", "core_file_id", "java_bin_id", "server_properties", "ftp_account_name", "default_ftp_password", "number_players"];
+        let assert_keys = ["world_name", "number_RAM", "listen_port", "core_file_id", "java_bin_id", "ftp_account_name", "default_ftp_password", "number_players"];
+        // items of game properties
+        let sp_keys = ["online_mode", "pvp", "difficulty", "gamemode","spawn_monsters", "allow_nether","level_seed", "max_build_height", "enable_command_block", "spawn_npcs", "sp_spawn_animals", "sp_force_gamemode"];
         let dt = {
             'sel_val' : 'general',
             'inst_id' : this.$route.params.id,
@@ -291,6 +293,7 @@ export default {
 
             // server properties
             "server_properties" : {},
+            "s_server_properties" : null,
         }
         // append assert keys
         for(var i=0;i<assert_keys.length;i++){
@@ -300,7 +303,20 @@ export default {
             dt["s_" + key] = null;
         }
 
+        // append sp_keys
+        for(var j=0;j<sp_keys.length;j++){
+            let key = sp_keys[j];
+            dt["server_properties"][key] = null;
+        }
         return dt;
+    },
+    watch:{
+        server_properties:{
+            deep : true,
+            handler(){
+                
+            }
+        }
     },
     methods:{
         is_selected(item){
@@ -317,6 +333,15 @@ export default {
         changed_from_initial(item){
             if(this[item] == null){
                 return true;
+            }else if(item === "server_properties"){
+                let ori_sp = this["init_conf"]["server_properties"]
+                for(let key in ori_sp){
+                    if(this["server_properties"][key] !== ori_sp[key]){
+                        return true;
+                    }
+                }
+
+                return false;
             }else{
                 if(this[item] == this["init_conf"][item] || this[item] == ""){
                     return false;
@@ -350,6 +375,15 @@ export default {
     mounted(){
         let v = this;
         this.aj_get_init_data((msg)=>{
+            // replace "-" -> "_" in server_properties
+            // e.g. : "online-mode" -> "online_mode"
+            for(let key in msg["server_properties"]){
+                if(key.indexOf("-") >= 0){
+                    let new_key = key.replace(/-/g, "_");
+                    msg["server_properties"][new_key] = msg["server_properties"][key];
+                    delete msg["server_properties"][key];
+                }
+            }
             v.init_conf = deepcopy(msg);
             for(let item in msg){
                 v[item] = msg[item];
