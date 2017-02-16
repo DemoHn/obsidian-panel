@@ -420,4 +420,4 @@ class EditInstance():
         db.session.commit()
         proxy.send("ftp.update_users", {}, WS_TAG.FTM, reply=False)
         return (True, 200)
-        pass
+        

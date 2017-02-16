@@ -15,6 +15,10 @@
                         <div class="conf_category" :class="{selected: is_selected('delete')}"><a @click="sel('delete')">删除服务器</a></div>
                     </div>
                 </div>
+
+                <div>
+                    <button class="back" @click="back_to_dashboard"><i class="ion-ios-undo" style="margin-right: 1rem;"></i><span>返回仪表盘</span></button>
+                </div>
             </div>
             <!-- general -->
             <div class="col-md-5" v-show="sel_val == 'general'">
@@ -375,6 +379,10 @@ export default {
                 this["s_" + item ] = 1; //fail
             })
         },
+
+        back_to_dashboard(){
+            window.location.href = "/server_inst/dashboard#" + this.inst_id
+        },
         aj_get_init_data(callback){
             ws.ajax("GET", "/server_inst/edit_inst/" + this.inst_id + "/init_edit_data", (msg)=>{
                 if(typeof(callback) === "function"){
@@ -454,6 +462,17 @@ div.conf_category.selected{
     font-weight: bold;
 }
 
+button.back{
+    width: 100%;
+    line-height: 4rem;
+    font-size: 15px;
+    text-align: center;
+    background: #fcfcfc;
+    display: inline-block;
+    outline: none;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
 input.input-text[type=text]{
     max-width: 20rem;
     display: inline-block;
