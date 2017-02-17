@@ -245,7 +245,7 @@ class EditInstance():
         self.inst_id = int(inst_id)
         self.keys =  (
             "world_name", "number_RAM", "number_players", "listen_port", "core_file_id",
-            "java_bin_id", "server_properties", "ftp_account_name", "ftp_password"
+            "java_bin_id", "server_properties", "ftp_account_name", "ftp_password", "motd"
         )
 
         self._q_obj = None
@@ -384,6 +384,21 @@ class EditInstance():
                 parser = ServerPropertiesParser(s_p_file)
                 parser.write_config(s_p_config)
                 return (True, 200)
+
+    def _set_motd(self, value):
+        query_result = self.q_obj.first()
+        if query_result == None:
+            return (False, 404)
+        else:
+            s_p_config = {
+                "motd" : value
+            }
+
+            working_dir = query_result.inst_dir
+            s_p_file = os.path.join(working_dir, "server.properties")
+            parser = ServerPropertiesParser(s_p_file)
+            parser.write_config(s_p_config)
+            return (True, 200)
 
     def _set_ftp_account_name(self, value):
         if value == "" or value == None:

@@ -45,7 +45,6 @@ export default {
         // $ref API
         parse(){
             let contents = this.$refs.Quill.quillEditor.getContents().ops;
-
             let utf8_encode = (str) => {
                 let f_str = "";
                 let num = 0;
@@ -54,7 +53,7 @@ export default {
                     if(num > 0 && num < 128){
                         f_str += str[i];
                     }else{
-                        hex_code = num.toString(16);
+                        let hex_code = num.toString(16);
                         f_str += "\\u";
                         for(let j=0;j<4-hex_code.length;j++){
                             f_str += "0"
@@ -143,7 +142,7 @@ export default {
         load_motd(_motd_string){
             let motd_array = [];
 
-            function _format_style_string(char_code){
+            let _format_style_string = (char_code)=>{
                 const motd_colors = [
                     "#000000", "#0000be", "#00be00", "#00bebe", "#be0000",
                     "#be00be", "#d9a334", "#bebebe", "#3f3f3f", "#3f3ffe",
@@ -174,15 +173,13 @@ export default {
             motd_string = motd_string.trim();
 
             // then add format
-            var format_table = motd_string.split("§r");
+            let format_table = motd_string.split("§r");
 
-            var formatted_string = "";
+            for(let i=0;i<format_table.length;i++){
+                let _text = format_table[i];
+                let f_arr = [];
 
-            for(var i=1;i<format_table.length;i++){
-                var _text = format_table[i];
-                var f_arr = [];
-
-                let item = {};
+                var item = {};
                 if(_text.length > 0){
                     if(/§([0-9a-flmon])/gi.test(_text) == true){
                         f_arr = /§([0-9a-flmon])/gi.exec(_text);
@@ -191,18 +188,22 @@ export default {
 
                     item['insert'] = _text;
                     item['attributes'] = {};
-                    for(var j=0;j<f_arr.length;j++){
-                        _format = _format_style_string(f_arr[j]);
-                        _format_key = _format[0];
-                        _format_value = _format[1];
-                        item['attributes'][_format_key] = _format_value;
-                    }
-                }
 
-                motd_array.push(item);
+                    for(let j=1;j<f_arr.length;j++){
+                        let _format = _format_style_string(f_arr[j]);
+
+                        if(_format != null){
+                            let _format_key = _format[0];
+                            let _format_value = _format[1];
+                            item['attributes'][_format_key] = _format_value;
+                        }
+                    }
+                    motd_array.push(item);
+                }
             }
 
             this.$refs.Quill.quillEditor.setContents(motd_array);
+            return ;
         }
     }
 }

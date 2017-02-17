@@ -222,12 +222,12 @@
                                 <logo-uploader ref="LOGO" :edit_mode="true" :inst_id="inst_id"></logo-uploader>
                             </div>
                         </edit-item>
-                        <edit-item>
+                        <edit-item :JR_status="s_motd">
                             <span slot="title">每日讯息</span>
                             <div slot="description">服务器在MC客户端中的提示语。亦即motd。</div>
                             <div slot="body">
                                 <motd-editor ref="MOTD"></motd-editor><br>
-                                <button class="btn btn-default btn-v"  @click="edit_config('server_properties')">保存</button>
+                                <button class="btn btn-default btn-v"  @click="edit_motd">保存</button>
                             </div>
                         </edit-item>
                     </div>
@@ -307,7 +307,9 @@ export default {
                 "default" : null,
                 "password" : ""
             },
-            "s_ftp_password" : null
+            "s_ftp_password" : null,
+            "s_motd" : null,
+            "motd": ""
         }
         // append assert keys
         for(var i=0;i<assert_keys.length;i++){
@@ -383,6 +385,11 @@ export default {
             })
         },
 
+        edit_motd(){
+            var motd_string = this.$refs.MOTD.parse();
+            this.motd = motd_string;
+            this.edit_config('motd');
+        },
         back_to_dashboard(){
             window.location.href = "/server_inst/dashboard#" + this.inst_id
         },
@@ -412,7 +419,7 @@ export default {
                 "password" : msg["ftp_password"]
             }
 
-            //v.$refs.MOTD.load_motd(msg['server_properties']['motd']);
+            v.$refs.MOTD.load_motd(msg['server_properties']['motd']);
             v.init_conf = deepcopy(msg);
             for(let item in msg){
                 v[item] = msg[item];
