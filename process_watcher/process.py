@@ -24,7 +24,7 @@ class MCProcess(MCProcessCallback):
         # timer handler
         self._stop_timeout_timer = pyuv.Timer(self._loop)
 
-    def _init_env(self, proc_cwd, port):
+    def _init_env(self, proc_cwd, port, max_player):
         if not os.path.isdir(proc_cwd):
             os.makedirs(proc_cwd)
         # init eula.txt
@@ -44,6 +44,7 @@ class MCProcess(MCProcessCallback):
 
         parser = ServerPropertiesParser(s_p_file)
         parser.set_server_port(port)
+        parser.set_max_players(max_player)
         # write config to the file
         parser.dumps()
 
@@ -100,7 +101,7 @@ class MCProcess(MCProcessCallback):
                     mc_w_config.jar_file,
                     "nogui"]
 
-        self._init_env(mc_w_config.proc_cwd, mc_w_config.port)
+        self._init_env(mc_w_config.proc_cwd, mc_w_config.port, mc_w_config.max_player)
         logger.debug("cmd args: %s" % cmd_args)
 
         # init pipes
