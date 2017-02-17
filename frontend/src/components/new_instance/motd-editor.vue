@@ -138,6 +138,71 @@ export default {
                     return chop_arr[0];
                 }
             }
+        },
+
+        load_motd(_motd_string){
+            let motd_array = [];
+
+            function _format_style_string(char_code){
+                const motd_colors = [
+                    "#000000", "#0000be", "#00be00", "#00bebe", "#be0000",
+                    "#be00be", "#d9a334", "#bebebe", "#3f3f3f", "#3f3ffe",
+                    "#3ffe3f", "#3ffefe", "#fe3f3f", "#fe3ffe", "#fefe3f", "#ffffff"
+                ];
+
+                if(/^[0-9a-fA-F]$/.test(char_code)){
+                    return ["color",  motd_colors[parseInt(char_code, 16)] ]
+                }else if(char_code == "l"){
+                    return ['bold', true];
+                }else if(char_code == "m"){
+                    return ['strike', true];
+                }else if(char_code == "o"){
+                    return ['italic', true];
+                }else if(char_code == "n"){
+                    return ['underline', true];
+                }else{
+                    return null;
+                }
+            }
+
+            let motd_string = _motd_string;
+            // decode into utf-mode
+            motd_string = motd_string.replace(/\\u([0-9a-fA-F]{4})/g, function(match, p1){
+                return String.fromCharCode(parseInt(p1, 16));
+            });
+
+            motd_string = motd_string.trim();
+
+            // then add format
+            var format_table = motd_string.split("§r");
+
+            var formatted_string = "";
+
+            for(var i=1;i<format_table.length;i++){
+                var _text = format_table[i];
+                var f_arr = [];
+
+                let item = {};
+                if(_text.length > 0){
+                    if(/§([0-9a-flmon])/gi.test(_text) == true){
+                        f_arr = /§([0-9a-flmon])/gi.exec(_text);
+                    }
+                    _text = _text.replace(/§([0-9a-flmon])/gi, "");
+
+                    item['insert'] = _text;
+                    item['attributes'] = {};
+                    for(var j=0;j<f_arr.length;j++){
+                        _format = _format_style_string(f_arr[j]);
+                        _format_key = _format[0];
+                        _format_value = _format[1];
+                        item['attributes'][_format_key] = _format_value;
+                    }
+                }
+
+                motd_array.push(item);
+            }
+
+            this.$refs.Quill.quillEditor.setContents(motd_array);
         }
     }
 }

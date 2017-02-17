@@ -226,7 +226,8 @@
                             <span slot="title">每日讯息</span>
                             <div slot="description">服务器在MC客户端中的提示语。亦即motd。</div>
                             <div slot="body">
-                                233
+                                <motd-editor ref="MOTD"></motd-editor><br>
+                                <button class="btn btn-default btn-v"  @click="edit_config('server_properties')">保存</button>
                             </div>
                         </edit-item>
                     </div>
@@ -274,6 +275,7 @@
 import WebSocket from "../../lib/websocket";
 import EditInstanceItem from "../../components/edit_instance/edit-item.vue"
 import LogoUploader from "../../components/new_instance/logo-uploader.vue"
+import motdEditor from "../../components/new_instance/motd-editor.vue"
 
 let deepcopy = require("deepcopy");
 let ws       = new WebSocket();
@@ -281,7 +283,8 @@ let ws       = new WebSocket();
 export default {
     components:{
         "edit-item" : EditInstanceItem,
-        "logo-uploader" : LogoUploader
+        "logo-uploader" : LogoUploader,
+        "motd-editor" : motdEditor
     },
     data(){
         let assert_keys = ["world_name", "number_RAM", "listen_port", "core_file_id", "java_bin_id", "ftp_account_name", "number_players"];
@@ -408,6 +411,8 @@ export default {
                 "default" : msg["default_ftp_password"],
                 "password" : msg["ftp_password"]
             }
+
+            //v.$refs.MOTD.load_motd(msg['server_properties']['motd']);
             v.init_conf = deepcopy(msg);
             for(let item in msg){
                 v[item] = msg[item];

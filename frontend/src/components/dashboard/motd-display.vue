@@ -69,7 +69,7 @@
                             f_arr = /§([0-9a-flmon])/gi.exec(_text);
                         }
                         _text = _text.replace(/§([0-9a-flmon])/gi, "");
-                        for(var j=0;j<f_arr.length;j++){
+                        for(var j=1;j<f_arr.length;j++){
                             _text = "<span style='" + _format_style_string(f_arr[j]) + "'>" + _text + "</span>";
                         }
                         formatted_string += _text;
