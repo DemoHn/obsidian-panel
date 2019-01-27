@@ -12,4 +12,5 @@ env:
   - DEV=0
 
 script:
+  - go test -v ./...
   - go build -o obs github.com/DemoHn/obsidian-panel/cmd/obs
