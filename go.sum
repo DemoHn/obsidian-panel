@@ -1,2 +1,12 @@
+github.com/davecheney/godoc2md v0.0.0-20190102190552-ec8f0aeaa913 h1:QiE1haQ899RCDtVRhuF8PLMJBtlTsjB68fGhOJ0o+9M=
+github.com/davecheney/godoc2md v0.0.0-20190102190552-ec8f0aeaa913/go.mod h1:mUyU+12reTra3LLJzldnOLcKjknB0ajbIpIgvIBF4OE=
 github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727 h1:eouy4stZdUKn7n98c1+rdUTxWMg+jvhP+oHt0K8fiug=
 github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727/go.mod h1:7dvUGVsVBjqR7JHJk0brhHOZYGmfBYOrK0ZhYMEtBr4=
+github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481 h1:hIqz4wmkOdw3S5lg8DrW0PaRx5VIaPGmCiFymE6KsIU=
+github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481/go.mod h1:C9WhFzY47SzYBIvzFqSvHIR6ROgDo4TtdTuRaOMjF/s=
+golang.org/x/tools v0.0.0-20181011021141-0e57ebad1d6b h1:HmX7qDZr5gv5SRnNE4hk4jaqDx4+d+bmiXgS3zdanJs=
+golang.org/x/tools v0.0.0-20181011021141-0e57ebad1d6b/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
+gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
