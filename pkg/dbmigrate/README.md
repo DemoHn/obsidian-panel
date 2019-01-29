@@ -17,13 +17,14 @@ This package is widely used in SQL schema initialization for brand new db.
 ## <a name="pkg-index">Index</a>
 * [func AddMigration(version string, up migrationFunc, down migrationFunc)](#AddMigration)
 * [func Down(db *gorm.DB) error](#Down)
+* [func NewTemplate(name string, destFolder string) (string, error)](#NewTemplate)
 * [func Up(db *gorm.DB) error](#Up)
 * [type Migration](#Migration)
 * [type MigrationHistory](#MigrationHistory)
 
 
 #### <a name="pkg-files">Package files</a>
-[dbmigrate.go](/src/target/dbmigrate.go) [down.go](/src/target/down.go) [setup_tests.go](/src/target/setup_tests.go) [up.go](/src/target/up.go) 
+[dbmigrate.go](/src/target/dbmigrate.go) [down.go](/src/target/down.go) [new_template.go](/src/target/new_template.go) [setup_tests.go](/src/target/setup_tests.go) [up.go](/src/target/up.go) 
 
 
 
@@ -43,6 +44,14 @@ up operation will analyse directly
 func Down(db *gorm.DB) error
 ```
 Down - down to lowest version
+
+
+
+## <a name="NewTemplate">func</a> [NewTemplate](/src/target/new_template.go?s=722:786#L41)
+``` go
+func NewTemplate(name string, destFolder string) (string, error)
+```
+NewTemplate - write a migration file with current timestamp to destination folder
 
 
 
