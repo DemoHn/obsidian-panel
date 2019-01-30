@@ -7,5 +7,6 @@ require (
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481 // indirect
+	github.com/sirupsen/logrus v1.3.0
 	gopkg.in/yaml.v2 v2.2.2
 )
