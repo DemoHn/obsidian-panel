@@ -13,5 +13,5 @@ env:
 
 script:
   - curl -s https://taskfile.org/install.sh | sh
-  - task test
-  - task build
+  - ./bin/task test
+  - ./bin/task build
