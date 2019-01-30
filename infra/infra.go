@@ -5,11 +5,14 @@ import (
 	"github.com/DemoHn/obsidian-panel/infra/logger"
 )
 
+// Config -
+type Config = config.Config
+
+// Logger -
+type Logger = logger.Logger
+
 // Infrastructure defines the basic components that nearly every providers & drivers
 // will use. (e.g. logger)
-
-type Config = config.Config
-type Logger = logger.Logger
 type Infrastructure struct {
 	*Config
 	*Logger
