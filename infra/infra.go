@@ -7,9 +7,12 @@ import (
 
 // Infrastructure defines the basic components that nearly every providers & drivers
 // will use. (e.g. logger)
+
+type Config = config.Config
+type Logger = logger.Logger
 type Infrastructure struct {
-	Config *config.Config
-	Logger *logger.Logger
+	*Config
+	*Logger
 }
 
 // New - New Infrastructure
@@ -24,4 +27,14 @@ func New(configFile string, debugMode bool) (*Infrastructure, error) {
 		Config: cfg,
 		Logger: logger.Init(debugMode),
 	}, nil
+}
+
+// GetConfig - get config component
+func (inf *Infrastructure) GetConfig() *Config {
+	return inf.Config
+}
+
+// GetLogger - get logger component
+func (inf *Infrastructure) GetLogger() *Logger {
+	return inf.Logger
 }
