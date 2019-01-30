@@ -1,2 +1,4 @@
 obs
-_dev/bin
+obs-cli
+_dev/build
+/build
