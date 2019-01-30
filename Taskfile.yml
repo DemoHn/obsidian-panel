@@ -1,0 +1,14 @@
+version: 2
+
+output: prefixed
+
+tasks:
+  test:
+    prefix: "test"
+    cmds:
+      - go test -v ./...
+  build:
+    prefix: "build"
+    vars: {BIN: obs}
+    cmds:
+      - go build -o {{.BIN}} ./cmd/obs
