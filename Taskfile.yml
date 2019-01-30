@@ -2,6 +2,8 @@ version: 2
 
 output: prefixed
 
+vars:
+  BIN: obs
 tasks:
   test:
     prefix: "test"
@@ -9,6 +11,13 @@ tasks:
       - go test -v ./...
   build:
     prefix: "build"
-    vars: {BIN: obs}
     cmds:
       - go build -o {{.BIN}} ./cmd/obs
+  dev:
+    prefix: "dev"
+    cmds:
+      - rm -rf _dev/bin
+      - mkdir -p _dev/bin
+      - task: build
+        vars: {BIN: _dev/bin/obs}
+      - ./_dev/bin/obs
