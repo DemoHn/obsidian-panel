@@ -21,3 +21,7 @@ tasks:
       - task: build
         vars: {BIN: _dev/bin/obs}
       - ./_dev/bin/obs
+  'migrate:new':
+    prefix: "migration"
+    cmds:
+      - go run _dev/cli/main.go migrate:new {{.NAME}}
