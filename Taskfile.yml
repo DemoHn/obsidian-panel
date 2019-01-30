@@ -16,11 +16,11 @@ tasks:
   dev:
     prefix: "dev"
     cmds:
-      - rm -rf _dev/bin
-      - mkdir -p _dev/bin
+      - rm -rf _dev/build
+      - mkdir -p _dev/build
       - task: build
-        vars: {BIN: _dev/bin/obs}
-      - ./_dev/bin/obs
+        vars: {BIN: _dev/build/obs}
+      - ./_dev/build/obs
   'migrate:new':
     prefix: "migration"
     cmds:
