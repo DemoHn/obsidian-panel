@@ -2,6 +2,7 @@ package infra
 
 import (
 	"github.com/DemoHn/obsidian-panel/infra/config"
+	"github.com/DemoHn/obsidian-panel/infra/errors"
 	"github.com/DemoHn/obsidian-panel/infra/logger"
 )
 
@@ -16,6 +17,7 @@ type Logger = logger.Logger
 type Infrastructure struct {
 	*Config
 	*Logger
+	debugMode bool
 }
 
 // New - New Infrastructure
@@ -40,4 +42,16 @@ func (inf *Infrastructure) GetConfig() *Config {
 // GetLogger - get logger component
 func (inf *Infrastructure) GetLogger() *Logger {
 	return inf.Logger
+}
+
+// NewError - return an new error with more intuitive format
+func (inf *Infrastructure) NewError(name string, err error) *errors.Error {
+	// TODO: refactor it!
+	return &errors.Error{
+		Name:       name,
+		StatusCode: 400,
+		ErrorCode:  20000,
+		Detail:     err.Error(),
+		DebugMode:  inf.debugMode,
+	}
 }
