@@ -15,8 +15,8 @@ var rootCmd = &cobra.Command{
 	Short:   "obsidian-panel main command",
 	Long:    "obsidian-panel main command",
 	Version: "0.7.0",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return app.Init(configPath, false)
+	Run: func(cmd *cobra.Command, args []string) {
+		app.Init(configPath, false)
 	},
 	SilenceUsage: true,
 }

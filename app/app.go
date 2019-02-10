@@ -1,17 +1,20 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
 	"github.com/DemoHn/obsidian-panel/infra"
 )
 
 // Init - init app
-func Init(configFile string, debugMode bool) error {
+func Init(configFile string, debugMode bool) {
 	var err error
 	// 01. init infra
 	var inf *infra.Infrastructure
 	if inf, err = infra.New(configFile, debugMode); err != nil {
-		return err
+		fmt.Printf("Error: %s\n", err.Error())
+		return
 	}
 
 	// get logger
@@ -20,13 +23,16 @@ func Init(configFile string, debugMode bool) error {
 	// 02. init drivers
 	var d *gorm.Driver
 	if d, err = gorm.NewDriver(inf); err != nil {
-		return err
+		log.Errorf("Error: %s", err.Error())
+		return
 	}
 
 	log.Info("going to upgrade core db schema")
 	if err = d.SchemaUp(); err != nil {
-		return err
+		log.Errorf("SchemaUp Failed: %s", err.Error())
+		return
 	}
 	log.Info("upgrade core db schema finish")
-	return nil
+
+	log.Info("TODO: run server")
 }
