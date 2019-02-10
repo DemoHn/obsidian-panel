@@ -36,6 +36,32 @@ func (d *Driver) Error() error {
 	return d.DB.Error
 }
 
+// Transaction - wrap a SQL transaction
+func (d *Driver) Transaction(fn func(tx *Driver) error) error {
+	var finish = false
+	var err error
+	tx := d.Begin()
+	defer func() {
+		if finish != true {
+			tx.Rollback()
+		}
+	}()
+	if tx.Error() != nil {
+		return tx.Error()
+	}
+	// execute
+	if err = fn(tx); err != nil {
+		return err
+	}
+	// commit
+	if err = tx.Commit().Error(); err != nil {
+		return err
+	}
+	// finish transaction
+	finish = true
+	return nil
+}
+
 // THE FOLLOWING FUNCTIONS ARE ALL FROM gorm.DB WITH SAME SIGNATURE
 // TODO: use code generator to automatically get it
 

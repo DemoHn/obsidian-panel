@@ -21,6 +21,9 @@ func GenerateDatabaseURL(inf *infra.Infrastructure) (string, error) {
 	if dbType == "mysql" {
 		return genMysql(config)
 	}
+	if dbType == "sqlite" {
+		return genSqlite(config)
+	}
 
 	return "", fmt.Errorf("unsupported db type:%s", dbType)
 }
@@ -71,4 +74,14 @@ func genMysql(config *config.Config) (string, error) {
 		dbURL = fmt.Sprintf("%s?%s", dbURL, strings.Join(optionsArr, "&"))
 	}
 	return dbURL, nil
+}
+
+func genSqlite(config *config.Config) (string, error) {
+	var path string
+	var err error
+	if path, err = config.FindString("database.path"); err != nil {
+		return "", err
+	}
+
+	return path, nil
 }
