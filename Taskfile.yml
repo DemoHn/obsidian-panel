@@ -20,7 +20,7 @@ tasks:
       - mkdir -p _dev/build
       - task: build
         vars: {BIN: _dev/build/obs}
-      - ./_dev/build/obs
+      - ./_dev/build/obs -c ./_dev/config.yml
   'migrate:new':
     prefix: "migration"
     cmds:

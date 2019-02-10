@@ -1,0 +1,3 @@
+database:
+  path: /tmp/diu.db
+  type: sqlite
