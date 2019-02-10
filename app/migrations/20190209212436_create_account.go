@@ -14,11 +14,11 @@ func init() {
 type Account struct {
 	ID int `gorm:"primary_key" json:"id"`
 	// Name - account name
-	Name string `gorm:"type:text" json:"name"`
+	Name string `gorm:"type:text;not null" json:"name"`
 	// Credential - hashed password
-	Credential []byte `gorm:"type:blob" json:"-"`
+	Credential []byte `gorm:"type:blob;not null" json:"-"`
 	// PermLevel - permission level
-	PermLevel string `gorm:"type:enum('OWNER','ADMIN','USER','VISITOR')"`
+	PermLevel string `gorm:"type:varchar(10);not null"`
 }
 
 // Up_20190209212436 - migration up script

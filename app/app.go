@@ -18,10 +18,15 @@ func Init(configFile string, debugMode bool) error {
 	log := inf.GetLogger()
 
 	// 02. init drivers
-	if _, err = gorm.NewDriver(inf); err != nil {
+	var d *gorm.Driver
+	if d, err = gorm.NewDriver(inf); err != nil {
 		return err
 	}
 
-	log.Infof("Hey")
+	log.Info("going to upgrade core db schema")
+	if err = d.SchemaUp(); err != nil {
+		return err
+	}
+	log.Info("upgrade core db schema finish")
 	return nil
 }
