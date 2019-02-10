@@ -29,8 +29,9 @@ func New(configFile string, debugMode bool) (*Infrastructure, error) {
 	}
 
 	return &Infrastructure{
-		Config: cfg,
-		Logger: logger.Init(debugMode),
+		Config:    cfg,
+		Logger:    logger.Init(debugMode),
+		debugMode: debugMode,
 	}, nil
 }
 
