@@ -3,6 +3,9 @@ package gorm
 import (
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/jinzhu/gorm"
+
+	// import sqlite3 dialect
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
 // Driver - gorm_driver is a wrapper of the popular ORM: gorm
@@ -22,7 +25,7 @@ func NewDriver(infra *infra.Infrastructure) (*Driver, error) {
 	}
 
 	// open db connection
-	if db, err = gorm.Open("mysql", dbURL); err != nil {
+	if db, err = gorm.Open("sqlite3", dbURL); err != nil {
 		return nil, err
 	}
 
