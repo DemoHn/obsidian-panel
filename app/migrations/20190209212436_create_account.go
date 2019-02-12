@@ -12,11 +12,11 @@ func init() {
 
 // Account - account definition
 type Account struct {
-	ID int `gorm:"primary_key" json:"id"`
+	ID int `gorm:"primary_key"`
 	// Name - account name
-	Name string `gorm:"type:text;not null" json:"name"`
+	Name string `gorm:"type:text;not null"`
 	// Credential - hashed password
-	Credential []byte `gorm:"type:blob;not null" json:"-"`
+	Credential []byte `gorm:"type:blob;not null"`
 	// PermLevel - permission level
 	PermLevel string `gorm:"type:varchar(10);not null"`
 }
