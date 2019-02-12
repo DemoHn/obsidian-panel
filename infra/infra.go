@@ -46,13 +46,12 @@ func (inf *Infrastructure) GetLogger() *Logger {
 }
 
 // NewError - return an new error with more intuitive format
-func (inf *Infrastructure) NewError(name string, err error) *errors.Error {
+func NewError(name string, statusCode int, errorCode int, err error) *errors.Error {
 	// TODO: refactor it!
 	return &errors.Error{
 		Name:       name,
-		StatusCode: 400,
-		ErrorCode:  20000,
+		StatusCode: statusCode,
+		ErrorCode:  errorCode,
 		Detail:     err.Error(),
-		DebugMode:  inf.debugMode,
 	}
 }
