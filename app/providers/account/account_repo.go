@@ -29,7 +29,7 @@ type Account struct {
 }
 
 // InsertAccountData - create Account in model level
-func (p *Provider) InsertAccountData(name string, credential []byte, permLevel PermLevel) error {
+func (p *Provider) InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Account, error) {
 	var err error
 	acct := &Account{
 		Name:       name,
@@ -38,14 +38,15 @@ func (p *Provider) InsertAccountData(name string, credential []byte, permLevel P
 	}
 
 	if err = p.DB.Create(acct).Error(); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return acct, nil
 }
 
 // ListAccountsData - list account data
 // notice: limit, offset can be optional
+// notice2: offset only affective when limit is not null
 func (p *Provider) ListAccountsData(limit *int, offset *int) ([]Account, error) {
 	var err error
 	// valiation on limit
@@ -58,8 +59,7 @@ func (p *Provider) ListAccountsData(limit *int, offset *int) ([]Account, error) 
 
 		db = db.Limit(*limit)
 	}
-
-	if offset != nil {
+	if limit != nil && offset != nil {
 		if *offset < 0 {
 			// TODO - more readable eror
 			return nil, fmt.Errorf("Validation Error: offset < 0")
