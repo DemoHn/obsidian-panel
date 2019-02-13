@@ -23,7 +23,7 @@ type Infrastructure struct {
 // New - New Infrastructure
 func New(configFile string, debugMode bool) (*Infrastructure, error) {
 	var err error
-	var cfg *config.Config
+	var cfg *Config
 	if cfg, err = config.Init(configFile); err != nil {
 		return nil, err
 	}
@@ -45,13 +45,26 @@ func (inf *Infrastructure) GetLogger() *Logger {
 	return inf.Logger
 }
 
+// DebugMode - check if on debugMode
+func (inf *Infrastructure) DebugMode() bool {
+	return inf.debugMode
+}
+
 // NewError - return an new error with more intuitive format
-func NewError(name string, statusCode int, errorCode int, err error) *errors.Error {
+func NewError(name string, statusCode int, errorCode int, detail string, info interface{}) *errors.Error {
 	// TODO: refactor it!
 	return &errors.Error{
 		Name:       name,
 		StatusCode: statusCode,
 		ErrorCode:  errorCode,
-		Detail:     err.Error(),
+		Info:       info,
+		Detail:     detail,
+	}
+}
+
+// NewErrorClass - create new set of errors
+func NewErrorClass(classCode int) *errors.ErrorClass {
+	return &errors.ErrorClass{
+		ClassCode: classCode,
 	}
 }
