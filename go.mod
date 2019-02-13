@@ -17,6 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
+	golang.org/x/crypto v0.0.0-20181030102418-4d3f4d9ffa16
 	google.golang.org/appengine v1.4.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
