@@ -1,7 +1,7 @@
 package account
 
 // RegisterAdmin - create admin service
-func (p *Provider) RegisterAdmin(name string, password string) (*Model, error) {
+func (p provider) RegisterAdmin(name string, password string) (*Model, error) {
 	// TODO: add password rule check?
 
 	// generate hashKey

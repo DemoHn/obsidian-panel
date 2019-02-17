@@ -15,13 +15,13 @@ func TestAccountService(t *testing.T) {
 
 	var ctrl *gomock.Controller
 	var m *MockRepository
-	var p *Provider
+	var p *provider
 
 	g.Describe("AccountService", func() {
 		g.Before(func() {
 			ctrl = gomock.NewController(t)
 			m = NewMockRepository(ctrl)
-			p = &Provider{
+			p = &provider{
 				Infrastructure: infra.NewForTest(),
 				repo:           m,
 			}
