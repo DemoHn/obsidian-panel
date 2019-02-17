@@ -2,12 +2,12 @@
 // Source: github.com/DemoHn/obsidian-panel/app/providers/account (interfaces: Repository)
 
 // Package mock is a generated GoMock package.
-package mock
+package account
 
 import (
-	account "github.com/DemoHn/obsidian-panel/app/providers/account"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockRepository is a mock of Repository interface
@@ -34,10 +34,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // InsertAccountData mocks base method
-func (m *MockRepository) InsertAccountData(arg0 string, arg1 []byte, arg2 string) (*account.Model, error) {
+func (m *MockRepository) InsertAccountData(arg0 string, arg1 []byte, arg2 string) (*Model, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertAccountData", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*account.Model)
+	ret0, _ := ret[0].(*Model)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -49,10 +49,10 @@ func (mr *MockRepositoryMockRecorder) InsertAccountData(arg0, arg1, arg2 interfa
 }
 
 // ListAccountsData mocks base method
-func (m *MockRepository) ListAccountsData(arg0, arg1 *int) ([]account.Model, error) {
+func (m *MockRepository) ListAccountsData(arg0, arg1 *int) ([]Model, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAccountsData", arg0, arg1)
-	ret0, _ := ret[0].([]account.Model)
+	ret0, _ := ret[0].([]Model)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
