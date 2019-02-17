@@ -8,5 +8,5 @@ func (p *Provider) RegisterAdmin(name string, password string) (*Account, error)
 	hashKey := generatePasswordHash(password)
 	p.Debugf("[obs] going to register admin user: %s", name)
 	// insert data
-	return p.InsertAccountData(name, hashKey, ADMIN)
+	return p.accountRepo.InsertAccountData(name, hashKey, ADMIN)
 }

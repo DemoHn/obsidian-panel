@@ -33,7 +33,7 @@ func TestAccountRepo(t *testing.T) {
 
 	var db *gorm.DB
 	var drv *dGorm.Driver
-	var p *Provider
+	var ar *accountRepository
 
 	g.Describe("accountRepo", func() {
 		g.Before(func() {
@@ -43,7 +43,7 @@ func TestAccountRepo(t *testing.T) {
 			}
 			drv.SchemaUp()
 			// init provider
-			p = &Provider{
+			ar = &accountRepository{
 				Infrastructure: nil,
 				DB:             drv,
 			}
@@ -60,7 +60,7 @@ func TestAccountRepo(t *testing.T) {
 			expCredential := []byte{1, 2, 3}
 			expPermLevel := ADMIN
 
-			acct, err := p.InsertAccountData(expAdmin, expCredential, expPermLevel)
+			acct, err := ar.InsertAccountData(expAdmin, expCredential, expPermLevel)
 			if err != nil {
 				g.Fail(err)
 			}
@@ -76,7 +76,7 @@ func TestAccountRepo(t *testing.T) {
 			clear(db)
 			// insert more accounts
 			for i := 0; i < 10; i++ {
-				_, err = p.InsertAccountData(fmt.Sprintf("%v.admin@g.com", i), []byte{1, 2}, USER)
+				_, err = ar.InsertAccountData(fmt.Sprintf("%v.admin@g.com", i), []byte{1, 2}, USER)
 				if err != nil {
 					g.Fail(err)
 				}
@@ -84,7 +84,7 @@ func TestAccountRepo(t *testing.T) {
 
 			// list all data
 			var accts []Account
-			if accts, err = p.ListAccountsData(nil, nil); err != nil {
+			if accts, err = ar.ListAccountsData(nil, nil); err != nil {
 				g.Fail(err)
 			}
 			g.Assert(len(accts)).Equal(10)
@@ -92,7 +92,7 @@ func TestAccountRepo(t *testing.T) {
 			// list with offset & limit
 			var limit = 3
 			var offsetA = 4
-			if accts, err = p.ListAccountsData(&limit, &offsetA); err != nil {
+			if accts, err = ar.ListAccountsData(&limit, &offsetA); err != nil {
 				g.Fail(err)
 			}
 			g.Assert(len(accts)).Equal(3)
