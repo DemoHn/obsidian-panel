@@ -6,7 +6,7 @@ func (p *Provider) RegisterAdmin(name string, password string) (*Account, error)
 
 	// generate hashKey
 	hashKey := generatePasswordHash(password)
-	p.Infof("[obs] going to register admin user: %s", name)
+	p.Debugf("[obs] going to register admin user: %s", name)
 	// insert data
 	return p.InsertAccountData(name, hashKey, ADMIN)
 }
