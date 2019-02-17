@@ -26,23 +26,29 @@ const (
 	// VISITOR PermLevel = "VISITOR"
 )
 
-// Account - account model
-type Account struct {
+// Model - account model
+type Model struct {
 	Name       string    `json:"name"`
 	Credential []byte    `json:"-"`
 	PermLevel  PermLevel `json:"permLevel"`
 }
 
-// as internal type, accountRepository manages all account model related methods
-type accountRepository struct {
+// Repository - interface of account repository
+type Repository interface {
+	InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Model, error)
+	ListAccountsData(limit *int, offset *int) ([]Model, error)
+}
+
+// as internal type, account repository manages all account model related methods
+type repository struct {
 	*infra.Infrastructure
 	DB *gorm.Driver
 }
 
-// InsertAccountData - create Account in model level
-func (ar *accountRepository) InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Account, error) {
+// InsertAccountData - create Model
+func (ar *repository) InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Model, error) {
 	var err error
-	acct := &Account{
+	acct := &Model{
 		Name:       name,
 		Credential: credential,
 		PermLevel:  permLevel,
@@ -58,7 +64,7 @@ func (ar *accountRepository) InsertAccountData(name string, credential []byte, p
 // ListAccountsData - list account data
 // notice: limit, offset can be optional
 // notice2: offset only affective when limit is not null
-func (ar *accountRepository) ListAccountsData(limit *int, offset *int) ([]Account, error) {
+func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error) {
 	var err error
 	// valiation on limit
 	db := ar.DB
@@ -79,7 +85,7 @@ func (ar *accountRepository) ListAccountsData(limit *int, offset *int) ([]Accoun
 		db = db.Offset(*offset)
 	}
 
-	var accounts []Account
+	var accounts []Model
 	if err = db.Find(&accounts).Error(); err != nil {
 		return nil, err
 	}
