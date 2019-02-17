@@ -1,6 +1,11 @@
 package account
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
+	"github.com/DemoHn/obsidian-panel/infra"
+)
 
 // PermLevel - a type defines permission level constants
 type PermLevel = string
@@ -28,8 +33,14 @@ type Account struct {
 	PermLevel  PermLevel `json:"permLevel"`
 }
 
+// as internal type, accountRepository manages all account model related methods
+type accountRepository struct {
+	*infra.Infrastructure
+	DB *gorm.Driver
+}
+
 // InsertAccountData - create Account in model level
-func (p *Provider) InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Account, error) {
+func (ar *accountRepository) InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Account, error) {
 	var err error
 	acct := &Account{
 		Name:       name,
@@ -37,7 +48,7 @@ func (p *Provider) InsertAccountData(name string, credential []byte, permLevel P
 		PermLevel:  permLevel,
 	}
 
-	if err = p.DB.Create(acct).Error(); err != nil {
+	if err = ar.DB.Create(acct).Error(); err != nil {
 		return nil, err
 	}
 
@@ -47,10 +58,10 @@ func (p *Provider) InsertAccountData(name string, credential []byte, permLevel P
 // ListAccountsData - list account data
 // notice: limit, offset can be optional
 // notice2: offset only affective when limit is not null
-func (p *Provider) ListAccountsData(limit *int, offset *int) ([]Account, error) {
+func (ar *accountRepository) ListAccountsData(limit *int, offset *int) ([]Account, error) {
 	var err error
 	// valiation on limit
-	db := p.DB
+	db := ar.DB
 	if limit != nil {
 		if *limit < 0 {
 			// TODO

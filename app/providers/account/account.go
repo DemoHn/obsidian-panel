@@ -8,14 +8,17 @@ import (
 // Provider - account provider
 type Provider struct {
 	*infra.Infrastructure
-	DB *gorm.Driver
+	accountRepo *accountRepository
 }
 
 // New - new provider with necessary components
-func New(infra *infra.Infrastructure, db *gorm.Driver) infra.IProvider {
+func New(infra *infra.Infrastructure, db *gorm.Driver) *Provider {
 	return &Provider{
-		DB:             db,
 		Infrastructure: infra,
+		accountRepo: &accountRepository{
+			DB:             db,
+			Infrastructure: infra,
+		},
 	}
 }
 
