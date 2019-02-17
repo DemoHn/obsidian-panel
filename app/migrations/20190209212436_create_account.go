@@ -14,7 +14,7 @@ func init() {
 type Account struct {
 	ID int `gorm:"primary_key"`
 	// Name - account name
-	Name string `gorm:"type:text;not null"`
+	Name string `gorm:"type:text;not null;unique"`
 	// Credential - hashed password
 	Credential []byte `gorm:"type:blob;not null"`
 	// PermLevel - permission level
