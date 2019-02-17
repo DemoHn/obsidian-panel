@@ -33,6 +33,11 @@ type Model struct {
 	PermLevel  PermLevel `json:"permLevel"`
 }
 
+// TableName - set table name
+func (Model) TableName() string {
+	return "accounts"
+}
+
 // Repository - interface of account repository
 type Repository interface {
 	InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Model, error)
