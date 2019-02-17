@@ -6,23 +6,22 @@ import (
 )
 
 // Provider - account provider
-type Provider struct {
+type Provider interface {
+	RegisterAdmin(name string, password string) (*Model, error)
+}
+
+type provider struct {
 	*infra.Infrastructure
 	repo Repository
 }
 
 // New - new provider with necessary components
-func New(infra *infra.Infrastructure, db *gorm.Driver) *Provider {
-	return &Provider{
+func New(infra *infra.Infrastructure, db *gorm.Driver) Provider {
+	return &provider{
 		Infrastructure: infra,
 		repo: &repository{
 			DB:             db,
 			Infrastructure: infra,
 		},
 	}
-}
-
-// Name - get the name of account provider
-func (p *Provider) Name() string {
-	return "account"
 }
