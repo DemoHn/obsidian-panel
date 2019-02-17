@@ -29,7 +29,7 @@ var qs = []*survey.Question{
 		Name: "type",
 		Prompt: &survey.Select{
 			Message: "User type",
-			Options: []string{"admin", "user"},
+			Options: []string{"admin"},
 			Default: "admin",
 		},
 	},
