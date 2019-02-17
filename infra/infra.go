@@ -4,6 +4,7 @@ import (
 	"github.com/DemoHn/obsidian-panel/infra/config"
 	"github.com/DemoHn/obsidian-panel/infra/errors"
 	"github.com/DemoHn/obsidian-panel/infra/logger"
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 )
 
 // Config -
@@ -33,6 +34,14 @@ func New(configFile string, debugMode bool) (*Infrastructure, error) {
 		Logger:    logger.Init(debugMode),
 		debugMode: debugMode,
 	}, nil
+}
+
+// NewForTest - init a infra with no config loaded
+func NewForTest() *Infrastructure {
+	return &Infrastructure{
+		Config: cfgparser.New("yaml"),
+		Logger: logger.Init(false),
+	}
 }
 
 // GetConfig - get config component

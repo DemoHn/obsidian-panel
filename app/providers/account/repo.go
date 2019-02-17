@@ -39,7 +39,7 @@ type Repository interface {
 	ListAccountsData(limit *int, offset *int) ([]Model, error)
 }
 
-// as internal type, account repository manages all account model related methods
+// actual implementation of repo
 type repository struct {
 	*infra.Infrastructure
 	DB *gorm.Driver
