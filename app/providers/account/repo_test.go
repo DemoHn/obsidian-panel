@@ -20,7 +20,7 @@ func setup() *gorm.DB {
 }
 
 func clear(db *gorm.DB) {
-	db.Delete(Account{})
+	db.Delete(Model{})
 }
 
 func teardown(db *gorm.DB) {
@@ -33,7 +33,7 @@ func TestAccountRepo(t *testing.T) {
 
 	var db *gorm.DB
 	var drv *dGorm.Driver
-	var ar *accountRepository
+	var ar *repository
 
 	g.Describe("accountRepo", func() {
 		g.Before(func() {
@@ -43,7 +43,7 @@ func TestAccountRepo(t *testing.T) {
 			}
 			drv.SchemaUp()
 			// init provider
-			ar = &accountRepository{
+			ar = &repository{
 				Infrastructure: nil,
 				DB:             drv,
 			}
@@ -83,7 +83,7 @@ func TestAccountRepo(t *testing.T) {
 			}
 
 			// list all data
-			var accts []Account
+			var accts []Model
 			if accts, err = ar.ListAccountsData(nil, nil); err != nil {
 				g.Fail(err)
 			}
