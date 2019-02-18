@@ -4,6 +4,7 @@ package util
 import (
 	"fmt"
 
+	"github.com/DemoHn/obsidian-panel/infra/errors"
 	"github.com/fatih/color"
 )
 
@@ -26,4 +27,15 @@ func LogFail(format string, args ...interface{}) {
 	r := color.New(color.FgRed).SprintFunc()
 	fmtTpl := fmt.Sprintf("%s - %s\n", r("FAIL"), format)
 	fmt.Printf(fmtTpl, args...)
+}
+
+// LogError - print error directly to console
+// support plain error and *errors.Error type
+func LogError(err error) {
+	r := color.New(color.FgRed).SprintFunc()
+	if cErr, ok := err.(*errors.Error); ok {
+		fmt.Printf("%s - (%d) %s: %s\n", r("FAIL"), cErr.ErrorCode, cErr.Name, cErr.Detail)
+	} else {
+		fmt.Printf("%s - %s\n", r("FAIL"), err.Error())
+	}
 }

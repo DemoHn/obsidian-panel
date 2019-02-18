@@ -58,7 +58,7 @@ func (ar *repository) InsertAccountData(name string, credential []byte, permLeve
 	}
 
 	if err = ar.DB.Create(acct).Error(); err != nil {
-		return nil, err
+		return nil, CreateAccountError(err)
 	}
 
 	return acct, nil
