@@ -1,11 +1,10 @@
 package app
 
 import (
-	"fmt"
-
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
 	"github.com/DemoHn/obsidian-panel/app/providers/account"
 	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/DemoHn/obsidian-panel/util"
 )
 
 // Providers - a set of providers that establish the core services
@@ -19,7 +18,7 @@ func Init(configFile string, debugMode bool) *Providers {
 	// 01. init infra
 	var inf *infra.Infrastructure
 	if inf, err = infra.New(configFile, debugMode); err != nil {
-		fmt.Printf("Error: %s\n", err.Error())
+		util.LogFail("%s", err.Error())
 		return nil
 	}
 
