@@ -25,3 +25,8 @@ func ValidationError(invalidCondition string) *errors.Error {
 func SQLExecutionError(err error) *errors.Error {
 	return accountErrors.NewError("SQLExecutionError", 2, 500, err.Error(), err)
 }
+
+// CreateAccountError - insert account data failed!
+func CreateAccountError(err error) *errors.Error {
+	return accountErrors.NewError("CreateAccountError", 3, 400, err.Error(), err)
+}

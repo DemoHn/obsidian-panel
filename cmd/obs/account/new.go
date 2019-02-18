@@ -52,7 +52,7 @@ var newAccountCmd = &cobra.Command{
 		// perform the questions
 		err := survey.Ask(qs, &answers)
 		if err != nil {
-			util.LogFail("%s", err.Error())
+			util.LogError(err)
 			return
 		}
 
@@ -65,7 +65,7 @@ var newAccountCmd = &cobra.Command{
 		// create account
 		acct, err := p.Account.RegisterAdmin(answers.Name, answers.Password)
 		if err != nil {
-			util.LogFail("%s", err.Error())
+			util.LogError(err)
 			return
 		}
 
