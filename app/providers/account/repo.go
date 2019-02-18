@@ -1,8 +1,6 @@
 package account
 
 import (
-	"fmt"
-
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
 	"github.com/DemoHn/obsidian-panel/infra"
 )
@@ -76,7 +74,7 @@ func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error)
 	if limit != nil {
 		if *limit < 0 {
 			// TODO
-			return nil, fmt.Errorf("Valdiation Error: limit < 0")
+			return nil, ValidationError("limit < 0")
 		}
 
 		db = db.Limit(*limit)
@@ -84,7 +82,7 @@ func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error)
 	if limit != nil && offset != nil {
 		if *offset < 0 {
 			// TODO - more readable eror
-			return nil, fmt.Errorf("Validation Error: offset < 0")
+			return nil, ValidationError("offset < 0")
 		}
 
 		db = db.Offset(*offset)
@@ -92,7 +90,7 @@ func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error)
 
 	var accounts []Model
 	if err = db.Find(&accounts).Error(); err != nil {
-		return nil, err
+		return nil, SQLExecutionError(err)
 	}
 
 	return accounts, nil
