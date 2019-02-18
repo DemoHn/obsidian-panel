@@ -10,7 +10,7 @@ import (
 
 // Providers - a set of providers that establish the core services
 type Providers struct {
-	Account *account.Provider
+	Account account.Provider
 }
 
 // Init - init app
