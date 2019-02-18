@@ -1,9 +1,8 @@
 package account
 
 import (
-	"fmt"
-
 	"github.com/DemoHn/obsidian-panel/app"
+	"github.com/DemoHn/obsidian-panel/util"
 	"github.com/spf13/cobra"
 	survey "gopkg.in/AlecAivazis/survey.v1"
 )
@@ -49,32 +48,27 @@ var newAccountCmd = &cobra.Command{
 			UserType      string `survey:"type"`
 		}{}
 
-		// TODO: use a better logger!
-		fmt.Println("Please follow the instructions to create a new user")
+		util.LogInfo("Please follow the instructions to create a new user")
 		// perform the questions
 		err := survey.Ask(qs, &answers)
 		if err != nil {
-			fmt.Println(err.Error())
+			util.LogFail("%s", err.Error())
 			return
 		}
 
 		// validators
-		if answers.Name == "" {
-			fmt.Println("Username is empty!")
-			return
-		}
 		if answers.Password != answers.PasswordAgain {
-			fmt.Println("Fail: Two passwords not match!")
+			util.LogFail("Two passwords not match!")
 			return
 		}
 
 		// create account
 		acct, err := p.Account.RegisterAdmin(answers.Name, answers.Password)
 		if err != nil {
-			fmt.Println("Fail: ", err.Error())
+			util.LogFail("%s", err.Error())
 			return
 		}
 
-		fmt.Printf("Create user: %s success", acct.Name)
+		util.LogOK("user: %s created successfully", acct.Name)
 	},
 }
