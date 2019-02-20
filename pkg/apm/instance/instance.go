@@ -2,8 +2,8 @@ package instance
 
 import (
 	"github.com/AlekSi/pointer"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/logger"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/mod/process"
+	"github.com/DemoHn/obsidian-panel/pkg/apm/logger"
+	"github.com/DemoHn/obsidian-panel/pkg/apm/process"
 	"github.com/olebedev/emitter"
 )
 
@@ -26,7 +26,7 @@ type Instance struct {
 	autoRestartHandle *AutoRestartHandle
 }
 
-var log *logger.Logger
+var log = logger.GetLogger()
 
 // Info shows all informations
 type Info struct {
@@ -45,7 +45,6 @@ type Info struct {
 
 // New apm instance (the basic unit of apm management, may contains multiple processes)
 func New(path string, args []string, autoRestart bool) *Instance {
-	log = logger.Get()
 	inst := &Instance{
 		Path:        path,
 		Args:        args,

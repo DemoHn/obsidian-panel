@@ -4,22 +4,20 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/config"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/logger"
+	"github.com/DemoHn/obsidian-panel/pkg/apm/logger"
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 	daemon "github.com/sevlyar/go-daemon"
 )
 
-// Start - start the main daemon
-func Start(debugMode bool) error {
-	var err error
+var log = logger.GetLogger()
 
-	// since init has been done in cmd init
-	configN := config.Get()
-	log := logger.Get()
+// Start - start the main daemon
+func Start(config *cfgparser.Config, debugMode bool) error {
+	var err error
 
 	// fetch globalDir
 	var globalDir string
-	if globalDir, err = configN.FindString("global.dir"); err != nil {
+	if globalDir, err = config.FindString("global.dir"); err != nil {
 		return addTag("cfg", err)
 	}
 
@@ -30,10 +28,10 @@ func Start(debugMode bool) error {
 
 	// init logFile & pidFile
 	var pidFile, logFile string
-	if pidFile, err = configN.FindString("global.pidFile"); err != nil {
+	if pidFile, err = config.FindString("global.pidFile"); err != nil {
 		return addTag("cfg", err)
 	}
-	if logFile, err = configN.FindString("global.logFile"); err != nil {
+	if logFile, err = config.FindString("global.logFile"); err != nil {
 		return addTag("cfg", err)
 	}
 
@@ -62,13 +60,13 @@ func Start(debugMode bool) error {
 	defer cntxt.Release()
 
 	// CHILD PROCESS
-	return daemonHandler(debugMode)
+	return daemonHandler(config, debugMode)
 }
 
 // StartForeground - start the apm apm daemon on foreground
 // This is usually for debugging the program
-func StartForeground(debugMode bool) error {
-	return daemonHandler(debugMode)
+func StartForeground(config *cfgparser.Config, debugMode bool) error {
+	return daemonHandler(config, debugMode)
 }
 
 // internal function

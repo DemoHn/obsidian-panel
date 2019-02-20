@@ -5,8 +5,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/logger"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/mod/process"
+	"github.com/DemoHn/obsidian-panel/pkg/apm/process"
 )
 
 // control flow
@@ -71,7 +70,6 @@ func (inst *Instance) createProcess() {
 
 func (inst *Instance) start() error {
 	var err error
-	log := logger.Get()
 	cmd := inst.command
 	status := inst.status
 	eventHandle := inst.eventHandle
@@ -101,7 +99,6 @@ func (inst *Instance) wait() error {
 }
 
 func (inst *Instance) afterWait(err error) {
-	log := logger.Get()
 	status := inst.status
 	eventHandle := inst.eventHandle
 	autoRestartHandle := inst.autoRestartHandle

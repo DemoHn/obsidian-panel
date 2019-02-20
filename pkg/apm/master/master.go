@@ -1,16 +1,13 @@
 package master
 
 import (
-	"fmt"
 	"os"
 	"syscall"
 
 	"github.com/DemoHn/obsidian-panel/pkg/apm/instance"
 	"github.com/DemoHn/obsidian-panel/pkg/cmdspliter"
 
-	// loggers
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/config"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/logger"
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 )
 
 // Master - the only one master that controls all instances
@@ -27,8 +24,6 @@ func New(debugMode bool) *Master {
 	master = &Master{
 		debugMode: debugMode,
 	}
-	// new global logger
-	logger.Init(debugMode)
 	return master
 }
 
@@ -115,16 +110,11 @@ func (m *Master) Listen() error {
 }
 
 // Teardown - teardown data
-func (m *Master) Teardown() error {
+func (m *Master) Teardown(config *cfgparser.Config) error {
 	var err error
-	var configN *config.Config
-
-	if configN = config.Get(); configN == nil {
-		return fmt.Errorf("config instance is null")
-	}
 
 	var pidFile string
-	if pidFile, err = configN.FindString("global.pidFile"); err != nil {
+	if pidFile, err = config.FindString("global.pidFile"); err != nil {
 		return err
 	}
 	// 1. stop all instances - TODO
