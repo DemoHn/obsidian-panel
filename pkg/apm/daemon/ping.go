@@ -6,26 +6,23 @@ import (
 	"os"
 	"time"
 
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/config"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/logger"
-
 	"github.com/DemoHn/obsidian-panel/pkg/apm/master"
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 )
 
 // Ping - to test if daemon has been started and available to receive data
-func Ping() error {
-	return ping()
+func Ping(config *cfgparser.Config) error {
+	return ping(config)
 }
 
 // PingTimeout - ping util timeout
-func PingTimeout(interval time.Duration, timeout time.Duration) error {
+func PingTimeout(config *cfgparser.Config, interval time.Duration, timeout time.Duration) error {
 	var err error
 	var elTime = time.Duration(0)
 
-	log := logger.Get()
 	// loop
 	for {
-		if err = ping(); err == nil {
+		if err = ping(config); err == nil {
 			return nil
 		}
 		// show error
@@ -41,13 +38,12 @@ func PingTimeout(interval time.Duration, timeout time.Duration) error {
 }
 
 // internal funtion
-func ping() error {
+func ping(config *cfgparser.Config) error {
 	var err error
-	configN := config.Get()
 
 	// find sockFile
 	var sockFile string
-	if sockFile, err = configN.FindString("global.sockFile"); err != nil {
+	if sockFile, err = config.FindString("global.sockFile"); err != nil {
 		return err
 	}
 	// ensure file exists

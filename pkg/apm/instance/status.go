@@ -2,9 +2,6 @@ package instance
 
 import (
 	"sync"
-
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/logger"
-	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 // StatusFlag - determine the actual status
@@ -42,11 +39,7 @@ func initStatus() *Status {
 		restartCounter: 0,
 	}
 
-	if logger.DebugMode() {
-		s.mu = new(deadlock.RWMutex)
-	} else {
-		s.mu = new(sync.RWMutex)
-	}
+	s.mu = new(sync.RWMutex)
 	return s
 }
 

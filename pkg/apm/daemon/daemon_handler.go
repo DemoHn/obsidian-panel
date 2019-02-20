@@ -5,25 +5,21 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/infra/logger"
-	"github.com/DemoHn/obsidian-panel/pkg/apm/mod/master"
+	"github.com/DemoHn/obsidian-panel/pkg/apm/master"
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 )
 
 // handle daemon
-func daemonHandler(debugMode bool) error {
+func daemonHandler(config *cfgparser.Config, debugMode bool) error {
 	var err error
 	quit := make(chan os.Signal)
-
-	// get config instance
-	configN, log := infra.Init(nil, debugMode)
 
 	// create master object
 	masterN := master.New(debugMode)
 
 	// get sockFile configlet
 	var sockFile string
-	if sockFile, err = configN.FindString("global.sockFile"); err != nil {
+	if sockFile, err = config.FindString("global.sockFile"); err != nil {
 		return errWithLog(err)
 	}
 
@@ -65,7 +61,6 @@ func daemonHandler(debugMode bool) error {
 // internal functions
 func errWithLog(err error) error {
 	// notice log must be inited before
-	log := logger.Get()
 	log.Errorf("[apm] %s", err.Error())
 	return err
 }
