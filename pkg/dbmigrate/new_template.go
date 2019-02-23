@@ -46,7 +46,6 @@ func NewTemplate(name string, destFolder string) (string, error) {
 		now.Year(), now.Month(), now.Day(),
 		now.Hour(), now.Minute(), now.Second())
 
-	// TODO: add template string
 	var tmplData = struct {
 		PackageName   string
 		MigrationName string
