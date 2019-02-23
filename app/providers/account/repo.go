@@ -2,7 +2,6 @@ package account
 
 import (
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
-	"github.com/DemoHn/obsidian-panel/infra"
 )
 
 // PermLevel - a type defines permission level constants
@@ -44,7 +43,6 @@ type Repository interface {
 
 // actual implementation of repo
 type repository struct {
-	*infra.Infrastructure
 	DB *gorm.Driver
 }
 

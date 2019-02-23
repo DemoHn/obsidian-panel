@@ -2,8 +2,13 @@ package account
 
 import (
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
+	// init infra configs
 	"github.com/DemoHn/obsidian-panel/infra"
 )
+
+// infra variables
+var log = infra.GetMainLogger()
+var config = infra.GetConfig()
 
 // Provider - account provider
 type Provider interface {
@@ -11,17 +16,14 @@ type Provider interface {
 }
 
 type provider struct {
-	*infra.Infrastructure
 	repo Repository
 }
 
 // New - new provider with necessary components
-func New(infra *infra.Infrastructure, db *gorm.Driver) Provider {
+func New(db *gorm.Driver) Provider {
 	return &provider{
-		Infrastructure: infra,
 		repo: &repository{
-			DB:             db,
-			Infrastructure: infra,
+			DB: db,
 		},
 	}
 }

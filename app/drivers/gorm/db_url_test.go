@@ -3,7 +3,7 @@ package gorm
 import (
 	"testing"
 
-	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 
 	// goblin
 	. "github.com/franela/goblin"
@@ -12,13 +12,12 @@ import (
 func TestGenerateDbUrl(t *testing.T) {
 	g := Goblin(t)
 
-	var inf *infra.Infrastructure
 	g.Describe("GenerateDburl()", func() {
 
 		g.It("should work /type = mysql", func() {
-			inf = infra.NewForTest()
+			cfg := cfgparser.New("yaml")
 			// load default config
-			inf.GetConfig().LoadDefault(map[string]interface{}{
+			cfg.LoadDefault(map[string]interface{}{
 				"database.type":     "mysql",
 				"database.user":     "DemoHn",
 				"database.password": "helloworld",
@@ -30,7 +29,7 @@ func TestGenerateDbUrl(t *testing.T) {
 				},
 			})
 
-			dbURL, err := GenerateDatabaseURL(inf)
+			dbURL, err := GenerateDatabaseURL(cfg)
 			if err != nil {
 				g.Fail(err)
 			}
@@ -39,14 +38,14 @@ func TestGenerateDbUrl(t *testing.T) {
 		})
 
 		g.It("should work /type = sqlite", func() {
-			inf = infra.NewForTest()
+			cfg := cfgparser.New("yaml")
 			// load default config
-			inf.GetConfig().LoadDefault(map[string]interface{}{
+			cfg.LoadDefault(map[string]interface{}{
 				"database.type": "sqlite",
 				"database.path": "/tmp/main.db",
 			})
 
-			dbURL, err := GenerateDatabaseURL(inf)
+			dbURL, err := GenerateDatabaseURL(cfg)
 			if err != nil {
 				g.Fail(err)
 			}
@@ -55,13 +54,13 @@ func TestGenerateDbUrl(t *testing.T) {
 		})
 
 		g.It("should fail /no available type", func() {
-			inf = infra.NewForTest()
+			cfg := cfgparser.New("yaml")
 			// load default config
-			inf.GetConfig().LoadDefault(map[string]interface{}{
+			cfg.LoadDefault(map[string]interface{}{
 				"database.type": "other_type",
 			})
 
-			_, err := GenerateDatabaseURL(inf)
+			_, err := GenerateDatabaseURL(cfg)
 			g.Assert(err != nil).Equal(true)
 		})
 	})
