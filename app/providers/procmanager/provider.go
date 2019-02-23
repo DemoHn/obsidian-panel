@@ -53,5 +53,5 @@ func (p *provider) StartDaemon(foreground bool) error {
 // PingDaemon - ping daemon to ensure daemon has connected
 // TODO: Config ping time
 func (p *provider) PingDaemon() error {
-	return apmDaemon.PingTimeout(p.localConfig, time.Second*5, time.Second*30)
+	return apmDaemon.PingTimeout(p.localConfig, time.Second*3, time.Second*15)
 }

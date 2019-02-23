@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/DemoHn/obsidian-panel/cmd/obs/account"
+	"github.com/DemoHn/obsidian-panel/cmd/obs/apm"
 
 	"github.com/DemoHn/obsidian-panel/app"
 	"github.com/spf13/cobra"
@@ -32,5 +33,6 @@ func main() {
 
 func init() {
 	rootCmd.AddCommand(account.AccountCmd)
+	rootCmd.AddCommand(apm.ApmCmd)
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "config.yml", "config path")
 }
