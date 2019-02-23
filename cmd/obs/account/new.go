@@ -35,7 +35,8 @@ var qs = []*survey.Question{
 }
 
 var newAccountCmd = &cobra.Command{
-	Use: "new",
+	Use:   "new",
+	Short: "create new account by CLI",
 	Run: func(cmd *cobra.Command, args []string) {
 		// init app
 		configPath := cmd.Flag("config").Value.String()
