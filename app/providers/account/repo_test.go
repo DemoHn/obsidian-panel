@@ -44,8 +44,7 @@ func TestAccountRepo(t *testing.T) {
 			drv.SchemaUp()
 			// init provider
 			ar = &repository{
-				Infrastructure: nil,
-				DB:             drv,
+				DB: drv,
 			}
 		})
 

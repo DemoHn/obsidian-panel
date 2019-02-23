@@ -1,11 +1,12 @@
 package gorm
 
 import (
-	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/jinzhu/gorm"
 
 	// import sqlite3 dialect
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	// import infra (config)
+	"github.com/DemoHn/obsidian-panel/infra"
 )
 
 // Driver - gorm_driver is a wrapper of the popular ORM: gorm
@@ -13,14 +14,16 @@ type Driver struct {
 	DB *gorm.DB
 }
 
+var config = infra.GetConfig()
+
 // NewDriver - new gorm driver
-func NewDriver(infra *infra.Infrastructure) (*Driver, error) {
+func NewDriver() (*Driver, error) {
 	var err error
 	var db *gorm.DB
 	var dbURL string
 
 	// find dbURL first
-	if dbURL, err = GenerateDatabaseURL(infra); err != nil {
+	if dbURL, err = GenerateDatabaseURL(config); err != nil {
 		return nil, err
 	}
 

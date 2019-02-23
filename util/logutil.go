@@ -4,7 +4,7 @@ package util
 import (
 	"fmt"
 
-	"github.com/DemoHn/obsidian-panel/infra/errors"
+	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/fatih/color"
 )
 
@@ -33,7 +33,7 @@ func LogFail(format string, args ...interface{}) {
 // support plain error and *errors.Error type
 func LogError(err error) {
 	r := color.New(color.FgRed).SprintFunc()
-	if cErr, ok := err.(*errors.Error); ok {
+	if cErr, ok := err.(*infra.Error); ok {
 		fmt.Printf("%s - (%d) %s: %s\n", r("FAIL"), cErr.ErrorCode, cErr.Name, cErr.Detail)
 	} else {
 		fmt.Printf("%s - %s\n", r("FAIL"), err.Error())

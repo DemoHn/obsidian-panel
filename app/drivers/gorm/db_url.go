@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/DemoHn/obsidian-panel/infra"
-	"github.com/DemoHn/obsidian-panel/infra/config"
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 )
 
 // GenerateDatabaseURL - generate a url for gorm from plain parameters
 // Example: user:password@tcp(127.0.0.1:3306)/mce_main?parseTime=true&charset=utf8
-func GenerateDatabaseURL(inf *infra.Infrastructure) (string, error) {
+func GenerateDatabaseURL(config *cfgparser.Config) (string, error) {
 	var err error
 	var dbType string
 
-	config := inf.GetConfig()
 	if dbType, err = config.FindString("database.type"); err != nil {
 		return "", err
 	}
@@ -29,7 +27,7 @@ func GenerateDatabaseURL(inf *infra.Infrastructure) (string, error) {
 }
 
 // internal functions
-func genMysql(config *config.Config) (string, error) {
+func genMysql(config *cfgparser.Config) (string, error) {
 	var err error
 	// required fields
 	var user, password, host, name string
@@ -76,7 +74,7 @@ func genMysql(config *config.Config) (string, error) {
 	return dbURL, nil
 }
 
-func genSqlite(config *config.Config) (string, error) {
+func genSqlite(config *cfgparser.Config) (string, error) {
 	var path string
 	var err error
 	if path, err = config.FindString("database.path"); err != nil {

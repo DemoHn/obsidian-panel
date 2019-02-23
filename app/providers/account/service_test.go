@@ -3,8 +3,6 @@ package account
 import (
 	"testing"
 
-	"github.com/DemoHn/obsidian-panel/infra"
-
 	// goblin
 	. "github.com/franela/goblin"
 	"github.com/golang/mock/gomock"
@@ -22,8 +20,7 @@ func TestAccountService(t *testing.T) {
 			ctrl = gomock.NewController(t)
 			m = NewMockRepository(ctrl)
 			p = &provider{
-				Infrastructure: infra.NewForTest(),
-				repo:           m,
+				repo: m,
 			}
 		})
 

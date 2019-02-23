@@ -1,4 +1,4 @@
-package errors
+package infra
 
 import (
 	"encoding/json"
@@ -18,26 +18,6 @@ type Error struct {
 // this is to ensure align with original `error` type
 func (e *Error) Error() string {
 	return fmt.Sprintf("%s(%d): %s", e.Name, e.ErrorCode, e.Detail)
-}
-
-// GetName - get error name
-func (e *Error) GetName() string {
-	return e.Name
-}
-
-// GetStatusCode - get statusCode [200, 404, etc.]
-func (e *Error) GetStatusCode() int {
-	return e.StatusCode
-}
-
-// GetErrorCode - error code
-func (e *Error) GetErrorCode() int {
-	return e.ErrorCode
-}
-
-// GetDetail - err detail
-func (e *Error) GetDetail() string {
-	return e.Detail
 }
 
 // ToJSON - transform to JSON
@@ -61,5 +41,12 @@ func (ec *ErrorClass) NewError(name string, subCode, statusCode int, detail stri
 		ErrorCode:  errorCode,
 		Info:       info,
 		Detail:     detail,
+	}
+}
+
+// NewErrorClass - new error class
+func NewErrorClass(classCode int) *ErrorClass {
+	return &ErrorClass{
+		ClassCode: classCode,
 	}
 }

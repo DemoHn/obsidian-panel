@@ -6,7 +6,7 @@ func (p provider) RegisterAdmin(name string, password string) (*Model, error) {
 
 	// generate hashKey
 	hashKey := generatePasswordHash(password)
-	p.Debugf("[obs] going to register admin user: %s", name)
+	log.Debugf("[obs] going to register admin user: %s", name)
 	// insert data
 	return p.repo.InsertAccountData(name, hashKey, ADMIN)
 }

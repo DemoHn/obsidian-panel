@@ -1,7 +1,6 @@
 package processmanager
 
 import (
-	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 )
 
@@ -29,7 +28,7 @@ func New(debugMode bool) Provider {
 }
 
 // ReloadConfig - reload config from main configlet
-func (p *provider) ReloadConfig(infra *infra.Infrastructure) error {
+func (p *provider) ReloadConfig() error {
 	//var err error
 	return nil
 }
