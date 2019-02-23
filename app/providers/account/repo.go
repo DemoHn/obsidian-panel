@@ -71,7 +71,6 @@ func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error)
 	db := ar.DB
 	if limit != nil {
 		if *limit < 0 {
-			// TODO
 			return nil, ValidationError("limit < 0")
 		}
 
@@ -79,7 +78,6 @@ func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error)
 	}
 	if limit != nil && offset != nil {
 		if *offset < 0 {
-			// TODO - more readable eror
 			return nil, ValidationError("offset < 0")
 		}
 
