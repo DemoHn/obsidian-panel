@@ -13,8 +13,8 @@ type Providers struct {
 	ProcessManager procmanager.Provider
 }
 
-// Init - init app
-func Init(configFile string, debugMode bool) *Providers {
+// GetProviders - get all available providers
+func GetProviders(configFile string, debugMode bool) (*Providers, error) {
 	var err error
 
 	// init logger, config
@@ -26,22 +26,19 @@ func Init(configFile string, debugMode bool) *Providers {
 	// load config file only if filename is explicitly assigned
 	if configFile != "" {
 		if err = infra.LoadConfig(configFile); err != nil {
-			log.Errorf("Error: %s", err.Error())
-			return nil
+			return nil, err
 		}
 	}
 
 	// 02. init drivers
 	var d *gorm.Driver
 	if d, err = gorm.NewDriver(); err != nil {
-		log.Errorf("Error: %s", err.Error())
-		return nil
+		return nil, err
 	}
 
 	log.Info("going to upgrade core db schema")
 	if err = d.SchemaUp(); err != nil {
-		log.Errorf("SchemaUp Failed: %s", err.Error())
-		return nil
+		return nil, err
 	}
 	log.Info("upgrade core db schema finish")
 
@@ -51,5 +48,5 @@ func Init(configFile string, debugMode bool) *Providers {
 	return &Providers{
 		Account:        account.New(d),
 		ProcessManager: pm,
-	}
+	}, nil
 }

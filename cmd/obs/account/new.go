@@ -38,9 +38,14 @@ var newAccountCmd = &cobra.Command{
 	Use:   "new",
 	Short: "create new account by CLI",
 	Run: func(cmd *cobra.Command, args []string) {
+		var p *app.Providers
+		var err error
 		// init app
 		configPath := cmd.Flag("config").Value.String()
-		p := app.Init(configPath, false)
+		if p, err = app.GetProviders(configPath, false); err != nil {
+			util.LogError(err)
+			return
+		}
 
 		answers := struct {
 			Name          string
@@ -51,7 +56,7 @@ var newAccountCmd = &cobra.Command{
 
 		util.LogInfo("Please follow the instructions to create a new user")
 		// perform the questions
-		err := survey.Ask(qs, &answers)
+		err = survey.Ask(qs, &answers)
 		if err != nil {
 			util.LogError(err)
 			return

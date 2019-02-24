@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 	Short:   "obsidian-panel main command",
 	Version: "0.7.0",
 	Run: func(cmd *cobra.Command, args []string) {
-		app.Init(configPath, false)
+		app.GetProviders(configPath, false)
 		fmt.Println("Hello World!")
 	},
 	SilenceUsage: true,
