@@ -1,10 +1,13 @@
 package procmanager
 
 import (
+	"io/ioutil"
+	"strconv"
+	"syscall"
 	"time"
 
-	apmDaemon "github.com/DemoHn/obsidian-panel/pkg/apm/daemon"
 	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
+	"google.golang.org/appengine/log"
 )
 
 // Provider - process manager (apm)
@@ -12,6 +15,7 @@ type Provider interface {
 	ReloadConfig() error
 	StartDaemon(foreground bool) error
 	PingDaemon() error
+	KillDaemon(force bool) error
 }
 
 type provider struct {
@@ -54,4 +58,37 @@ func (p *provider) StartDaemon(foreground bool) error {
 // TODO: Config ping time
 func (p *provider) PingDaemon() error {
 	return apmDaemon.PingTimeout(p.localConfig, time.Second*3, time.Second*15)
+}
+
+// KillDaemon - kill daemon w/o any quit current instance logic
+func (p *provider) KillDaemon(force bool) error {
+	var err error
+
+	var pidFile string
+	if pidFile, err = p.localConfig.FindString("global.pidFile"); err != nil {
+		return err
+	}
+
+	// read pidFile
+	var pidData []byte
+	if pidData, err = ioutil.ReadFile(pidFile); err != nil {
+		return err
+	}
+	// parse to int
+	var pid int
+	if pid, err = strconv.Atoi(string(pidData)); err != nil {
+		return err
+	}
+
+	// send quit signal (if exists)
+	if force {
+		return syscall.Kill(pid, syscall.SIGKILL)
+	}
+
+	if err = syscall.Kill(pid, syscall.SIGTERM); err != nil {
+		return err
+	}
+
+	log.Infof("[apm] kill apm daemon (PID:%d) success", pid)
+	return nil
 }
