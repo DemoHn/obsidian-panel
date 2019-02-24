@@ -14,7 +14,7 @@ import (
 
 // Provider - process manager (apm)
 type Provider interface {
-	ReloadConfig(config *cfgparser.Config) error
+	ReloadConfig(config *cfgparser.Config)
 	StartDaemon(foreground bool) error
 	PingDaemon() error
 	KillDaemon(force bool) error
@@ -45,9 +45,21 @@ func New(debugMode bool) Provider {
 }
 
 // ReloadConfig - reload config from main configlet
-func (p *provider) ReloadConfig(gConfig *cfgparser.Config) error {
-	//var err error
-	return nil
+func (p *provider) ReloadConfig(gConfig *cfgparser.Config) {
+	var err error
+	var keys = []string{
+		"global.dir",
+		"global.pidFile",
+		"global.logFile",
+		"global.sockFile",
+	}
+
+	var val string
+	for _, key := range keys {
+		if val, err = gConfig.FindString(key); err != nil {
+			p.localConfig.SetItem(key, val)
+		}
+	}
 }
 
 // StartDaemon - start daemon
