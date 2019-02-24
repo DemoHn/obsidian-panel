@@ -17,8 +17,9 @@ type Providers struct {
 func Init(configFile string, debugMode bool) *Providers {
 	var err error
 
-	// init logger
+	// init logger, config
 	log := infra.GetMainLogger()
+	cfg := infra.GetConfig()
 	// 01. set infra (config, logger)
 	infra.SetMainLoggerLevel(debugMode)
 
@@ -45,8 +46,10 @@ func Init(configFile string, debugMode bool) *Providers {
 	log.Info("upgrade core db schema finish")
 
 	// 03. init providers
+	pm := procmanager.New(debugMode)
+	pm.ReloadConfig(cfg)
 	return &Providers{
 		Account:        account.New(d),
-		ProcessManager: procmanager.New(debugMode),
+		ProcessManager: pm,
 	}
 }

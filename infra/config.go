@@ -30,9 +30,10 @@ func init() {
 
 func initDefaultConfig() {
 	home, _ := homedir.Dir()
+
 	config.LoadDefault(map[string]interface{}{
 		"version":        "0.7",
-		"global.datadir": filepath.Join(home, ".apm"),
+		"global.datadir": filepath.Join(home, ".obs"),
 		"database.path":  "$(global.datadir)/sql_main.db",
 		"database.type":  "sqlite",
 		"apm.dir":        "$(global.datadir)/.apm",

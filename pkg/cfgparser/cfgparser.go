@@ -147,6 +147,11 @@ func (config *Config) FindBool(key string) (bool, error) {
 	return false, fmt.Errorf("Config key `%s` is not a bool value", key)
 }
 
+// SetItem - set item
+func (config *Config) SetItem(key string, value interface{}) {
+	config.configItem[key] = value
+}
+
 // resolveDepConfig -
 // to support configValue like `$(<var name>)`
 // e.g.:
