@@ -14,7 +14,7 @@ import (
 
 // Provider - process manager (apm)
 type Provider interface {
-	ReloadConfig() error
+	ReloadConfig(config *cfgparser.Config) error
 	StartDaemon(foreground bool) error
 	PingDaemon() error
 	KillDaemon(force bool) error
@@ -45,7 +45,7 @@ func New(debugMode bool) Provider {
 }
 
 // ReloadConfig - reload config from main configlet
-func (p *provider) ReloadConfig() error {
+func (p *provider) ReloadConfig(gConfig *cfgparser.Config) error {
 	//var err error
 	return nil
 }
@@ -67,7 +67,6 @@ func (p *provider) PingDaemon() error {
 // KillDaemon - kill daemon w/o any quit current instance logic
 func (p *provider) KillDaemon(force bool) error {
 	var err error
-
 	var pidFile string
 	if pidFile, err = p.localConfig.FindString("global.pidFile"); err != nil {
 		return err
@@ -88,7 +87,6 @@ func (p *provider) KillDaemon(force bool) error {
 	if force {
 		return syscall.Kill(pid, syscall.SIGKILL)
 	}
-
 	if err = syscall.Kill(pid, syscall.SIGTERM); err != nil {
 		return err
 	}

@@ -19,12 +19,15 @@ func Init(configFile string, debugMode bool) *Providers {
 
 	// init logger
 	log := infra.GetMainLogger()
-
 	// 01. set infra (config, logger)
 	infra.SetMainLoggerLevel(debugMode)
-	if err = infra.LoadConfig(configFile); err != nil {
-		log.Errorf("Error: %s", err.Error())
-		return nil
+
+	// load config file only if filename is explicitly assigned
+	if configFile != "" {
+		if err = infra.LoadConfig(configFile); err != nil {
+			log.Errorf("Error: %s", err.Error())
+			return nil
+		}
 	}
 
 	// 02. init drivers

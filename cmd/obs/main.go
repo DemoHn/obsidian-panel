@@ -34,5 +34,5 @@ func main() {
 func init() {
 	rootCmd.AddCommand(account.AccountCmd)
 	rootCmd.AddCommand(apm.ApmCmd)
-	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "config.yml", "config path")
+	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "config filepath")
 }
