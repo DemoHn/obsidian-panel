@@ -10,4 +10,5 @@ var ApmCmd = &cobra.Command{
 
 func init() {
 	ApmCmd.AddCommand(apmDaemonCmd)
+	ApmCmd.AddCommand(apmKillCmd)
 }

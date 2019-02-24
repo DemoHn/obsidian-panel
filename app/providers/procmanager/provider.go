@@ -6,8 +6,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/DemoHn/obsidian-panel/infra"
+
+	apmDaemon "github.com/DemoHn/obsidian-panel/pkg/apm/daemon"
 	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
-	"google.golang.org/appengine/log"
 )
 
 // Provider - process manager (apm)
@@ -22,6 +24,8 @@ type provider struct {
 	debugMode   bool
 	localConfig *cfgparser.Config
 }
+
+var log = infra.GetMainLogger()
 
 // New - new provider
 func New(debugMode bool) Provider {
