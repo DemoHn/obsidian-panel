@@ -1,6 +1,9 @@
 package gorm
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/jinzhu/gorm"
 
 	// import sqlite3 dialect
@@ -27,6 +30,9 @@ func NewDriver() (*Driver, error) {
 		return nil, err
 	}
 
+	// since we are using sqlite3, dbURL is just filepath
+	// thus we have to mkdir -p of the folder
+	os.MkdirAll(filepath.Dir(dbURL), os.ModePerm)
 	// open db connection
 	if db, err = gorm.Open("sqlite3", dbURL); err != nil {
 		return nil, err

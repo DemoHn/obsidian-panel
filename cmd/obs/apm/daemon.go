@@ -11,11 +11,16 @@ var apmDaemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "start obsidian-panel daemon",
 	Run: func(cmd *cobra.Command, args []string) {
+		var err error
+		var p *app.Providers
 		// init app
 		configPath := cmd.Flag("config").Value.String()
-		p := app.Init(configPath, false)
+		if p, err = app.GetProviders(configPath, false); err != nil {
+			util.LogError(err)
+			return
+		}
 
-		if err := p.ProcessManager.StartDaemon(fg); err != nil {
+		if err = p.ProcessManager.StartDaemon(fg); err != nil {
 			util.LogError(err)
 		}
 	},

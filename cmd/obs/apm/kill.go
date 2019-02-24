@@ -11,11 +11,16 @@ var apmKillCmd = &cobra.Command{
 	Use:   "kill",
 	Short: "kill obsidian-panel daemon",
 	Run: func(cmd *cobra.Command, args []string) {
+		var p *app.Providers
+		var err error
 		// init app
 		configPath := cmd.Flag("config").Value.String()
-		p := app.Init(configPath, false)
+		if p, err = app.GetProviders(configPath, false); err != nil {
+			util.LogError(err)
+			return
+		}
 
-		if err := p.ProcessManager.KillDaemon(force); err != nil {
+		if err = p.ProcessManager.KillDaemon(force); err != nil {
 			util.LogError(err)
 		}
 	},
