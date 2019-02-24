@@ -54,9 +54,15 @@ func (p *provider) ReloadConfig(gConfig *cfgparser.Config) {
 		"global.sockFile",
 	}
 
+	var gKeys = []string{
+		"apm.dir",
+		"apm.pidFile",
+		"apm.logFile",
+		"apm.sockFile",
+	}
 	var val string
-	for _, key := range keys {
-		if val, err = gConfig.FindString(key); err != nil {
+	for index, key := range keys {
+		if val, err = gConfig.FindString(gKeys[index]); err == nil {
 			p.localConfig.SetItem(key, val)
 		}
 	}
