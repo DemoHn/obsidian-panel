@@ -1,3 +1,11 @@
+version: '0.7'
+global:
+  datadir: ./data
 database:
   path: /tmp/data.db
   type: sqlite
+apm:
+  dir: $(global.datadir)
+  pidFile: $(apm.dir)/apm.pid
+  logFile: $(apm.dir)/apm.log
+  sockFile: $(apm.dir)/apm.sock

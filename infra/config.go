@@ -1,6 +1,11 @@
 package infra
 
-import "github.com/DemoHn/obsidian-panel/pkg/cfgparser"
+import (
+	"path/filepath"
+
+	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
+	homedir "github.com/mitchellh/go-homedir"
+)
 
 var config *cfgparser.Config
 
@@ -20,6 +25,19 @@ func LoadConfig(configPath string) error {
 
 func init() {
 	config = cfgparser.New("yaml")
+	initDefaultConfig()
 }
 
-// func initDefaultConfig()
+func initDefaultConfig() {
+	home, _ := homedir.Dir()
+	config.LoadDefault(map[string]interface{}{
+		"version":        "0.7",
+		"global.datadir": filepath.Join(home, ".apm"),
+		"database.path":  "$(global.datadir)/sql_main.db",
+		"database.type":  "sqlite",
+		"apm.dir":        "$(global.datadir)/.apm",
+		"apm.pidFile":    "$(global.datadir)/.apm/apm.pid",
+		"apm.logFile":    "$(global.datadir)/.apm/apm.log",
+		"apm.sockFile":   "$(global.datadir)/.apm/apm.sock",
+	})
+}
