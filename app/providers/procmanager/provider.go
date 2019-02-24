@@ -9,6 +9,7 @@ import (
 	"github.com/DemoHn/obsidian-panel/infra"
 
 	apmDaemon "github.com/DemoHn/obsidian-panel/pkg/apm/daemon"
+	apmLogger "github.com/DemoHn/obsidian-panel/pkg/apm/logger"
 	"github.com/DemoHn/obsidian-panel/pkg/cfgparser"
 )
 
@@ -37,6 +38,8 @@ func New(debugMode bool) Provider {
 		"global.logFile":  "$(global.dir)/apm.log",
 		"global.sockFile": "$(global.dir)/apm.sock",
 	})
+	// set logger - sync with main logger
+	apmLogger.SetLogger(log)
 
 	return &provider{
 		debugMode:   debugMode,
