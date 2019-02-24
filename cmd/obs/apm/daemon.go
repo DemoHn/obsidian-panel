@@ -22,7 +22,10 @@ var apmDaemonCmd = &cobra.Command{
 
 		if err = p.ProcessManager.StartDaemon(fg); err != nil {
 			util.LogError(err)
+			return
 		}
+
+		util.LogOK("Start daemon succeed")
 	},
 }
 
