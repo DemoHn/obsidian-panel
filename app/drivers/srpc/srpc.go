@@ -1,4 +1,4 @@
-// Package srpc (S-Remote Process Call) manages all RPC communications between
+// Package srpc (String Remote Process Call) manages all RPC communications between
 // client and server
 package srpc
 
