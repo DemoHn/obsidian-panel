@@ -2,6 +2,10 @@
 
 TODO
 
+## Requires
+
+- protoc
+
 ## Installation
 
 - Install `task` as an alternative of `Makefile`:

@@ -62,10 +62,12 @@ func (d *Driver) Listen() error {
 	if l, err = net.Listen(tcpNetwork, url); err != nil {
 		return err
 	}
+	log.Infof("going to listen sRPC server on [%s]", url)
 	return d.httpServer.Serve(l)
 }
 
 // Close - close the server to end serving rpc connections
 func (d *Driver) Close() error {
+	log.Info("going to close sRPC server")
 	return d.httpServer.Shutdown(context.Background())
 }

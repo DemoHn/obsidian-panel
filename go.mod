@@ -28,6 +28,7 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	golang.org/x/crypto v0.0.0-20190123085648-057139ce5d2b
 	google.golang.org/appengine v1.4.0 // indirect
+	google.golang.org/grpc v1.17.0
 	gopkg.in/AlecAivazis/survey.v1 v1.8.2
 	gopkg.in/yaml.v2 v2.2.2
 )
