@@ -1,17 +1,21 @@
 package grpc
 
 import (
+	"fmt"
+	"net"
+
 	grpcI "google.golang.org/grpc"
 )
 
 const (
 	tcpNetwork = "tcp"
 )
+
 // Driver - grpc driver
 type Driver struct {
-	host string
-	port int
-	grpcServer: *grpcI.Server
+	host       string
+	port       int
+	grpcServer *grpcI.Server
 }
 
 // New - new srpc driver (rpc handler, tcp server)
@@ -28,6 +32,7 @@ func (d *Driver) GetServer() *grpcI.Server {
 	return d.grpcServer
 }
 
+// Listen - bind server to a port
 func (d *Driver) Listen() error {
 	var err error
 	var l net.Listener
@@ -43,4 +48,11 @@ func (d *Driver) Listen() error {
 	if err = d.grpcServer.Serve(l); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// Close - close a connection
+func (d *Driver) Close() {
+	d.grpcServer.GracefulStop()
 }

@@ -1,4 +1,6 @@
 //go:generate protoc -I ../../protos/echo --go_out=plugins=grpc:../../protos/echo ../../protos/echo/echo.proto
+
+// Package grpc ...
 package grpc
 
 import (
