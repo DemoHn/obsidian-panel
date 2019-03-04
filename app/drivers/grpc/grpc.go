@@ -37,7 +37,8 @@ func (d *Driver) Listen() error {
 	if l, err = net.Listen(tcpNetwork, url); err != nil {
 		return err
 	}
-
+	// register echo service (internal test service)
+	registerEchoServer(d)
 	// serve grpc protos
 	if err = d.grpcServer.Serve(l); err != nil {
 		return err
