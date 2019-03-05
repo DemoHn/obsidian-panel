@@ -2,7 +2,6 @@ package apm
 
 import (
 	"github.com/DemoHn/obsidian-panel/app"
-	"github.com/DemoHn/obsidian-panel/util"
 	"github.com/spf13/cobra"
 )
 
@@ -16,16 +15,16 @@ var apmDaemonCmd = &cobra.Command{
 		// init app
 		configPath := cmd.Flag("config").Value.String()
 		if p, err = app.GetProviders(configPath, false); err != nil {
-			util.LogError(err)
+			log.PrintError(err)
 			return
 		}
 
 		if err = p.ProcessManager.StartDaemon(fg); err != nil {
-			util.LogError(err)
+			log.PrintError(err)
 			return
 		}
 
-		util.LogOK("Start daemon succeed")
+		log.PrintOK("Start daemon succeed")
 	},
 }
 
