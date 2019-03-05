@@ -2,10 +2,12 @@ package account
 
 import (
 	"github.com/DemoHn/obsidian-panel/app"
-	"github.com/DemoHn/obsidian-panel/util"
+	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/spf13/cobra"
 	survey "gopkg.in/AlecAivazis/survey.v1"
 )
+
+var log = infra.GetCLILogger()
 
 // the questions to ask
 var qs = []*survey.Question{
@@ -43,7 +45,7 @@ var newAccountCmd = &cobra.Command{
 		// init app
 		configPath := cmd.Flag("config").Value.String()
 		if p, err = app.GetProviders(configPath, false); err != nil {
-			util.LogError(err)
+			log.PrintError(err)
 			return
 		}
 
@@ -54,27 +56,27 @@ var newAccountCmd = &cobra.Command{
 			UserType      string `survey:"type"`
 		}{}
 
-		util.LogInfo("Please follow the instructions to create a new user")
+		log.PrintInfo("Please follow the instructions to create a new user")
 		// perform the questions
 		err = survey.Ask(qs, &answers)
 		if err != nil {
-			util.LogError(err)
+			log.PrintError(err)
 			return
 		}
 
 		// validators
 		if answers.Password != answers.PasswordAgain {
-			util.LogFail("Two passwords not match!")
+			log.PrintFail("Two passwords not match!")
 			return
 		}
 
 		// create account
 		acct, err := p.Account.RegisterAdmin(answers.Name, answers.Password)
 		if err != nil {
-			util.LogError(err)
+			log.PrintError(err)
 			return
 		}
 
-		util.LogOK("user: %s created successfully", acct.Name)
+		log.PrintOK("user: %s created successfully", acct.Name)
 	},
 }

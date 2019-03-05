@@ -2,7 +2,6 @@ package apm
 
 import (
 	"github.com/DemoHn/obsidian-panel/app"
-	"github.com/DemoHn/obsidian-panel/util"
 	"github.com/spf13/cobra"
 )
 
@@ -16,12 +15,12 @@ var apmKillCmd = &cobra.Command{
 		// init app
 		configPath := cmd.Flag("config").Value.String()
 		if p, err = app.GetProviders(configPath, false); err != nil {
-			util.LogError(err)
+			log.PrintError(err)
 			return
 		}
 
 		if err = p.ProcessManager.KillDaemon(force); err != nil {
-			util.LogError(err)
+			log.PrintError(err)
 		}
 	},
 }
