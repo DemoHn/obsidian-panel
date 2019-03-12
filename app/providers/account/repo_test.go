@@ -46,9 +46,7 @@ func TestAccountRepo(t *testing.T) {
 			}
 			drv.SchemaUp()
 			// init provider
-			ar = &repository{
-				Driver: drv,
-			}
+			ar = &repository{drv}
 		})
 
 		g.After(func() {

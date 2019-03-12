@@ -18,7 +18,7 @@ require (
 	github.com/jinzhu/now v0.0.0-20181116074157-8ec929ed50c3 // indirect
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1 // indirect
 	github.com/lib/pq v1.0.0 // indirect
-	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olebedev/emitter v0.0.0-20190110104742-e8d1457e6aee
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
