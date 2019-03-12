@@ -1,6 +1,8 @@
 package account
 
 import (
+	"fmt"
+
 	"github.com/DemoHn/obsidian-panel/infra"
 )
 
@@ -28,4 +30,9 @@ func SQLExecutionError(err error) *infra.Error {
 // CreateAccountError - insert account data failed!
 func CreateAccountError(err error) *infra.Error {
 	return accountErrors.NewError("CreateAccountError", 3, 400, err.Error(), err)
+}
+
+// FindAccountError - account not found
+func FindAccountError(name string) *infra.Error {
+	return accountErrors.NewError("FindAccountError", 4, 400, fmt.Sprintf("account `%s` not found", name), name)
 }

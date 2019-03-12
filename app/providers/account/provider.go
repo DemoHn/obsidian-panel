@@ -23,7 +23,7 @@ type provider struct {
 func New(db *gorm.Driver) Provider {
 	return &provider{
 		repo: &repository{
-			DB: db,
+			Driver: db,
 		},
 	}
 }

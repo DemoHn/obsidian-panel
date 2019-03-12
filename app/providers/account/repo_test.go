@@ -1,3 +1,5 @@
+//go:generate mockgen -self_package=github.com/DemoHn/obsidian-panel/app/providers/account -destination=repo_mock.go -package=account -source=repo.go Repository
+//go:generate sed -i "" "s/*x./*/g;s/ x./ /g;s/]x./]/g;/x \".\"/d" repo_mock.go
 package account
 
 import (
@@ -6,6 +8,7 @@ import (
 	"testing"
 
 	dGorm "github.com/DemoHn/obsidian-panel/app/drivers/gorm"
+	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/jinzhu/gorm"
 
 	// goblin
@@ -44,7 +47,7 @@ func TestAccountRepo(t *testing.T) {
 			drv.SchemaUp()
 			// init provider
 			ar = &repository{
-				DB: drv,
+				Driver: drv,
 			}
 		})
 
@@ -96,6 +99,30 @@ func TestAccountRepo(t *testing.T) {
 			}
 			g.Assert(len(accts)).Equal(3)
 			g.Assert(accts[0].Name).Equal("4.admin@g.com")
+		})
+
+		g.It("should find one account", func() {
+			expUser := "1.admin@g.com"
+			acct, err := ar.GetAccountByName(expUser)
+			if err != nil {
+				g.Fail(err)
+			}
+
+			g.Assert(acct.Name).Equal(expUser)
+			g.Assert(acct.PermLevel).Equal(USER)
+		})
+
+		g.It("should throw error", func() {
+			expUser := "notFoundUser"
+
+			_, err := ar.GetAccountByName(expUser)
+			// assert type
+			e, typeOK := err.(*infra.Error)
+			if !typeOK {
+				g.Fail("incorrect type")
+			}
+
+			g.Assert(e.Name).Equal("FindAccountError")
 		})
 	})
 }

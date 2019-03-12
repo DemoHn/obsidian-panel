@@ -1,7 +1,10 @@
 package account
 
 import (
+	"fmt"
+
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
+	gGorm "github.com/jinzhu/gorm"
 )
 
 // PermLevel - a type defines permission level constants
@@ -39,11 +42,13 @@ func (Model) TableName() string {
 type Repository interface {
 	InsertAccountData(name string, credential []byte, permLevel PermLevel) (*Model, error)
 	ListAccountsData(limit *int, offset *int) ([]Model, error)
+	GetAccountByName(name string) (*Model, error)
+	GetDB() *gGorm.DB
 }
 
 // actual implementation of repo
 type repository struct {
-	DB *gorm.Driver
+	*gorm.Driver
 }
 
 // InsertAccountData - create Model
@@ -55,7 +60,7 @@ func (ar *repository) InsertAccountData(name string, credential []byte, permLeve
 		PermLevel:  permLevel,
 	}
 
-	if err = ar.DB.Create(acct).Error(); err != nil {
+	if err = ar.GetDB().Create(acct).Error; err != nil {
 		return nil, CreateAccountError(err)
 	}
 
@@ -68,7 +73,7 @@ func (ar *repository) InsertAccountData(name string, credential []byte, permLeve
 func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error) {
 	var err error
 	// valiation on limit
-	db := ar.DB
+	db := ar.GetDB()
 	if limit != nil {
 		if *limit < 0 {
 			return nil, ValidationError("limit < 0")
@@ -85,9 +90,27 @@ func (ar *repository) ListAccountsData(limit *int, offset *int) ([]Model, error)
 	}
 
 	var accounts []Model
-	if err = db.Find(&accounts).Error(); err != nil {
+	if err = db.Find(&accounts).Error; err != nil {
 		return nil, SQLExecutionError(err)
 	}
 
 	return accounts, nil
+}
+
+// GetAccountByName - get account model by name
+func (ar *repository) GetAccountByName(name string) (*Model, error) {
+	var err error
+	db := ar.GetDB()
+
+	var accounts []Model
+	if err = db.Debug().Where("name = ?", name).Find(&accounts).Error; err != nil {
+		return nil, SQLExecutionError(err)
+	}
+
+	fmt.Println(accounts)
+	// if data not found
+	if len(accounts) == 0 {
+		return nil, FindAccountError(name)
+	}
+	return &accounts[0], nil
 }
