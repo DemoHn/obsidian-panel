@@ -22,8 +22,6 @@ type provider struct {
 // New - new provider with necessary components
 func New(db *gorm.Driver) Provider {
 	return &provider{
-		repo: &repository{
-			Driver: db,
-		},
+		repo: &repository{db},
 	}
 }
