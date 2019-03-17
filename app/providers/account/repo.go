@@ -1,8 +1,6 @@
 package account
 
 import (
-	"fmt"
-
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
 	gGorm "github.com/jinzhu/gorm"
 )
@@ -107,7 +105,6 @@ func (ar *repository) GetAccountByName(name string) (*Model, error) {
 		return nil, SQLExecutionError(err)
 	}
 
-	fmt.Println(accounts)
 	// if data not found
 	if len(accounts) == 0 {
 		return nil, FindAccountError(name)

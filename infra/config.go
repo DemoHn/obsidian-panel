@@ -7,6 +7,9 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
+// Config -
+type Config cfgparser.Config
+
 var config *cfgparser.Config
 
 // GetConfig - config getter

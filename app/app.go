@@ -41,6 +41,8 @@ func GetProviders(configFile string, debugMode bool) (*Providers, error) {
 		return nil, err
 	}
 	log.Info("upgrade core db schema finish")
+	// generate secret key if empty
+	InitSecretKey(d)
 
 	// 03. init providers
 	pm := procmanager.New(debugMode)

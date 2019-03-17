@@ -36,3 +36,8 @@ func CreateAccountError(err error) *infra.Error {
 func FindAccountError(name string) *infra.Error {
 	return accountErrors.NewError("FindAccountError", 4, 400, fmt.Sprintf("account `%s` not found", name), name)
 }
+
+// IncorrectPasswordError - incorrect password
+func IncorrectPasswordError() *infra.Error {
+	return accountErrors.NewError("IncorrectPassowrdError", 5, 400, "incorrect password", nil)
+}
