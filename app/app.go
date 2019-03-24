@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
+	"github.com/DemoHn/obsidian-panel/app/drivers"
 	"github.com/DemoHn/obsidian-panel/app/providers/account"
 	"github.com/DemoHn/obsidian-panel/app/providers/procmanager"
 	"github.com/DemoHn/obsidian-panel/app/providers/secret"
@@ -33,10 +33,12 @@ func GetProviders(configFile string, debugMode bool) (*Providers, error) {
 	}
 
 	// 02. init drivers
-	var d *gorm.Driver
-	if d, err = gorm.NewDriver(); err != nil {
+	var drv *drivers.Drivers
+	if drv, err = drivers.Init(cfg); err != nil {
 		return nil, err
 	}
+
+	d := drv.Gorm
 
 	log.Info("going to upgrade core db schema")
 	if err = d.SchemaUp(); err != nil {
