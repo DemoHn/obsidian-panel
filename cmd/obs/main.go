@@ -16,6 +16,7 @@ var rootCmd = &cobra.Command{
 	Version: "0.7.0",
 	Run: func(cmd *cobra.Command, args []string) {
 		//app.GetProviders(configPath, false)
+		// TODO: add server init script
 		fmt.Println("Hello World!")
 	},
 	SilenceUsage: true,
@@ -28,8 +29,11 @@ func main() {
 }
 
 func init() {
+	// add sub-command
 	rootCmd.AddCommand(account.RootCmd)
-	rootCmd.AddCommand(apm.ApmCmd)
+	rootCmd.AddCommand(apm.RootCmd)
+
+	// add flags
 	rootCmd.PersistentFlags().StringP("config", "c", "", "config filepath")
 	rootCmd.PersistentFlags().BoolP("debug", "d", true, "debug mode")
 }

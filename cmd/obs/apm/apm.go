@@ -5,8 +5,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ApmCmd - 2rd command "apm"
-var ApmCmd = &cobra.Command{
+// RootCmd - 2rd command "apm"
+var RootCmd = &cobra.Command{
 	Use:   "apm",
 	Short: "main process manager driver",
 }
@@ -14,6 +14,6 @@ var ApmCmd = &cobra.Command{
 var log = infra.GetCLILogger()
 
 func init() {
-	ApmCmd.AddCommand(apmDaemonCmd)
-	ApmCmd.AddCommand(apmKillCmd)
+	RootCmd.AddCommand(apmDaemonCmd)
+	RootCmd.AddCommand(apmKillCmd)
 }
