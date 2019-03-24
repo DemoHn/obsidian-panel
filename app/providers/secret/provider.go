@@ -1,4 +1,4 @@
-package app
+package secret
 
 import (
 	"crypto/rand"
@@ -7,8 +7,17 @@ import (
 	"encoding/pem"
 	"fmt"
 
+	"github.com/DemoHn/obsidian-panel/infra"
+
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
 )
+
+// Provider - define interface of secret Provider
+type Provider interface {
+	NewSecretKey() error
+	ToggleSecretKey(id int, isActive bool) error
+	GetFirstSecretKey() (*Secret, error)
+}
 
 // Secret - JWT secret key
 type Secret struct {
@@ -19,10 +28,25 @@ type Secret struct {
 	Active     bool
 }
 
+// actual provider definition
+type provider struct {
+	db *gorm.Driver
+}
+
+// helper variables
+var log = infra.GetMainLogger()
+
+// New - new provider
+func New(db *gorm.Driver) Provider {
+	return &provider{
+		db: db,
+	}
+}
+
 // NewSecretKey - when there's no active secret key stored in db
 // generate a new secret keypair for its usage
 // default algorithm: RS256
-func NewSecretKey(db *gorm.Driver) error {
+func (p provider) NewSecretKey() error {
 	// gen RSA key pair
 	var pub, priv []byte
 	var err error
@@ -40,7 +64,7 @@ func NewSecretKey(db *gorm.Driver) error {
 		Active:     true,
 	}
 
-	if err = db.Create(&secret).Error; err != nil {
+	if err = p.db.Create(&secret).Error; err != nil {
 		return err
 	}
 
@@ -48,11 +72,11 @@ func NewSecretKey(db *gorm.Driver) error {
 }
 
 // ToggleSecretKey - toggle enable/disable secretKey
-func ToggleSecretKey(db *gorm.Driver, id int, isActive bool) error {
+func (p provider) ToggleSecretKey(id int, isActive bool) error {
 	var err error
 
 	var secrets []Secret
-	if err = db.Where("id = ?", id).Find(&secrets).Error; err != nil {
+	if err = p.db.Where("id = ?", id).Find(&secrets).Error; err != nil {
 		return err
 	}
 	// nothing found
@@ -61,7 +85,7 @@ func ToggleSecretKey(db *gorm.Driver, id int, isActive bool) error {
 	}
 
 	// update data
-	if err = db.Model(&secrets[0]).Update("active = ?", isActive).Error; err != nil {
+	if err = p.db.Model(&secrets[0]).Update("active = ?", isActive).Error; err != nil {
 		return err
 	}
 
@@ -69,11 +93,11 @@ func ToggleSecretKey(db *gorm.Driver, id int, isActive bool) error {
 }
 
 // GetFirstSecretKey - get first (i.e. most recent generated) secret key pair
-func GetFirstSecretKey(db *gorm.Driver) (*Secret, error) {
+func (p provider) GetFirstSecretKey() (*Secret, error) {
 	var err error
 
 	var secret Secret
-	if err = db.Order("createdAt desc").First(&secret).Error; err != nil {
+	if err = p.db.Order("createdAt desc").First(&secret).Error; err != nil {
 		return nil, err
 	}
 	return &secret, nil

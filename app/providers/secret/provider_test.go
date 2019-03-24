@@ -1,4 +1,4 @@
-package app
+package secret
 
 import (
 	// goblin
@@ -13,7 +13,7 @@ func TestGenerateSecretKey(t *testing.T) {
 
 	g.Describe("genereate secret keypair", func() {
 		g.It("should success generate keypair", func() {
-			var bits = 512
+			var bits = 2048
 			_, _, err := generateRsaKeyPair(bits)
 			if err != nil {
 				g.Fail(err)
