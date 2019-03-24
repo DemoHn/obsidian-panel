@@ -26,6 +26,7 @@ const (
 
 // Model - account model
 type Model struct {
+	ID         int       `json:"id"`
 	Name       string    `json:"name"`
 	Credential []byte    `json:"-"`
 	PermLevel  PermLevel `json:"permLevel"`
