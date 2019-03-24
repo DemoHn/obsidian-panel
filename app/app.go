@@ -4,6 +4,7 @@ import (
 	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
 	"github.com/DemoHn/obsidian-panel/app/providers/account"
 	"github.com/DemoHn/obsidian-panel/app/providers/procmanager"
+	"github.com/DemoHn/obsidian-panel/app/providers/secret"
 	"github.com/DemoHn/obsidian-panel/infra"
 )
 
@@ -11,6 +12,7 @@ import (
 type Providers struct {
 	Account        account.Provider
 	ProcessManager procmanager.Provider
+	Secret         secret.Provider
 }
 
 // GetProviders - get all available providers
@@ -42,7 +44,13 @@ func GetProviders(configFile string, debugMode bool) (*Providers, error) {
 	}
 	log.Info("upgrade core db schema finish")
 	// generate secret key if empty
-	NewSecretKey(d)
+
+	// 03. secret providers
+	sc := secret.New(d)
+	if _, err = sc.GetFirstSecretKey(); err != nil {
+		// if key is empty
+		sc.NewSecretKey()
+	}
 
 	// 03. init providers
 	pm := procmanager.New(debugMode)
@@ -50,5 +58,6 @@ func GetProviders(configFile string, debugMode bool) (*Providers, error) {
 	return &Providers{
 		Account:        account.New(d),
 		ProcessManager: pm,
+		Secret:         sc,
 	}, nil
 }
