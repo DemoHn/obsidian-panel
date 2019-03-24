@@ -1,19 +1,43 @@
 package account
 
-/*
-func signJWT(payload map[string]interface{}, config *infra.Config) (jwt string, err error) {
-	claims := jwtLib.MapClaims{}
-	var expTime int64
+import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
+)
+
+func signJWT(payload map[string]interface{}, secret []byte) (string, error) {
+	claims := jwt.MapClaims{}
 	for key, val := range payload {
 		claims[key] = val
 	}
 
-	claims["iss"] = config.Issuer
-	expTime = time.Now().Add(config.ExpireIn).Unix()
-	claims["exp"] = expTime
+	claims["iss"] = "obsidian-panel"
+	claims["exp"] = time.Now().Add(60 * time.Second).Unix()
 
-	token := jwtLib.NewWithClaims(jwtLib.SigningMethodHS256, claims)
-	jwt, err = token.SignedString([]byte(config.Secret))
-	return
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	return token.SignedString(bytesToPrivateKey(secret))
 }
-*/
+
+// bytesToPrivateKey bytes to private key
+func bytesToPrivateKey(priv []byte) *rsa.PrivateKey {
+	block, _ := pem.Decode(priv)
+	enc := x509.IsEncryptedPEMBlock(block)
+	b := block.Bytes
+	var err error
+	if enc {
+		log.Println("is encrypted pem block")
+		b, err = x509.DecryptPEMBlock(block, nil)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	key, err := x509.ParsePKCS1PrivateKey(b)
+	if err != nil {
+		log.Error(err)
+	}
+	return key
+}
