@@ -19,7 +19,7 @@ func TestGRPC(t *testing.T) {
 	g.Describe("Driver > GRPC", func() {
 		expHost := "127.0.0.1"
 		expPort := 12139
-		grpcHandler := New(expHost, expPort)
+		grpcHandler, _ := New(expHost, expPort)
 		g.Before(func() {
 			go func() {
 				if err := grpcHandler.Listen(); err != nil {

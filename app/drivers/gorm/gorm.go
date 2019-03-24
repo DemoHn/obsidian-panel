@@ -17,10 +17,8 @@ type Driver struct {
 	*gorm.DB
 }
 
-var config = infra.GetConfig()
-
 // NewDriver - new gorm driver
-func NewDriver() (*Driver, error) {
+func NewDriver(config *infra.Config) (*Driver, error) {
 	var err error
 	var db *gorm.DB
 	var dbURL string

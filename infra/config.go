@@ -8,7 +8,7 @@ import (
 )
 
 // Config -
-type Config cfgparser.Config
+type Config = cfgparser.Config
 
 var config *cfgparser.Config
 

@@ -19,12 +19,12 @@ type Driver struct {
 }
 
 // New - new srpc driver (rpc handler, tcp server)
-func New(host string, port int) *Driver {
+func New(host string, port int) (*Driver, error) {
 	return &Driver{
 		host:       host,
 		port:       port,
 		grpcServer: grpcI.NewServer(),
-	}
+	}, nil
 }
 
 // GetServer - get grpc server instance for registeration
