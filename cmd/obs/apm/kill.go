@@ -1,7 +1,8 @@
 package apm
 
 import (
-	"github.com/DemoHn/obsidian-panel/app"
+	"github.com/DemoHn/obsidian-panel/app/providers"
+	"github.com/DemoHn/obsidian-panel/util"
 	"github.com/spf13/cobra"
 )
 
@@ -10,11 +11,9 @@ var apmKillCmd = &cobra.Command{
 	Use:   "kill",
 	Short: "kill obsidian-panel daemon",
 	Run: func(cmd *cobra.Command, args []string) {
-		var p *app.Providers
 		var err error
-		// init app
-		configPath := cmd.Flag("config").Value.String()
-		if p, err = app.GetProviders(configPath, false); err != nil {
+		var p *providers.Providers
+		if p, err = util.LoadAppFromCmd(cmd); err != nil {
 			log.PrintError(err)
 			return
 		}

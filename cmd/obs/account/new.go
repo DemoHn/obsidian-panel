@@ -1,8 +1,9 @@
 package account
 
 import (
-	"github.com/DemoHn/obsidian-panel/app"
+	"github.com/DemoHn/obsidian-panel/app/providers"
 	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/DemoHn/obsidian-panel/util"
 	"github.com/spf13/cobra"
 	survey "gopkg.in/AlecAivazis/survey.v1"
 )
@@ -40,11 +41,9 @@ var newAccountCmd = &cobra.Command{
 	Use:   "new",
 	Short: "create new account by CLI",
 	Run: func(cmd *cobra.Command, args []string) {
-		var p *app.Providers
+		var p *providers.Providers
 		var err error
-		// init app
-		configPath := cmd.Flag("config").Value.String()
-		if p, err = app.GetProviders(configPath, false); err != nil {
+		if p, err = util.LoadAppFromCmd(cmd); err != nil {
 			log.PrintError(err)
 			return
 		}

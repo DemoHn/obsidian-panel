@@ -2,64 +2,79 @@ package app
 
 import (
 	"github.com/DemoHn/obsidian-panel/app/drivers"
-	"github.com/DemoHn/obsidian-panel/app/providers/account"
-	"github.com/DemoHn/obsidian-panel/app/providers/procmanager"
-	"github.com/DemoHn/obsidian-panel/app/providers/secret"
+	"github.com/DemoHn/obsidian-panel/app/providers"
 	"github.com/DemoHn/obsidian-panel/infra"
 )
 
-// Providers - a set of providers that establish the core services
-type Providers struct {
-	Account        account.Provider
-	ProcessManager procmanager.Provider
-	Secret         secret.Provider
+// App - main app
+type App struct {
+	*drivers.Drivers
+	*providers.Providers
 }
 
-// GetProviders - get all available providers
-func GetProviders(configFile string, debugMode bool) (*Providers, error) {
+// New - create a new app instance, with drivers & providers initialized
+func New(configFile string, debugMode bool) (*App, error) {
 	var err error
 
-	// init logger, config
-	log := infra.GetMainLogger()
 	cfg := infra.GetConfig()
-	// 01. set infra (config, logger)
 	infra.SetMainLoggerLevel(debugMode)
-
 	// load config file only if filename is explicitly assigned
 	if configFile != "" {
 		if err = infra.LoadConfig(configFile); err != nil {
 			return nil, err
 		}
 	}
-
-	// 02. init drivers
+	// 01. init drivers
 	var drv *drivers.Drivers
 	if drv, err = drivers.Init(cfg); err != nil {
 		return nil, err
 	}
-
-	d := drv.Gorm
-
-	log.Info("going to upgrade core db schema")
-	if err = d.SchemaUp(); err != nil {
+	// 02. init providers
+	var prv *providers.Providers
+	if prv, err = providers.Init(drv); err != nil {
 		return nil, err
 	}
-	log.Info("upgrade core db schema finish")
-	// generate secret key if empty
-
-	// 03. secret providers
-	sc := secret.New(d)
-	if _, err = sc.GetFirstSecretKey(); err != nil {
-		// if key is empty
-		sc.NewSecretKey()
+	// 03. before setup
+	if err = beforeSetup(cfg, drv, prv); err != nil {
+		return nil, err
 	}
 
-	// 03. init providers
-	pm := procmanager.New(debugMode)
-	pm.ReloadConfig(cfg)
-	return &Providers{
-		Account:        account.New(d),
-		ProcessManager: pm,
-		Secret:         sc,
+	return &App{
+		Drivers:   drv,
+		Providers: prv,
 	}, nil
+}
+
+// GetProviders - get (initialized) app providers
+func (app *App) GetProviders() *providers.Providers {
+	return app.Providers
+}
+
+// GetDrivers - get (initialized) app drivers
+func (app *App) GetDrivers() *drivers.Drivers {
+	return app.Drivers
+}
+
+// internal functions
+func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Providers) error {
+	var err error
+	log := infra.GetMainLogger()
+
+	log.Info("going to upgrade core db schema")
+	if err = drv.Gorm.SchemaUp(); err != nil {
+		return err
+	}
+	log.Info("upgrade core db schema finish")
+
+	// 02. generate new secret key if not exists
+	if _, err = prv.Secret.GetFirstSecretKey(); err != nil {
+		// if key is empty
+		if err = prv.Secret.NewSecretKey(); err != nil {
+			return err
+		}
+	}
+
+	// 03. reload process manager config
+	prv.ProcessManager.ReloadConfig(config)
+	return nil
 }
