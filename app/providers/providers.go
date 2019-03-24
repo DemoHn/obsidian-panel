@@ -16,9 +16,10 @@ type Providers struct {
 
 // Init - init providers
 func Init(drv *drivers.Drivers) (*Providers, error) {
+	sc := secret.New(drv.Gorm)
 	return &Providers{
-		Account:        account.New(drv.Gorm),
+		Account:        account.New(drv.Gorm, sc),
 		ProcessManager: procmanager.New(false),
-		Secret:         secret.New(drv.Gorm),
+		Secret:         sc,
 	}, nil
 }
