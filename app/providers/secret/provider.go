@@ -5,11 +5,10 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 
 	"github.com/DemoHn/obsidian-panel/infra"
 
-	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
+	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 )
 
 // Provider - define interface of secret Provider
@@ -28,17 +27,17 @@ type Secret struct {
 	Active     bool
 }
 
-// actual provider definition
-type provider struct {
-	db *gorm.Driver
+// iProvider - internal provider
+type iProvider struct {
+	db *sqlite.Driver
 }
 
 // helper variables
 var log = infra.GetMainLogger()
 
 // New - new provider
-func New(db *gorm.Driver) Provider {
-	return &provider{
+func New(db *sqlite.Driver) Provider {
+	return &iProvider{
 		db: db,
 	}
 }
@@ -46,7 +45,7 @@ func New(db *gorm.Driver) Provider {
 // NewSecretKey - when there's no active secret key stored in db
 // generate a new secret keypair for its usage
 // default algorithm: RS256
-func (p provider) NewSecretKey() error {
+func (p iProvider) NewSecretKey() error {
 	// gen RSA key pair
 	var pub, priv []byte
 	var err error
@@ -64,7 +63,7 @@ func (p provider) NewSecretKey() error {
 		Active:     true,
 	}
 
-	if err = p.db.Create(&secret).Error; err != nil {
+	if err = insertSecretRecord(p.db, &secret); err != nil {
 		return err
 	}
 
@@ -72,35 +71,21 @@ func (p provider) NewSecretKey() error {
 }
 
 // ToggleSecretKey - toggle enable/disable secretKey
-func (p provider) ToggleSecretKey(id int, isActive bool) error {
+func (p iProvider) ToggleSecretKey(id int, isActive bool) error {
 	var err error
+	var secret *Secret
 
-	var secrets []Secret
-	if err = p.db.Where("id = ?", id).Find(&secrets).Error; err != nil {
+	if secret, err = findSecretByID(p.db, id); err != nil {
 		return err
 	}
-	// nothing found
-	if len(secrets) == 0 {
-		return fmt.Errorf("secret:%d not found", id)
-	}
-
 	// update data
-	if err = p.db.Model(&secrets[0]).Update("active = ?", isActive).Error; err != nil {
-		return err
-	}
-
-	return nil
+	_, err = toggleActiveSecret(p.db, secret, isActive)
+	return err
 }
 
 // GetFirstSecretKey - get first (i.e. most recent generated) secret key pair
-func (p provider) GetFirstSecretKey() (*Secret, error) {
-	var err error
-
-	var secret Secret
-	if err = p.db.Order("createdAt desc").First(&secret).Error; err != nil {
-		return nil, err
-	}
-	return &secret, nil
+func (p iProvider) GetFirstSecretKey() (*Secret, error) {
+	return getFirstActiveSecret(p.db)
 }
 
 // internal functions
