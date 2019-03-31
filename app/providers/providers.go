@@ -16,7 +16,7 @@ type Providers struct {
 
 // Init - init providers
 func Init(drv *drivers.Drivers) (*Providers, error) {
-	sc := secret.New(drv.Gorm)
+	sc := secret.New(drv.Sqlite)
 	return &Providers{
 		Account:        account.New(drv.Gorm, sc),
 		ProcessManager: procmanager.New(false),

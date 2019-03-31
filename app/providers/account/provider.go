@@ -1,7 +1,7 @@
 package account
 
 import (
-	"github.com/DemoHn/obsidian-panel/app/drivers/gorm"
+	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 	"github.com/DemoHn/obsidian-panel/app/providers/secret"
 
 	// init infra configs
@@ -14,39 +14,53 @@ var config = infra.GetConfig()
 
 // Provider - account provider
 type Provider interface {
-	RegisterAdmin(name string, password string) (*Model, error)
+	RegisterAdmin(name string, password string) error
 	Login(name string, password string) (string, error)
 }
 
-type provider struct {
-	repo           Repository
+type iProvider struct {
+	db             *sqlite.Driver
 	secretProvider secret.Provider
 }
 
+// Account - account model
+type Account struct {
+	ID         int       `json:"id"`
+	Name       string    `json:"name"`
+	Credential []byte    `json:"-"`
+	PermLevel  PermLevel `json:"permLevel"`
+}
+
 // New - new provider with necessary components
-func New(db *gorm.Driver, secretProvider secret.Provider) Provider {
-	return &provider{
-		repo:           &repository{db},
+func New(db *sqlite.Driver, secretProvider secret.Provider) Provider {
+	return &iProvider{
+		db:             db,
 		secretProvider: secretProvider,
 	}
 }
 
 // RegisterAdmin - create admin service
-func (p provider) RegisterAdmin(name string, password string) (*Model, error) {
+func (p iProvider) RegisterAdmin(name string, password string) error {
 	// TODO: add password rule check?
 
 	// generate hashKey
 	hashKey := generatePasswordHash(password)
 	log.Debugf("[obs] going to register admin user: %s", name)
 	// insert data
-	return p.repo.InsertAccountData(name, hashKey, ADMIN)
+
+	acct := Account{
+		Name:       name,
+		Credential: hashKey,
+		PermLevel:  ADMIN,
+	}
+	return insertAccountRecord(p.db, &acct)
 }
 
-func (p provider) Login(name string, password string) (string, error) {
+func (p iProvider) Login(name string, password string) (string, error) {
 	var err error
-	var acct *Model
+	var acct *Account
 	// find account
-	if acct, err = p.repo.GetAccountByName(name); err != nil {
+	if acct, err = getAccountByName(p.db, name); err != nil {
 		return "", err
 	}
 

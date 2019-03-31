@@ -31,6 +31,18 @@ func New(config *infra.Config) (*Driver, error) {
 	return &Driver{db}, nil
 }
 
+// NewForTest - new SQL driver for testing usage, will accept a filepath
+// as input parameter
+func NewForTest(path string) (*Driver, error) {
+	var db *sql.DB
+	var err error
+	if db, err = sql.Open("sqlite3", path); err != nil {
+		return nil, err
+	}
+
+	return &Driver{db}, nil
+}
+
 // NewMock - new mock driver to help writing testcases
 func NewMock() (*Driver, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
