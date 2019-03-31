@@ -34,7 +34,7 @@ func Init(config *infra.Config) (*Drivers, error) {
 
 	// init sqlite
 	var sqliteDriver *sqlite.Driver
-	if sqliteDriver, err = sqlite.NewDriver(config); err != nil {
+	if sqliteDriver, err = sqlite.New(config); err != nil {
 		return nil, err
 	}
 
