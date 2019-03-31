@@ -3,6 +3,7 @@ module github.com/DemoHn/obsidian-panel
 require (
 	cloud.google.com/go v0.35.1 // indirect
 	github.com/AlekSi/pointer v1.0.0
+	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/denisenkom/go-mssqldb v0.0.0-20190121005146-b04fd42d9952 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect

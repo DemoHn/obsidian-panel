@@ -19,7 +19,7 @@ const (
 // insertSecretRecord - insert Secret model to database
 func insertSecretRecord(db *sqlite.Driver, secret *Secret) error {
 	var err error
-	var stmt = fmt.Sprintf(`insert into %s (%s, created_at, updated_at) values (?, ?, ?, ?, ?, ?)`, allColumns, tableName)
+	var stmt = fmt.Sprintf(`insert into %s (%s, created_at, updated_at) values (?, ?, ?, ?, ?, ?)`, tableName, allColumns)
 
 	// insert data
 	_, err = db.Exec(stmt,

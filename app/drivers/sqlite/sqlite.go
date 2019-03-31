@@ -5,6 +5,7 @@ import (
 
 	"github.com/DemoHn/obsidian-panel/infra"
 
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	// import sqlite3
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,8 +15,8 @@ type Driver struct {
 	*sql.DB
 }
 
-// NewDriver - new SQL driver
-func NewDriver(config *infra.Config) (*Driver, error) {
+// New - new SQL driver
+func New(config *infra.Config) (*Driver, error) {
 	var err error
 	var db *sql.DB
 	var path string
@@ -28,4 +29,13 @@ func NewDriver(config *infra.Config) (*Driver, error) {
 	}
 
 	return &Driver{db}, nil
+}
+
+// NewMock - new mock driver to help writing testcases
+func NewMock() (*Driver, sqlmock.Sqlmock, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, nil, err
+	}
+	return &Driver{db}, mock, nil
 }
