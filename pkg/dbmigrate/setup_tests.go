@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"os"
 
-	// include sqlite
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	// import sqlite3
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type sqlFixture struct {
