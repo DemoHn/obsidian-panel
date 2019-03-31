@@ -13,7 +13,7 @@ import (
 
 type rpcServer struct {
 	*drivers.Drivers
-	provider *provider
+	provider *iProvider
 }
 
 func (s *rpcServer) Login(ctx context.Context, in *pb.LoginPayload) (*pb.LoginReply, error) {
