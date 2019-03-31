@@ -97,8 +97,8 @@ func getAccountByName(db *sqlite.Driver, name string) (*Account, error) {
 	var err error
 	var newAccount Account
 
-	var stmt = fmt.Sprintf("select %s from %s where name = ?")
-	if err = db.QueryRow(stmt).Scan(
+	var stmt = fmt.Sprintf("select %s from %s where name = ?", allColumns, tableName)
+	if err = db.QueryRow(stmt, name).Scan(
 		&newAccount.ID,
 		&newAccount.Name,
 		&newAccount.Credential,

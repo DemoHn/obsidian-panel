@@ -70,12 +70,11 @@ var newAccountCmd = &cobra.Command{
 		}
 
 		// create account
-		acct, err := p.Account.RegisterAdmin(answers.Name, answers.Password)
-		if err != nil {
+		if err = p.Account.RegisterAdmin(answers.Name, answers.Password); err != nil {
 			log.PrintError(err)
 			return
 		}
 
-		log.PrintOK("user: %s created successfully", acct.Name)
+		log.PrintOK("user: %s created successfully", answers.Name)
 	},
 }

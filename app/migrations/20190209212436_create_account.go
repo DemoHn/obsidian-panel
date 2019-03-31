@@ -19,8 +19,11 @@ func Up_20190209212436(db *sql.DB) error {
 		id integer primary key autoincrement,
 		name text not null unique,
 		credential blob not null,
-		permission_level varchar(10) not null
+		permission_level varchar(10) not null,
+		created_at datetime not null,
+		updated_at datetime not null 
 	)`
+
 	if _, err = db.Exec(createTableStmt); err != nil {
 		return err
 	}
