@@ -1,17 +1,17 @@
 package dbmigrate
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/franela/goblin"
-	"github.com/jinzhu/gorm"
 )
 
 func Test_MigrationUp(t *testing.T) {
 	g := goblin.Goblin(t)
 	loadFixtures()
 
-	var db *gorm.DB
+	var db *sql.DB
 	g.Describe("dbmigrate: Up()", func() {
 		g.Before(func() {
 			db = setup()
@@ -30,21 +30,34 @@ func Test_MigrationUp(t *testing.T) {
 			// check if 3 tables are created
 			var expTables = []string{"table_01", "table_02", "table_03"}
 			for _, t := range expTables {
-				hasTable := db.HasTable(t)
-				g.Assert(hasTable).Eql(true)
+				var res string
+				err := db.QueryRow("select name from sqlite_master where type = 'table' and name = ?", t).Scan(&res)
+				if err != nil {
+					g.Fail(err)
+				}
+				g.Assert(res).Eql(t)
 			}
 
 			// check migration_history
 			var expHistory = []string{"01_A", "02_B", "03_C"}
-			var histories = []struct {
-				Version string
-			}{}
-			if err = db.Raw("select version from migration_histories").Scan(&histories).Error; err != nil {
+			var histories = []string{}
+			rows, err := db.Query("select version from migration_history")
+
+			if err != nil {
 				g.Fail(err)
 			}
 
+			for rows.Next() {
+				var history string
+				if err = rows.Scan(&history); err != nil {
+					g.Fail(err)
+				}
+
+				histories = append(histories, history)
+			}
+
 			for k, v := range expHistory {
-				g.Assert(v).Eql(histories[k].Version)
+				g.Assert(v).Eql(histories[k])
 			}
 		})
 

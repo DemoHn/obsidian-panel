@@ -15,8 +15,7 @@ const templateStr = `package migrations
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
-
+	"database/sql"
 	"{{.PackageName}}"
 )
 
@@ -25,13 +24,13 @@ func init() {
 }
 
 // Up_{{.FormatTime}} - migration up script
-func Up_{{.FormatTime}}(db *gorm.DB) error {
+func Up_{{.FormatTime}}(db *sql.DB) error {
 	// Add Up Logic Here!
 	return nil
 }
 
 // Down_{{.FormatTime}} - migration down script
-func Down_{{.FormatTime}}(db *gorm.DB) error {
+func Down_{{.FormatTime}}(db *sql.DB) error {
 	// Add Down Logic Here!
 	return nil
 }

@@ -1,9 +1,9 @@
 package dbmigrate
 
 import (
+	"database/sql"
 	"os"
 
-	"github.com/jinzhu/gorm"
 	// include sqlite
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
@@ -35,12 +35,12 @@ var fixtures = []sqlFixture{
 	},
 }
 
-func setup() *gorm.DB {
-	db, _ := gorm.Open("sqlite3", sqliteFile)
+func setup() *sql.DB {
+	db, _ := sql.Open("sqlite3", sqliteFile)
 	return db
 }
 
-func teardown(db *gorm.DB) {
+func teardown(db *sql.DB) {
 	db.Close()
 	os.Remove(sqliteFile)
 }
@@ -52,10 +52,12 @@ func loadFixtures() {
 	for _, fixture := range fixtures {
 		upSQL := fixture.upSQL
 		downSQL := fixture.downSQL
-		AddMigration(fixture.version, func(db *gorm.DB) error {
-			return db.Exec(upSQL).Error
-		}, func(db *gorm.DB) error {
-			return db.Exec(downSQL).Error
+		AddMigration(fixture.version, func(db *sql.DB) error {
+			_, err := db.Exec(upSQL)
+			return err
+		}, func(db *sql.DB) error {
+			_, err := db.Exec(downSQL)
+			return err
 		})
 	}
 }
