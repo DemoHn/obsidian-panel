@@ -20,7 +20,9 @@ func Up_20190313010557(db *sql.DB) error {
 		public_key blob not null,
 		private_key blob not null,
 		algorithm varchar(12) not null,
-		active boolean
+		active boolean,
+		created_at datetime not null,
+		updated_at datetime not null 
 	)`
 	if _, err = db.Exec(createTableStmt); err != nil {
 		return err

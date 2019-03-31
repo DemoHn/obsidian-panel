@@ -37,7 +37,9 @@ func TestAccountRepo(t *testing.T) {
 	g.Describe("account database", func() {
 		g.Before(func() {
 			db = setup()
-			db.SchemaUp()
+			if err := db.SchemaUp(); err != nil {
+				g.Fail(err)
+			}
 		})
 
 		g.After(func() {
