@@ -16,9 +16,9 @@ This package is widely used in SQL schema initialization for brand new db.
 
 ## <a name="pkg-index">Index</a>
 * [func AddMigration(version string, up migrationFunc, down migrationFunc)](#AddMigration)
-* [func Down(db *gorm.DB) error](#Down)
+* [func Down(db *sql.DB) error](#Down)
 * [func NewTemplate(name string, destFolder string) (string, error)](#NewTemplate)
-* [func Up(db *gorm.DB) error](#Up)
+* [func Up(db *sql.DB) error](#Up)
 * [type Migration](#Migration)
 * [type MigrationHistory](#MigrationHistory)
 
@@ -41,7 +41,7 @@ up operation will analyse directly
 
 ## <a name="Down">func</a> [Down](/src/target/down.go?s=98:126#L10)
 ``` go
-func Down(db *gorm.DB) error
+func Down(db *sql.DB) error
 ```
 Down - down to lowest version
 
@@ -57,7 +57,7 @@ NewTemplate - write a migration file with current timestamp to destination folde
 
 ## <a name="Up">func</a> [Up](/src/target/up.go?s=144:170#L11)
 ``` go
-func Up(db *gorm.DB) error
+func Up(db *sql.DB) error
 ```
 Up - Execute all pending migrations to up the version to the latest
 
@@ -87,8 +87,8 @@ Migration - defines the migration object that includes up & down operations
 ## <a name="MigrationHistory">type</a> [MigrationHistory](/src/target/dbmigrate.go?s=592:721#L21)
 ``` go
 type MigrationHistory struct {
-    ID      uint32 `gorm:"primary_key"`
-    Version string `gorm:"type:text; not null" json:"version"`
+    ID      uint32 `sql:"primary_key"`
+    Version string `sql:"type:text; not null" json:"version"`
 }
 
 ```

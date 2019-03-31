@@ -1,10 +1,9 @@
-package gorm
+package sqlite
 
 import (
+	"database/sql"
 	"os"
 	"testing"
-
-	gGorm "github.com/jinzhu/gorm"
 
 	// goblin
 	. "github.com/franela/goblin"
@@ -12,12 +11,12 @@ import (
 
 const sqliteFile = "/tmp/schema_test_2008.sql"
 
-func setup() *gGorm.DB {
-	db, _ := gGorm.Open("sqlite3", sqliteFile)
+func setup() *sql.DB {
+	db, _ := sql.Open("sqlite3", sqliteFile)
 	return db
 }
 
-func teardown(db *gGorm.DB) {
+func teardown(db *sql.DB) {
 	db.Close()
 	os.Remove(sqliteFile)
 }
@@ -25,7 +24,7 @@ func teardown(db *gGorm.DB) {
 func TestMigrationSchema(t *testing.T) {
 	g := Goblin(t)
 
-	var db *gGorm.DB
+	var db *sql.DB
 	var drv *Driver
 
 	g.Describe("MigrationSchema", func() {

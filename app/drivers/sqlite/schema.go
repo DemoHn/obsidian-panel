@@ -1,4 +1,4 @@
-package gorm
+package sqlite
 
 import (
 	"github.com/DemoHn/obsidian-panel/pkg/dbmigrate"
