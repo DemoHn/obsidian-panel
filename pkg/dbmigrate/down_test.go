@@ -1,17 +1,17 @@
 package dbmigrate
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/franela/goblin"
-	"github.com/jinzhu/gorm"
 )
 
 func Test_MigrateDown(t *testing.T) {
 	g := goblin.Goblin(t)
 	loadFixtures()
 
-	var db *gorm.DB
+	var db *sql.DB
 	g.Describe("dbmigrate: Down()", func() {
 		g.Before(func() {
 			db = setup()
@@ -33,19 +33,18 @@ func Test_MigrateDown(t *testing.T) {
 			// check if 3 tables are cleared
 			var expTables = []string{"table_01", "table_02", "table_03"}
 			for _, t := range expTables {
-				hasTable := db.HasTable(t)
-				g.Assert(hasTable).Eql(false)
+				var res sql.NullString
+				err := db.QueryRow("select name from sqlite_master where type = 'table' and name = ?", t).Scan(&res)
+				g.Assert(err).Eql(sql.ErrNoRows)
 			}
 
-			// ensure no data in migration_histories
-			var histories = []struct {
-				Version string
-			}{}
-			if err = db.Raw("select version from migration_histories").Scan(&histories).Error; err != nil {
+			var count int
+			err = db.QueryRow("select count(*) from migration_history").Scan(&count)
+			if err != nil {
 				g.Fail(err)
 			}
 
-			g.Assert(len(histories)).Equal(0)
+			g.Assert(count).Equal(0)
 		})
 	})
 }

@@ -4,11 +4,11 @@
 package dbmigrate
 
 import (
-	"github.com/jinzhu/gorm"
+	"database/sql"
 )
 
-type migrationFunc func(db *gorm.DB) error
-type txCallback func(tx *gorm.DB) error
+type migrationFunc func(db *sql.DB) error
+type txCallback func(tx *sql.Tx) error
 
 // Migration - defines the migration object that includes up & down operations
 type Migration struct {
@@ -19,8 +19,8 @@ type Migration struct {
 
 // MigrationHistory - defines the db model of logging migrations
 type MigrationHistory struct {
-	ID      uint32 `gorm:"primary_key"`
-	Version string `gorm:"type:text; not null" json:"version"`
+	ID      uint32
+	Version string
 }
 
 var (
@@ -50,19 +50,26 @@ func DownTo(version string) error {
 }
 */
 
-func initMigrationTable(db *gorm.DB) error {
+func initMigrationTable(db *sql.DB) error {
 	var err error
-	if !db.HasTable(&MigrationHistory{}) {
-		db = db.CreateTable(&MigrationHistory{})
-		err = db.Error
-	}
+	// DB statements
+	// db name: migration_history
+	var createTableStmt = `create table if not exists 
+	migration_history (
+		id integer primary key autoincrement,
+		version text not null
+	)`
 
-	return err
+	if _, err = db.Exec(createTableStmt); err != nil {
+		return err
+	}
+	return nil
 }
 
-func readMigrationTable(db *gorm.DB, isAsc bool) ([]string, error) {
+func readMigrationTable(db *sql.DB, isAsc bool) ([]string, error) {
 	var err error
 	var versions []MigrationHistory
+	var rows *sql.Rows
 
 	var orderStr string
 	if isAsc {
@@ -70,8 +77,24 @@ func readMigrationTable(db *gorm.DB, isAsc bool) ([]string, error) {
 	} else {
 		orderStr = "id desc"
 	}
-	if err = db.Order(orderStr).Find(&versions).Error; err != nil {
+
+	// query data
+	var queryStmt = `select id,version from migration_history order by ?`
+	if rows, err = db.Query(queryStmt, orderStr); err != nil {
 		return nil, err
+	}
+
+	for rows.Next() {
+		var id uint32
+		var version string
+		if err = rows.Scan(&id, &version); err != nil {
+			return nil, err
+		}
+
+		versions = append(versions, MigrationHistory{
+			ID:      id,
+			Version: version,
+		})
 	}
 	// map results to ordered array of existing versions
 	var versionArr = []string{}
@@ -107,24 +130,26 @@ func filterMigrations(storedVersions []string, migrations []*Migration, exclude 
 }
 
 // helpers
-func transaction(db *gorm.DB, fn txCallback) error {
+func transaction(db *sql.DB, fn txCallback) error {
 	var finish = false
 	var err error
-	tx := db.Begin()
+
+	// begin transaction
+	tx, err := db.Begin()
 	defer func() {
 		if finish != true {
 			tx.Rollback()
 		}
 	}()
-	if tx.Error != nil {
-		return tx.Error
+	if err != nil {
+		return err
 	}
 	// execute
 	if err = fn(tx); err != nil {
 		return err
 	}
 	// commit
-	if err = tx.Commit().Error; err != nil {
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 	// finish transaction

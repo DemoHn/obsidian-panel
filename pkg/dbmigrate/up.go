@@ -1,14 +1,13 @@
 package dbmigrate
 
 import (
+	"database/sql"
 	"fmt"
 	"sort"
-
-	"github.com/jinzhu/gorm"
 )
 
 // Up - Execute all pending migrations to up the version to the latest
-func Up(db *gorm.DB) error {
+func Up(db *sql.DB) error {
 	var err error
 	if err = initMigrationTable(db); err != nil {
 		return fmt.Errorf("init migration table failed: %s", err.Error())
@@ -31,19 +30,18 @@ func Up(db *gorm.DB) error {
 	return nil
 }
 
-func upMigrations(db *gorm.DB, migrations []*Migration) error {
+func upMigrations(db *sql.DB, migrations []*Migration) error {
 	var err error
 	for _, mg := range migrations {
-		err = transaction(db, func(tx *gorm.DB) error {
+		err = transaction(db, func(tx *sql.Tx) error {
 			var e error
 			if e = mg.Up(db); e != nil {
 				return e
 			}
 			// add item to migration_history
-			if e = db.Create(&MigrationHistory{Version: mg.Version}).Error; e != nil {
-				return e
-			}
-			return nil
+			var createStmt = `insert into migration_history (version) values (?)`
+			_, e = db.Exec(createStmt, mg.Version)
+			return e
 		})
 
 		if err != nil {
