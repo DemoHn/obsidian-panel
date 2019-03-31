@@ -61,7 +61,7 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 	log := infra.GetMainLogger()
 
 	log.Info("going to upgrade core db schema")
-	if err = drv.Gorm.SchemaUp(); err != nil {
+	if err = drv.Sqlite.SchemaUp(); err != nil {
 		return err
 	}
 	log.Info("upgrade core db schema finish")

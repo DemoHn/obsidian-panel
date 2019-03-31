@@ -11,7 +11,7 @@ import (
 func Test_NewTemplate(t *testing.T) {
 	g := goblin.Goblin(t)
 
-	//var db *gorm.DB
+	//var db *sql.DB
 	g.Describe("dbmigrate: NewTemplate()", func() {
 
 		g.It("should write to tmp folder", func() {
