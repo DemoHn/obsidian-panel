@@ -13,7 +13,7 @@ var apmKillCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		var p *providers.Providers
-		if p, err = util.LoadAppFromCmd(cmd); err != nil {
+		if p, err = util.LoadProvidersFromCmd(cmd); err != nil {
 			log.PrintError(err)
 			return
 		}

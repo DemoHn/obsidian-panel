@@ -1,23 +1,32 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/DemoHn/obsidian-panel/app"
 	"github.com/DemoHn/obsidian-panel/cmd/obs/account"
 	"github.com/DemoHn/obsidian-panel/cmd/obs/apm"
+	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/DemoHn/obsidian-panel/util"
 
 	"github.com/spf13/cobra"
 )
+
+var log = infra.GetCLILogger()
 
 var rootCmd = &cobra.Command{
 	Use:     "obs",
 	Short:   "obsidian-panel main command",
 	Version: "0.7.0",
 	Run: func(cmd *cobra.Command, args []string) {
-		//app.GetProviders(configPath, false)
-		// TODO: add server init script
-		fmt.Println("Hello World!")
+		var err error
+		var appInstance *app.App
+		if appInstance, err = util.LoadAppFromCmd(cmd); err != nil {
+			log.PrintError(err)
+			return
+		}
+
+		log.PrintError(appInstance.Start())
 	},
 	SilenceUsage: true,
 }

@@ -20,6 +20,8 @@ require (
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jinzhu/now v0.0.0-20181116074157-8ec929ed50c3 // indirect
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1 // indirect
+	github.com/labstack/echo v3.3.10+incompatible
+	github.com/labstack/gommon v0.2.8 // indirect
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -30,6 +32,7 @@ require (
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
+	github.com/valyala/fasttemplate v1.0.1 // indirect
 	golang.org/x/crypto v0.0.0-20190123085648-057139ce5d2b
 	golang.org/x/net v0.0.0-20181106065722-10aee1819953
 	google.golang.org/appengine v1.4.0 // indirect

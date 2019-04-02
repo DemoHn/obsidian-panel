@@ -6,9 +6,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// LoadAppFromCmd - init app and get providers from cobra.Command object
+// LoadAppFromCmd - init and get app instance from cobra.Command object
 // directly. This is usually for further manipulation after app initialized.
-func LoadAppFromCmd(cmd *cobra.Command) (*providers.Providers, error) {
+func LoadAppFromCmd(cmd *cobra.Command) (*app.App, error) {
+	app, err := loadAppFromCmd(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
+}
+
+// LoadProvidersFromCmd - init app and get providers from cobra.Command object
+// directly. This is usually for further manipulation after app initialized.
+func LoadProvidersFromCmd(cmd *cobra.Command) (*providers.Providers, error) {
+	app, err := loadAppFromCmd(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return app.GetProviders(), nil
+}
+
+func loadAppFromCmd(cmd *cobra.Command) (*app.App, error) {
 	var err error
 	var configPath = ""
 	var debugMode = false
@@ -27,5 +47,5 @@ func LoadAppFromCmd(cmd *cobra.Command) (*providers.Providers, error) {
 		return nil, err
 	}
 
-	return appInstance.GetProviders(), nil
+	return appInstance, nil
 }

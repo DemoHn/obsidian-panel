@@ -57,6 +57,11 @@ func (app *App) GetDrivers() *drivers.Drivers {
 	return app.Drivers
 }
 
+// Start - start application
+func (app *App) Start() error {
+	return app.Drivers.Echo.Listen()
+}
+
 // internal functions
 func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Providers) error {
 	var err error
