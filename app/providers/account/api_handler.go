@@ -14,8 +14,9 @@ type LoginRequest struct {
 
 func (p iProvider) registerAPIs() {
 	e := p.echo
+	router := e.GetAPIRouter("1.0")
 	// register login
-	e.POST("/api/v1.0/login", func(c echo.Context) error {
+	router.POST("/login", func(c echo.Context) error {
 		loginRequest := new(LoginRequest)
 
 		if err := c.Bind(loginRequest); err != nil {
