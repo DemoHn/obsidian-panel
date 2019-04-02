@@ -1,6 +1,8 @@
 package app
 
 import (
+	"database/sql"
+
 	"github.com/DemoHn/obsidian-panel/app/drivers"
 	"github.com/DemoHn/obsidian-panel/app/providers"
 	"github.com/DemoHn/obsidian-panel/infra"
@@ -69,8 +71,10 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 	// 02. generate new secret key if not exists
 	if _, err = prv.Secret.GetFirstSecretKey(); err != nil {
 		// if key is empty
-		if err = prv.Secret.NewSecretKey(); err != nil {
-			return err
+		if err == sql.ErrNoRows {
+			if err = prv.Secret.NewSecretKey(); err != nil {
+				return err
+			}
 		}
 	}
 
