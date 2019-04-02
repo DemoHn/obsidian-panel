@@ -43,5 +43,6 @@ func initDefaultConfig() {
 		"apm.pidFile":    "$(global.datadir)/.apm/apm.pid",
 		"apm.logFile":    "$(global.datadir)/.apm/apm.log",
 		"apm.sockFile":   "$(global.datadir)/.apm/apm.sock",
+		"api.address":    ":12138",
 	})
 }

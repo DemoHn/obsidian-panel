@@ -39,7 +39,7 @@ func Init(config *infra.Config) (*Drivers, error) {
 
 	// init echo
 	var echoDriver *echo.Driver
-	if echoDriver, err = echo.New(); err != nil {
+	if echoDriver, err = echo.New(config); err != nil {
 		return nil, err
 	}
 

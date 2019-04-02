@@ -1,6 +1,8 @@
 package account
 
 import (
+	"github.com/DemoHn/obsidian-panel/app/drivers"
+	"github.com/DemoHn/obsidian-panel/app/drivers/echo"
 	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 	"github.com/DemoHn/obsidian-panel/app/providers/secret"
 
@@ -20,6 +22,7 @@ type Provider interface {
 
 type iProvider struct {
 	db             *sqlite.Driver
+	echo           *echo.Driver
 	secretProvider secret.Provider
 }
 
@@ -32,15 +35,29 @@ type Account struct {
 }
 
 // New - new provider with necessary components
-func New(db *sqlite.Driver, secretProvider secret.Provider) Provider {
-	return &iProvider{
-		db:             db,
+func New(drv *drivers.Drivers, secretProvider secret.Provider) Provider {
+	p := &iProvider{
+		db:             drv.Sqlite,
+		echo:           drv.Echo,
 		secretProvider: secretProvider,
 	}
+
+	p.registerAPIs()
+	return p
 }
 
 // RegisterAdmin - create admin service
 func (p iProvider) RegisterAdmin(name string, password string) error {
+	return p.registerAdmin(name, password)
+}
+
+// Login - get a new signed JWT to login the obsidian-panel
+func (p iProvider) Login(name string, password string) (string, error) {
+	return p.login(name, password)
+}
+
+// internal functions
+func (p iProvider) registerAdmin(name string, password string) error {
 	// TODO: add password rule check?
 
 	// generate hashKey
@@ -56,7 +73,7 @@ func (p iProvider) RegisterAdmin(name string, password string) error {
 	return insertAccountRecord(p.db, &acct)
 }
 
-func (p iProvider) Login(name string, password string) (string, error) {
+func (p iProvider) login(name string, password string) (string, error) {
 	var err error
 	var acct *Account
 	// find account
