@@ -9,3 +9,5 @@ apm:
   pidFile: $(apm.dir)/apm.pid
   logFile: $(apm.dir)/apm.log
   sockFile: $(apm.dir)/apm.sock
+api:
+  address: ":12139"
