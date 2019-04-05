@@ -18,7 +18,7 @@ type Driver struct {
 	grpcServer *grpcI.Server
 }
 
-// New - new srpc driver (rpc handler, tcp server)
+// New - new grpc driver (rpc handler, tcp server)
 func New(host string, port int) (*Driver, error) {
 	return &Driver{
 		host:       host,
