@@ -9,6 +9,9 @@ require (
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/franela/goblin v0.0.0-20181003173013-ead4ad1d2727
+	github.com/go-playground/locales v0.12.1 // indirect
+	github.com/go-playground/universal-translator v0.16.0 // indirect
+	github.com/go-playground/validator v9.28.0+incompatible
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/golang/mock v1.2.0
@@ -22,6 +25,7 @@ require (
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1 // indirect
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.2.8 // indirect
+	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -38,5 +42,6 @@ require (
 	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/grpc v1.17.0
 	gopkg.in/AlecAivazis/survey.v1 v1.8.2
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )

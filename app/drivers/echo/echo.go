@@ -5,6 +5,8 @@ import (
 
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/labstack/echo"
+
+	"github.com/go-playground/validator"
 )
 
 // Driver - echo http driver
@@ -25,6 +27,8 @@ func New(config *infra.Config) (*Driver, error) {
 	var err error
 
 	e := echo.New()
+	e.Validator = &structValidator{validator: validator.New()}
+
 	if address, err = config.FindString("api.address"); err != nil {
 		return nil, err
 	}

@@ -50,3 +50,38 @@ func NewErrorClass(classCode int) *ErrorClass {
 		ClassCode: classCode,
 	}
 }
+
+// general error class
+
+// UnknownServerError - general unknown server error
+func UnknownServerError(err error) *Error {
+	return &Error{
+		Name:       "UnknownServerError",
+		StatusCode: 500,
+		ErrorCode:  50000,
+		Detail:     err.Error(),
+		Info:       nil,
+	}
+}
+
+// ValidationError - server request validation error
+func ValidationError(err error) *Error {
+	return &Error{
+		Name:       "ValidationError",
+		StatusCode: 400,
+		ErrorCode:  50001,
+		Detail:     err.Error(),
+		Info:       nil,
+	}
+}
+
+// GeneralHTTPError - from http framework (e.g. echo)
+func GeneralHTTPError(code int, info interface{}) *Error {
+	return &Error{
+		Name:       "GeneralHTTPError",
+		StatusCode: code,
+		ErrorCode:  50002,
+		Detail:     fmt.Sprintf("%v", info),
+		Info:       info,
+	}
+}

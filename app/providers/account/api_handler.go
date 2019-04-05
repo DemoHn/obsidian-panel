@@ -8,8 +8,8 @@ import (
 
 // LoginRequest -
 type LoginRequest struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Name     string `json:"name" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (p iProvider) registerAPIs() {
@@ -22,10 +22,13 @@ func (p iProvider) registerAPIs() {
 		if err := c.Bind(loginRequest); err != nil {
 			return err
 		}
+		if err := c.Validate(loginRequest); err != nil {
+			return err
+		}
 
 		jwt, err := p.Login(loginRequest.Name, loginRequest.Password)
 		if err != nil {
-			return c.String(http.StatusBadRequest, err.Error())
+			return err
 		}
 		return c.String(http.StatusOK, jwt)
 	})
