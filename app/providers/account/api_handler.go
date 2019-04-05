@@ -12,6 +12,11 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// LoginResponse -
+type LoginResponse struct {
+	Jwt string
+}
+
 func (p iProvider) registerAPIs() {
 	e := p.echo
 	router := e.GetAPIRouter("1.0")
@@ -30,6 +35,8 @@ func (p iProvider) registerAPIs() {
 		if err != nil {
 			return err
 		}
-		return c.String(http.StatusOK, jwt)
+		return c.JSON(http.StatusOK, &LoginResponse{
+			Jwt: jwt,
+		})
 	})
 }
