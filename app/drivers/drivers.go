@@ -4,7 +4,6 @@ import (
 	"github.com/DemoHn/obsidian-panel/app/drivers/echo"
 	"github.com/DemoHn/obsidian-panel/app/drivers/grpc"
 	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
-	"github.com/DemoHn/obsidian-panel/app/drivers/srpc"
 	"github.com/DemoHn/obsidian-panel/infra"
 )
 
@@ -15,9 +14,6 @@ type Drivers struct {
 	// Grpc - grpc wrapper, with middlewares automatically loaded
 	// when init
 	Grpc *grpc.Driver
-	// Srpc - Golang's internal rpc package wrapper. will be deprecated
-	// in the future
-	Srpc *srpc.Driver
 	// Echo - Echo http server. used to handle API requests
 	Echo *echo.Driver
 }
@@ -47,7 +43,6 @@ func Init(config *infra.Config) (*Drivers, error) {
 		Sqlite: sqliteDriver,
 		Grpc:   grpcDriver,
 		Echo:   echoDriver,
-		Srpc:   nil,
 	}, nil
 }
 
