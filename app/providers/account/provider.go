@@ -18,12 +18,20 @@ var config = infra.GetConfig()
 type Provider interface {
 	RegisterAdmin(name string, password string) error
 	Login(name string, password string) (string, error)
+	ListAccountsByFilter(filter AccountsFilter) ([]Account, error)
 }
 
 type iProvider struct {
 	db             *sqlite.Driver
 	echo           *echo.Driver
 	secretProvider secret.Provider
+}
+
+// AccountsFilter - define filter properties for listing accounts
+type AccountsFilter struct {
+	nameLike *string
+	limit    *int
+	offset   *int
 }
 
 // Account - account model
@@ -49,6 +57,10 @@ func New(drv *drivers.Drivers, secretProvider secret.Provider) Provider {
 // RegisterAdmin - create admin service
 func (p iProvider) RegisterAdmin(name string, password string) error {
 	return p.registerAdmin(name, password)
+}
+
+func (p iProvider) ListAccountsByFilter(filter AccountsFilter) ([]Account, error) {
+	return p.listAccountsByFilter(filter)
 }
 
 // Login - get a new signed JWT to login the obsidian-panel
@@ -96,4 +108,8 @@ func (p iProvider) login(name string, password string) (string, error) {
 		"accountId": acct.ID,
 		"name":      acct.Name,
 	}, secret.PrivateKey)
+}
+
+func (p iProvider) listAccountsByFilter(filter AccountsFilter) ([]Account, error) {
+	return listAccountsRecord(p.db, filter)
 }

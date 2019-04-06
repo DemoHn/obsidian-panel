@@ -21,6 +21,9 @@ type Context = echo.Context
 // Group - same as `echo.Group`
 type Group = echo.Group
 
+// HandlerFunc
+type HandlerFunc = echo.HandlerFunc
+
 // New - new echo instance
 func New(config *infra.Config) (*Driver, error) {
 	var address string
