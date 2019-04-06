@@ -3,6 +3,7 @@ package account
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
@@ -12,6 +13,7 @@ const (
 	tableName     = "accounts"
 	allColumns    = "id, name, credential, permission_level"
 	insertColumns = "name, credential, permission_level"
+	listColumns   = "id, name, permission_level"
 )
 
 // PermLevel - a type defines permission level constants
@@ -48,41 +50,56 @@ func insertAccountRecord(db *sqlite.Driver, account *Account) error {
 	return err
 }
 
-// ListAccountsRecord - list account data
+// ListAccountsRecord - list account data (without displaying credential, of course)
 // notice: limit, offset can be optional
 // notice2: offset only affective when limit is not null
-func listAccountsRecord(db *sqlite.Driver, limit *int, offset *int) ([]Account, error) {
+func listAccountsRecord(db *sqlite.Driver, filter AccountsFilter) ([]Account, error) {
 	var err error
 	var rows *sql.Rows
-	// valiation on limit
-	var limitStr = ""
-	var offsetStr = ""
-	if limit != nil {
-		if *limit < 0 {
+
+	// if true, prepend "where" statement on the query string
+	var whereFlag = false
+	var conditionBlocks = []string{}
+	var valueBlocks = []interface{}{}
+
+	if filter.nameLike != nil {
+		whereFlag = true
+		conditionBlocks = append(conditionBlocks, "name like ?")
+		valueBlocks = append(valueBlocks, *(filter.nameLike))
+	}
+	// limit
+	if filter.limit != nil {
+		if *(filter.limit) < 0 {
 			return nil, ValidationError("limit < 0")
 		}
 
-		limitStr = fmt.Sprintf("limit %d", *limit)
+		conditionBlocks = append(conditionBlocks, "limit ?")
+		valueBlocks = append(valueBlocks, *(filter.limit))
 	}
-	if limit != nil && offset != nil {
-		if *offset < 0 {
+	// offset
+	if filter.limit != nil && filter.offset != nil {
+		if *(filter.offset) < 0 {
 			return nil, ValidationError("offset < 0")
 		}
 
-		offsetStr = fmt.Sprintf("offset %d", *offset)
+		conditionBlocks = append(conditionBlocks, "offset ?")
+		valueBlocks = append(valueBlocks, *(filter.offset))
 	}
-
+	// add "where" statement if necessary
+	if whereFlag {
+		conditionBlocks = append([]string{"where"}, conditionBlocks...)
+	}
 	var accounts []Account
 
 	// query statement
-	var stmt = fmt.Sprintf("select %s from %s %s %s", allColumns, tableName, limitStr, offsetStr)
-	if rows, err = db.Query(stmt); err != nil {
+	var stmt = fmt.Sprintf("select %s from %s %s", listColumns, tableName, strings.Join(conditionBlocks, " "))
+	if rows, err = db.Query(stmt, valueBlocks...); err != nil {
 		return nil, SQLExecutionError(err)
 	}
 
 	for rows.Next() {
 		var newAccount Account
-		if err = rows.Scan(&newAccount.ID, &newAccount.Name, &newAccount.Credential, &newAccount.PermLevel); err != nil {
+		if err = rows.Scan(&newAccount.ID, &newAccount.Name, &newAccount.PermLevel); err != nil {
 			return nil, SQLExecutionError(err)
 		}
 

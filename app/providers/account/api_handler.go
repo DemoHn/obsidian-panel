@@ -6,6 +6,15 @@ import (
 	"github.com/DemoHn/obsidian-panel/app/drivers/echo"
 )
 
+func (p iProvider) registerAPIs() {
+	e := p.echo
+	router := e.GetAPIRouter("1.0")
+	// register login
+	router.POST("/login", loginHandler(p))
+}
+
+// internal functions
+
 // LoginRequest -
 type LoginRequest struct {
 	Name     string `json:"name" validate:"required"`
@@ -17,13 +26,9 @@ type LoginResponse struct {
 	Jwt string
 }
 
-func (p iProvider) registerAPIs() {
-	e := p.echo
-	router := e.GetAPIRouter("1.0")
-	// register login
-	router.POST("/login", func(c echo.Context) error {
+func loginHandler(p iProvider) echo.HandlerFunc {
+	return func(c echo.Context) error {
 		loginRequest := new(LoginRequest)
-
 		if err := c.Bind(loginRequest); err != nil {
 			return err
 		}
@@ -38,5 +43,5 @@ func (p iProvider) registerAPIs() {
 		return c.JSON(http.StatusOK, &LoginResponse{
 			Jwt: jwt,
 		})
-	})
+	}
 }

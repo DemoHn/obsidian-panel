@@ -82,7 +82,7 @@ func TestAccountRepo(t *testing.T) {
 
 			// list all data
 			var accts []Account
-			if accts, err = listAccountsRecord(db, nil, nil); err != nil {
+			if accts, err = listAccountsRecord(db, AccountsFilter{}); err != nil {
 				g.Fail(err)
 			}
 			g.Assert(len(accts)).Equal(10)
@@ -90,11 +90,25 @@ func TestAccountRepo(t *testing.T) {
 			// list with offset & limit
 			var limit = 3
 			var offsetA = 4
-			if accts, err = listAccountsRecord(db, &limit, &offsetA); err != nil {
+			if accts, err = listAccountsRecord(db, AccountsFilter{
+				limit:  &limit,
+				offset: &offsetA,
+			}); err != nil {
 				g.Fail(err)
 			}
 			g.Assert(len(accts)).Equal(3)
 			g.Assert(accts[0].Name).Equal("4.admin@g.com")
+			// empty credential
+			g.Assert(accts[0].Credential).Equal([]byte(nil))
+
+			var nameLikeA = "1%"
+			// list with nameLike
+			if accts, err = listAccountsRecord(db, AccountsFilter{
+				nameLike: &nameLikeA,
+			}); err != nil {
+				g.Fail(err)
+			}
+			g.Assert(len(accts)).Equal(1)
 		})
 
 		g.It("should find one account", func() {
