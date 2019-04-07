@@ -128,3 +128,15 @@ func getAccountByName(db *sqlite.Driver, name string) (*Account, error) {
 
 	return &newAccount, nil
 }
+
+// countTotalAccounts - get total accounts
+func countTotalAccounts(db *sqlite.Driver) (int, error) {
+	var err error
+	var stmt = fmt.Sprintf("select count(*) from %s", tableName)
+
+	var count int
+	if err = db.QueryRow(stmt).Scan(&count); err != nil {
+		return 0, SQLExecutionError(err)
+	}
+	return count, nil
+}
