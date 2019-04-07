@@ -18,6 +18,7 @@ var config = infra.GetConfig()
 type Provider interface {
 	RegisterAdmin(name string, password string) error
 	Login(name string, password string) (string, error)
+	CountAccounts() (int, error)
 	ListAccountsByFilter(filter AccountsFilter) ([]Account, error)
 }
 
@@ -60,7 +61,11 @@ func (p iProvider) RegisterAdmin(name string, password string) error {
 }
 
 func (p iProvider) ListAccountsByFilter(filter AccountsFilter) ([]Account, error) {
-	return p.listAccountsByFilter(filter)
+	return listAccountsRecord(p.db, filter)
+}
+
+func (p iProvider) CountAccounts() (int, error) {
+	return countTotalAccounts(p.db)
 }
 
 // Login - get a new signed JWT to login the obsidian-panel
@@ -108,8 +113,4 @@ func (p iProvider) login(name string, password string) (string, error) {
 		"accountId": acct.ID,
 		"name":      acct.Name,
 	}, secret.PrivateKey)
-}
-
-func (p iProvider) listAccountsByFilter(filter AccountsFilter) ([]Account, error) {
-	return listAccountsRecord(p.db, filter)
 }

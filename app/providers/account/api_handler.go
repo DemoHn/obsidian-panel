@@ -10,7 +10,8 @@ func (p iProvider) registerAPIs() {
 	e := p.echo
 	router := e.GetAPIRouter("1.0")
 	// register login
-	router.POST("/login", loginHandler(p))
+	router.POST("/accounts/login", loginHandler(p))
+	router.GET("/accounts", listAccountsHandler(p))
 }
 
 // internal functions
@@ -42,6 +43,51 @@ func loginHandler(p iProvider) echo.HandlerFunc {
 		}
 		return c.JSON(http.StatusOK, &LoginResponse{
 			Jwt: jwt,
+		})
+	}
+}
+
+// ListAccountsRequest -
+type ListAccountsRequest struct {
+	NameLike *string `query:"name"`
+	Limit    *int    `query:"limit"`
+	Offset   *int    `query:"offset"`
+}
+
+// ListAccountsResponse -
+type ListAccountsResponse struct {
+	Total    int       `json:"total"`
+	Accounts []Account `json:"accounts"`
+}
+
+func listAccountsHandler(p iProvider) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := new(ListAccountsRequest)
+		if err := c.Bind(req); err != nil {
+			return err
+		}
+		if err := c.Validate(req); err != nil {
+			return err
+		}
+
+		var filter = AccountsFilter{
+			nameLike: req.NameLike,
+			limit:    req.Limit,
+			offset:   req.Offset,
+		}
+
+		accts, err := p.ListAccountsByFilter(filter)
+		if err != nil {
+			return err
+		}
+		count, err := p.CountAccounts()
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &ListAccountsResponse{
+			Total:    count,
+			Accounts: accts,
 		})
 	}
 }
