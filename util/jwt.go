@@ -1,4 +1,4 @@
-package account
+package util
 
 import (
 	"crypto/rsa"
@@ -6,10 +6,15 @@ import (
 	"encoding/pem"
 	"time"
 
+	"github.com/DemoHn/obsidian-panel/infra"
+
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func signJWT(payload map[string]interface{}, secret []byte) (string, error) {
+var log = infra.GetMainLogger()
+
+// SignJWT -
+func SignJWT(payload map[string]interface{}, secret []byte) (string, error) {
 	claims := jwt.MapClaims{}
 	for key, val := range payload {
 		claims[key] = val

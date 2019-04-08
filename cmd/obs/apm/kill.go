@@ -1,8 +1,8 @@
 package apm
 
 import (
+	"github.com/DemoHn/obsidian-panel/app"
 	"github.com/DemoHn/obsidian-panel/app/providers"
-	"github.com/DemoHn/obsidian-panel/util"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var apmKillCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		var p *providers.Providers
-		if p, err = util.LoadProvidersFromCmd(cmd); err != nil {
+		if p, err = app.LoadProvidersFromCmd(cmd); err != nil {
 			log.PrintError(err)
 			return
 		}

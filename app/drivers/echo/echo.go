@@ -50,6 +50,17 @@ func (drv *Driver) GetAPIRouter(version string) *Group {
 	return drv.Echo.Group(prefix)
 }
 
+// LoadPermissionMiddleware - require secretPublicKey for jwt authentication
+func (drv *Driver) LoadPermissionMiddleware(secretPublicKey []byte) {
+	var middleware = func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			return next(c)
+		}
+	}
+
+	drv.Echo.Use(middleware)
+}
+
 // Listen - listen to a preset port
 func (drv *Driver) Listen() error {
 	// hardcore first
