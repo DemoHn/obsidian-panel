@@ -6,6 +6,7 @@ import (
 	"github.com/DemoHn/obsidian-panel/app/drivers"
 	"github.com/DemoHn/obsidian-panel/app/providers"
 	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/spf13/cobra"
 )
 
 // App - main app
@@ -62,6 +63,28 @@ func (app *App) Start() error {
 	return app.Drivers.Echo.Listen()
 }
 
+// LoadAppFromCmd - init and get app instance from cobra.Command object
+// directly. This is usually for further manipulation after app initialized.
+func LoadAppFromCmd(cmd *cobra.Command) (*App, error) {
+	app, err := loadAppFromCmd(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
+}
+
+// LoadProvidersFromCmd - init app and get providers from cobra.Command object
+// directly. This is usually for further manipulation after app initialized.
+func LoadProvidersFromCmd(cmd *cobra.Command) (*providers.Providers, error) {
+	app, err := loadAppFromCmd(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return app.GetProviders(), nil
+}
+
 // internal functions
 func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Providers) error {
 	var err error
@@ -74,7 +97,8 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 	log.Info("upgrade core db schema finish")
 
 	// 02. generate new secret key if not exists
-	if _, err = prv.Secret.GetFirstSecretKey(); err != nil {
+	secret, err := prv.Secret.GetFirstSecretKey()
+	if err != nil {
 		// if key is empty
 		if err == sql.ErrNoRows {
 			if err = prv.Secret.NewSecretKey(); err != nil {
@@ -82,8 +106,32 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 			}
 		}
 	}
+	// 03. load permission middleware
+	drv.Echo.LoadPermissionMiddleware(secret.PublicKey)
 
-	// 03. reload process manager config
+	// 04. reload process manager config
 	prv.ProcessManager.ReloadConfig(config)
 	return nil
+}
+
+func loadAppFromCmd(cmd *cobra.Command) (*App, error) {
+	var err error
+	var configPath = ""
+	var debugMode = false
+
+	// init flags
+	flagset := cmd.Flags()
+	if configPath, err = flagset.GetString("config"); err != nil {
+		return nil, err
+	}
+	if debugMode, err = flagset.GetBool("debug"); err != nil {
+		return nil, err
+	}
+
+	var appInstance *App
+	if appInstance, err = New(configPath, debugMode); err != nil {
+		return nil, err
+	}
+
+	return appInstance, nil
 }

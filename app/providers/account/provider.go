@@ -5,6 +5,7 @@ import (
 	"github.com/DemoHn/obsidian-panel/app/drivers/echo"
 	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 	"github.com/DemoHn/obsidian-panel/app/providers/secret"
+	"github.com/DemoHn/obsidian-panel/util"
 
 	// init infra configs
 	"github.com/DemoHn/obsidian-panel/infra"
@@ -109,7 +110,7 @@ func (p iProvider) login(name string, password string) (string, error) {
 		return "", err
 	}
 
-	return signJWT(map[string]interface{}{
+	return util.SignJWT(map[string]interface{}{
 		"accountId":  acct.ID,
 		"name":       acct.Name,
 		"permission": acct.PermLevel,

@@ -7,7 +7,6 @@ import (
 	"github.com/DemoHn/obsidian-panel/cmd/obs/account"
 	"github.com/DemoHn/obsidian-panel/cmd/obs/apm"
 	"github.com/DemoHn/obsidian-panel/infra"
-	"github.com/DemoHn/obsidian-panel/util"
 
 	"github.com/spf13/cobra"
 )
@@ -21,7 +20,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		var appInstance *app.App
-		if appInstance, err = util.LoadAppFromCmd(cmd); err != nil {
+		if appInstance, err = app.LoadAppFromCmd(cmd); err != nil {
 			log.PrintError(err)
 			return
 		}
