@@ -110,7 +110,8 @@ func (p iProvider) login(name string, password string) (string, error) {
 	}
 
 	return signJWT(map[string]interface{}{
-		"accountId": acct.ID,
-		"name":      acct.Name,
+		"accountId":  acct.ID,
+		"name":       acct.Name,
+		"permission": acct.PermLevel,
 	}, secret.PrivateKey)
 }
