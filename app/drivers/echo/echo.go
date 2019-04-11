@@ -2,11 +2,13 @@ package echo
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/DemoHn/obsidian-panel/util"
 
 	"github.com/DemoHn/obsidian-panel/infra"
-	"github.com/labstack/echo"
-
 	"github.com/go-playground/validator"
+	"github.com/labstack/echo"
 )
 
 // Driver - echo http driver
@@ -54,6 +56,36 @@ func (drv *Driver) GetAPIRouter(version string) *Group {
 func (drv *Driver) LoadPermissionMiddleware(secretPublicKey []byte) {
 	var middleware = func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			ctx, ok := c.(ExtendContext)
+			if !ok {
+				return fmt.Errorf("invalid echo.Context type: ExtendContext")
+			}
+
+			// get header
+			var authHeader = ctx.Request().Header.Get("Authorization")
+			var permissions = ctx.GetPermissions()
+			// authorize
+			if len(permissions) > 0 {
+				rawHeader, err := parseAuthHeader(authHeader)
+				if err != nil {
+					return err
+				}
+				// verify rawHeader
+				token, err := util.VerifyAndDecodeJWT(rawHeader, secretPublicKey)
+				if err != nil {
+					return err
+				}
+
+				var tokPerm = token["permission"]
+				// check if permission validates
+				for _, p := range permissions {
+					if p == tokPerm {
+						return next(c)
+					}
+				}
+
+				return fmt.Errorf("invalid permission: %s", tokPerm)
+			}
 			return next(c)
 		}
 	}
@@ -63,6 +95,29 @@ func (drv *Driver) LoadPermissionMiddleware(secretPublicKey []byte) {
 
 // Listen - listen to a preset port
 func (drv *Driver) Listen() error {
-	// hardcore first
 	return drv.Start(drv.address)
+}
+
+// Permission - compose a Middleware
+func (drv *Driver) Permission(perms ...string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			ctx, ok := c.(ExtendContext)
+			if !ok {
+				return fmt.Errorf("invalid echo.Context type: ExtendContext")
+			}
+			ctx.SetPermissions(perms...)
+			return next(ctx)
+		}
+	}
+}
+
+// internal function
+func parseAuthHeader(authHeader string) (string, error) {
+	const Bearer = "Bearer "
+	if strings.HasPrefix(authHeader, Bearer) {
+		return authHeader[len(Bearer):], nil
+	}
+
+	return "", fmt.Errorf("invalid authorization header (should be 'Bearer' prefix)")
 }
