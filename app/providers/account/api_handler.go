@@ -11,7 +11,8 @@ func (p iProvider) registerAPIs() {
 	router := e.GetAPIRouter("1.0")
 	// register login
 	router.POST("/accounts/login", loginHandler(p))
-	router.GET("/accounts", listAccountsHandler(p), e.Permission("USER", "ADMIN"))
+	// list all accounts - only ADMIN could have such permission
+	router.GET("/accounts", listAccountsHandler(p), e.Permission("ADMIN"))
 }
 
 // internal functions
