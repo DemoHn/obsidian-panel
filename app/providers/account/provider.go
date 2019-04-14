@@ -21,6 +21,8 @@ type Provider interface {
 	Login(name string, password string) (string, error)
 	CountAccounts() (int, error)
 	ListAccountsByFilter(filter AccountsFilter) ([]Account, error)
+	ResetPassword(name string, newPassword string) (string, error)
+	ChangePermission(name string, newPerm PermLevel) (*Account, error)
 }
 
 type iProvider struct {
@@ -67,6 +69,44 @@ func (p iProvider) ListAccountsByFilter(filter AccountsFilter) ([]Account, error
 
 func (p iProvider) CountAccounts() (int, error) {
 	return countTotalAccounts(p.db)
+}
+
+func (p iProvider) ResetPassword(name string, newPassword string) (string, error) {
+	var err error
+	var acct *Account
+	// find account
+	if acct, err = getAccountByName(p.db, name); err != nil {
+		return "", err
+	}
+
+	// get secret key
+	secret, err := p.secretProvider.GetFirstSecretKey()
+	if err != nil {
+		return "", err
+	}
+	// generate hashKey with new Password
+	hashKey := generatePasswordHash(newPassword)
+	// update credential
+	if acct, err = changeCredential(p.db, acct, hashKey); err != nil {
+		return "", err
+	}
+
+	return util.SignJWT(map[string]interface{}{
+		"accountId":  acct.ID,
+		"name":       acct.Name,
+		"permission": acct.PermLevel,
+	}, secret.PrivateKey)
+}
+
+func (p iProvider) ChangePermission(name string, newPerm PermLevel) (*Account, error) {
+	var err error
+	var acct *Account
+	// find account
+	if acct, err = getAccountByName(p.db, name); err != nil {
+		return nil, err
+	}
+
+	return changePermission(p.db, acct, newPerm)
 }
 
 // Login - get a new signed JWT to login the obsidian-panel
