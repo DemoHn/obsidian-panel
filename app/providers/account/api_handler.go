@@ -13,6 +13,10 @@ func (p iProvider) registerAPIs() {
 	router.POST("/accounts/login", loginHandler(p))
 	// list all accounts - only ADMIN could have such permission
 	router.GET("/accounts", listAccountsHandler(p), e.Permission("ADMIN"))
+	// change password
+	router.PATCH("/accounts/password", changePasswordHandler(p), e.Permission("ADMIN"))
+	// change permission
+	router.PATCH("/account/permission", changePermissionHandler(p), e.Permission("ADMIN"))
 }
 
 // internal functions
@@ -89,6 +93,70 @@ func listAccountsHandler(p iProvider) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, &ListAccountsResponse{
 			Total:    count,
 			Accounts: accts,
+		})
+	}
+}
+
+// ChangePasswordRequest -
+type ChangePasswordRequest struct {
+	Name     string `json:"name" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+// ChangePasswordResponse -
+type ChangePasswordResponse struct {
+	Jwt string
+}
+
+func changePasswordHandler(p iProvider) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := new(ChangePasswordRequest)
+		if err := c.Bind(req); err != nil {
+			return err
+		}
+		if err := c.Validate(req); err != nil {
+			return err
+		}
+		// handle request
+		jwt, err := p.ResetPassword(req.Name, req.Password)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &ChangePasswordResponse{
+			Jwt: jwt,
+		})
+	}
+}
+
+// ChangePermissionRequest -
+type ChangePermissionRequest struct {
+	Name       string `json:"name" validate:"required"`
+	Permission string `json:"permission" validate:"oneof=ADMIN,USER"`
+}
+
+// ChangePermissionResponse -
+type ChangePermissionResponse struct {
+	Account *Account
+}
+
+func changePermissionHandler(p iProvider) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := new(ChangePermissionRequest)
+		if err := c.Bind(req); err != nil {
+			return err
+		}
+		if err := c.Validate(req); err != nil {
+			return err
+		}
+		// handle request
+		acct, err := p.ChangePermission(req.Name, req.Permission)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, &ChangePermissionResponse{
+			Account: acct,
 		})
 	}
 }
