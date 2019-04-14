@@ -22,7 +22,7 @@ func SignJWT(payload map[string]interface{}, secret []byte) (string, error) {
 	}
 
 	claims["iss"] = "obsidian-panel"
-	claims["exp"] = time.Now().Add(60 * time.Second).Unix()
+	claims["exp"] = time.Now().Add(24 * 30 * time.Hour).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
