@@ -106,8 +106,9 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 			}
 		}
 	}
+
 	// 03. load permission middleware
-	drv.Echo.LoadPermissionMiddleware(secret.PublicKey)
+	drv.Echo.SetSecretPublicKey(secret.PublicKey)
 
 	// 04. reload process manager config
 	prv.ProcessManager.ReloadConfig(config)

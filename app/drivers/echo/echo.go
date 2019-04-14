@@ -14,7 +14,8 @@ import (
 // Driver - echo http driver
 type Driver struct {
 	*echo.Echo
-	address string
+	address       string
+	currentSecret authSecret
 }
 
 // Context - same as `echo.Context`
@@ -23,8 +24,13 @@ type Context = echo.Context
 // Group - same as `echo.Group`
 type Group = echo.Group
 
-// HandlerFunc
+// HandlerFunc -
 type HandlerFunc = echo.HandlerFunc
+
+type authSecret struct {
+	secretPublicKey []byte
+	isEnable        bool
+}
 
 // New - new echo instance
 func New(config *infra.Config) (*Driver, error) {
@@ -43,6 +49,10 @@ func New(config *infra.Config) (*Driver, error) {
 	return &Driver{
 		Echo:    e,
 		address: address,
+		currentSecret: authSecret{
+			isEnable:        false,
+			secretPublicKey: []byte{},
+		},
 	}, nil
 }
 
@@ -52,20 +62,33 @@ func (drv *Driver) GetAPIRouter(version string) *Group {
 	return drv.Echo.Group(prefix)
 }
 
-// LoadPermissionMiddleware - require secretPublicKey for jwt authentication
-func (drv *Driver) LoadPermissionMiddleware(secretPublicKey []byte) {
-	var middleware = func(next echo.HandlerFunc) echo.HandlerFunc {
+// SetSecretPublicKey -
+func (drv *Driver) SetSecretPublicKey(secretPublicKey []byte) {
+	drv.currentSecret = authSecret{
+		isEnable:        true,
+		secretPublicKey: secretPublicKey,
+	}
+}
+
+// Listen - listen to a preset port
+func (drv *Driver) Listen() error {
+	return drv.Start(drv.address)
+}
+
+// Permission - compose a Middleware that checks the permission
+func (drv *Driver) Permission(perms ...string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			ctx, ok := c.(ExtendContext)
-			if !ok {
-				return fmt.Errorf("invalid echo.Context type: ExtendContext")
+			var secretPublicKey = drv.currentSecret.secretPublicKey
+			// get secret key
+			if !drv.currentSecret.isEnable {
+				return fmt.Errorf("secretKey is not enabled - maybe forget `SetSecretPublicKey()` call")
 			}
 
 			// get header
-			var authHeader = ctx.Request().Header.Get("Authorization")
-			var permissions = ctx.GetPermissions()
+			var authHeader = c.Request().Header.Get("Authorization")
 			// authorize
-			if len(permissions) > 0 {
+			if len(perms) > 0 {
 				rawHeader, err := parseAuthHeader(authHeader)
 				if err != nil {
 					return err
@@ -78,7 +101,7 @@ func (drv *Driver) LoadPermissionMiddleware(secretPublicKey []byte) {
 
 				var tokPerm = token["permission"]
 				// check if permission validates
-				for _, p := range permissions {
+				for _, p := range perms {
 					if p == tokPerm {
 						return next(c)
 					}
@@ -87,27 +110,6 @@ func (drv *Driver) LoadPermissionMiddleware(secretPublicKey []byte) {
 				return fmt.Errorf("invalid permission: %s", tokPerm)
 			}
 			return next(c)
-		}
-	}
-
-	drv.Echo.Use(middleware)
-}
-
-// Listen - listen to a preset port
-func (drv *Driver) Listen() error {
-	return drv.Start(drv.address)
-}
-
-// Permission - compose a Middleware
-func (drv *Driver) Permission(perms ...string) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			ctx, ok := c.(ExtendContext)
-			if !ok {
-				return fmt.Errorf("invalid echo.Context type: ExtendContext")
-			}
-			ctx.SetPermissions(perms...)
-			return next(ctx)
 		}
 	}
 }
