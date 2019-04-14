@@ -140,3 +140,27 @@ func countTotalAccounts(db *sqlite.Driver) (int, error) {
 	}
 	return count, nil
 }
+
+// changePermission - change permission of one account
+func changePermission(db *sqlite.Driver, acct *Account, newPerm PermLevel) (*Account, error) {
+	var err error
+	var stmt = fmt.Sprintf("update %s set permission_level = ? where id = ?", tableName)
+	if _, err = db.Exec(stmt, newPerm, acct.ID); err != nil {
+		return nil, err
+	}
+
+	acct.PermLevel = newPerm
+	return acct, nil
+}
+
+// changeCredential - update credential
+func changeCredential(db *sqlite.Driver, acct *Account, credential []byte) (*Account, error) {
+	var err error
+	var stmt = fmt.Sprintf("update %s set credential = ? where id = ?", tableName)
+	if _, err = db.Exec(stmt, credential, acct.ID); err != nil {
+		return nil, err
+	}
+
+	acct.Credential = credential
+	return acct, nil
+}
