@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/DemoHn/obsidian-panel/util"
 
 	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 )
@@ -119,6 +120,72 @@ func (p iProvider) ToggleSecretKey(id int, isActive bool) error {
 // GetFirstSecretKey - get first (i.e. most recent generated) secret key pair
 func (p iProvider) GetFirstSecretKey() (*Secret, error) {
 	return getFirstActiveSecret(p.db)
+
+}
+
+// NewUserSecret - create user secret for login
+func (p iProvider) NewUserSecret(accountID int) (string, error) {
+	var err error
+	// verify accountID first
+	if err = verifyAccountID(p.db, accountID); err != nil {
+		return "", err
+	}
+	// new rsa key pair
+	publicBytes, privateBytes, err := generateRsaKeyPair(512)
+	if err != nil {
+		return "", err
+	}
+	// generate jwt using privateKey
+	jwt, err := util.SignJWT(map[string]interface{}{
+		"accountId": accountID,
+	}, privateBytes)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err = insertUserPublicKey(p.db, accountID, publicBytes); err != nil {
+		return "", err
+	}
+
+	return jwt, nil
+}
+
+// GetUserSecret - get user secret
+func (p iProvider) GetUserSecret(accountID int) (*UserSecret, error) {
+	var err error
+	// verify accountID first
+	if err = verifyAccountID(p.db, accountID); err != nil {
+		return nil, err
+	}
+	// get user secret
+	find, secret, err := findUserSecret(p.db, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if find == false {
+		return nil, UserSecretNotFoundError(accountID)
+	}
+
+	return secret, nil
+}
+
+func (p iProvider) RevokeUserSecret(accountID int) error {
+	var err error
+	// verify accountID first
+	if err = verifyAccountID(p.db, accountID); err != nil {
+		return err
+	}
+	// get user secret
+	find, _, err := findUserSecret(p.db, accountID)
+	if err != nil {
+		return err
+	}
+	if find == false {
+		// do nothing
+		return nil
+	}
+
+	return revokeUserPublicKey(p.db, accountID)
 }
 
 // internal functions

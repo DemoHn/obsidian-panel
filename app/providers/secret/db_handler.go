@@ -112,10 +112,6 @@ func getFirstActiveSecret(db *sqlite.Driver) (*Secret, error) {
 // following time without saving to persist db
 func insertUserPublicKey(db *sqlite.Driver, accountID int, publicKey []byte) (*UserSecret, error) {
 	var err error
-	// ensure accountID exists, since we don't use foreign keys
-	if err = verifyAccountID(db, accountID); err != nil {
-		return nil, err
-	}
 
 	var insertStmt = fmt.Sprintf("insert into %s (account_id, public_key) values (?, ?)", usTableName)
 	var insertHistoryStmt = fmt.Sprintf("insert into %s (account_id, action, happened_at) values (?, ?, ?)", ushTableName)
