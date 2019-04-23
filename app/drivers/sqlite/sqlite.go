@@ -15,6 +15,9 @@ type Driver struct {
 	*sql.DB
 }
 
+// TransactionFunc - transaction function
+type TransactionFunc func(tx *sql.Tx) error
+
 // New - new SQL driver
 func New(config *infra.Config) (*Driver, error) {
 	var err error
@@ -50,4 +53,22 @@ func NewMock() (*Driver, sqlmock.Sqlmock, error) {
 		return nil, nil, err
 	}
 	return &Driver{db}, mock, nil
+}
+
+// Transaction - a wrapper for creating a transaction
+func (drv *Driver) Transaction(fn TransactionFunc) error {
+	tx, err := drv.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err := fn(tx); err != nil {
+		return tx.Rollback()
+	}
+
+	if err := tx.Commit(); err != nil {
+		return tx.Rollback()
+	}
+
+	return nil
 }

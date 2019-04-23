@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
 
@@ -16,6 +17,11 @@ type Provider interface {
 	NewSecretKey() error
 	ToggleSecretKey(id int, isActive bool) error
 	GetFirstSecretKey() (*Secret, error)
+
+	// user secrets
+	NewUserSecret(accountID int) (string, error)
+	GetUserSecret(accountID int) (*UserSecret, error)
+	RevokeUserSecret(accountID int) error
 }
 
 // Secret - JWT secret key
@@ -27,10 +33,37 @@ type Secret struct {
 	Active     bool
 }
 
+// UserSecret - get secret of a user
+type UserSecret struct {
+	ID        int
+	AccountID int
+	PublicKey []byte
+}
+
+// UserSecretHistory - record all actions of users
+type UserSecretHistory struct {
+	ID         int
+	AccountID  int
+	Action     string
+	HappenedAt time.Time
+}
+
+// UserSecretAction - define some enums for user secret actions (login/update/revoke)
+type UserSecretAction = string
+
 // iProvider - internal provider
 type iProvider struct {
 	db *sqlite.Driver
 }
+
+const (
+	// LOGIN - login
+	LOGIN UserSecretAction = "LOGIN"
+	// UPDATE - update secret key
+	UPDATE UserSecretAction = "UPDATE"
+	// REVOKE - revoke the secret key
+	REVOKE UserSecretAction = "REVOKE"
+)
 
 // helper variables
 var log = infra.GetMainLogger()
