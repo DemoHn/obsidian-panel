@@ -2,15 +2,7 @@ package secret
 
 import (
 	"database/sql/driver"
-	"fmt"
-	"testing"
 	"time"
-
-	// goblin
-	. "github.com/franela/goblin"
-
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
-	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 )
 
 type AnyTime struct{}
@@ -21,6 +13,7 @@ func (a AnyTime) Match(v driver.Value) bool {
 	return ok
 }
 
+/**
 // TODO: add unhappy flow
 func TestInsertSecretRecord(t *testing.T) {
 	g := Goblin(t)
@@ -106,3 +99,4 @@ func TestInsertSecretRecord(t *testing.T) {
 		})
 	})
 }
+*/

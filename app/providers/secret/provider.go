@@ -8,20 +8,16 @@ import (
 	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
-	"github.com/DemoHn/obsidian-panel/util"
 
 	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 )
 
 // Provider - define interface of secret Provider
 type Provider interface {
-	NewSecretKey() error
-	ToggleSecretKey(id int, isActive bool) error
-	GetFirstSecretKey() (*Secret, error)
-
 	// user secrets
-	NewUserSecret(accountID int) (string, error)
+	NewUserSecret(accountID int) ([]byte, error)
 	GetUserSecret(accountID int) (*UserSecret, error)
+	RotateUserSecret(accountID int) ([]byte, error)
 	RevokeUserSecret(accountID int) error
 }
 
@@ -76,78 +72,24 @@ func New(db *sqlite.Driver) Provider {
 	}
 }
 
-// NewSecretKey - when there's no active secret key stored in db
-// generate a new secret keypair for its usage
-// default algorithm: RS256
-func (p iProvider) NewSecretKey() error {
-	// gen RSA key pair
-	var pub, priv []byte
-	var err error
-
-	pub, priv, err = generateRsaKeyPair(1024)
-	if err != nil {
-		return err
-	}
-
-	// store data
-	var secret = Secret{
-		PublicKey:  pub,
-		PrivateKey: priv,
-		Algorithm:  "RS256",
-		Active:     true,
-	}
-
-	if err = insertSecretRecord(p.db, &secret); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ToggleSecretKey - toggle enable/disable secretKey
-func (p iProvider) ToggleSecretKey(id int, isActive bool) error {
-	var err error
-	var secret *Secret
-
-	if secret, err = findSecretByID(p.db, id); err != nil {
-		return err
-	}
-	// update data
-	_, err = toggleActiveSecret(p.db, secret, isActive)
-	return err
-}
-
-// GetFirstSecretKey - get first (i.e. most recent generated) secret key pair
-func (p iProvider) GetFirstSecretKey() (*Secret, error) {
-	return getFirstActiveSecret(p.db)
-
-}
-
 // NewUserSecret - create user secret for login
-func (p iProvider) NewUserSecret(accountID int) (string, error) {
+func (p iProvider) NewUserSecret(accountID int) ([]byte, error) {
 	var err error
 	// verify accountID first
 	if err = verifyAccountID(p.db, accountID); err != nil {
-		return "", err
+		return nil, err
 	}
 	// new rsa key pair
 	publicBytes, privateBytes, err := generateRsaKeyPair(512)
 	if err != nil {
-		return "", err
-	}
-	// generate jwt using privateKey
-	jwt, err := util.SignJWT(map[string]interface{}{
-		"accountId": accountID,
-	}, privateBytes)
-	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if _, err = insertUserPublicKey(p.db, accountID, publicBytes); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return jwt, nil
+	return privateBytes, nil
 }
 
 // GetUserSecret - get user secret
@@ -169,6 +111,37 @@ func (p iProvider) GetUserSecret(accountID int) (*UserSecret, error) {
 	return secret, nil
 }
 
+// RotateUserSecret - insert or update user secret & generate the final jwt
+func (p iProvider) RotateUserSecret(accountID int) ([]byte, error) {
+	var err error
+	// verify accountID first
+	if err = verifyAccountID(p.db, accountID); err != nil {
+		return nil, err
+	}
+	// new rsa key pair
+	publicBytes, privateBytes, err := generateRsaKeyPair(512)
+	if err != nil {
+		return nil, err
+	}
+
+	// get user secret to determine insert or update
+	find, _, err := findUserSecret(p.db, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if find == false {
+		if _, err = insertUserPublicKey(p.db, accountID, publicBytes); err != nil {
+			return nil, err
+		}
+	} else {
+		if _, err = updateUserPublicKey(p.db, accountID, publicBytes); err != nil {
+			return nil, err
+		}
+	}
+	return privateBytes, nil
+}
+
+// RevokeUserSecret - revoke user secret
 func (p iProvider) RevokeUserSecret(accountID int) error {
 	var err error
 	// verify accountID first

@@ -1,8 +1,6 @@
 package app
 
 import (
-	"database/sql"
-
 	"github.com/DemoHn/obsidian-panel/app/drivers"
 	"github.com/DemoHn/obsidian-panel/app/providers"
 	"github.com/DemoHn/obsidian-panel/infra"
@@ -96,21 +94,10 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 	}
 	log.Info("upgrade core db schema finish")
 
-	// 02. generate new secret key if not exists
-	secret, err := prv.Secret.GetFirstSecretKey()
-	if err != nil {
-		// if key is empty
-		if err == sql.ErrNoRows {
-			if err = prv.Secret.NewSecretKey(); err != nil {
-				return err
-			}
-		}
-	}
-
-	// 03. load permission middleware
+	// 02. load permission middleware
 	drv.Echo.SetSecretPublicKey(secret.PublicKey)
 
-	// 04. reload process manager config
+	// 03. reload process manager config
 	prv.ProcessManager.ReloadConfig(config)
 	return nil
 }
