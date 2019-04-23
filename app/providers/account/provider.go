@@ -80,7 +80,7 @@ func (p iProvider) ResetPassword(name string, newPassword string) (string, error
 	}
 
 	// get secret key
-	secret, err := p.secretProvider.GetFirstSecretKey()
+	privateKey, err := p.secretProvider.RotateUserSecret(acct.ID)
 	if err != nil {
 		return "", err
 	}
@@ -95,7 +95,7 @@ func (p iProvider) ResetPassword(name string, newPassword string) (string, error
 		"accountId":  acct.ID,
 		"name":       acct.Name,
 		"permission": acct.PermLevel,
-	}, secret.PrivateKey)
+	}, privateKey)
 }
 
 func (p iProvider) ChangePermission(name string, newPerm PermLevel) (*Account, error) {
@@ -145,7 +145,7 @@ func (p iProvider) login(name string, password string) (string, error) {
 	}
 
 	// get secret key
-	secret, err := p.secretProvider.GetFirstSecretKey()
+	privateKey, err := p.secretProvider.RotateUserSecret(acct.ID)
 	if err != nil {
 		return "", err
 	}
@@ -154,5 +154,5 @@ func (p iProvider) login(name string, password string) (string, error) {
 		"accountId":  acct.ID,
 		"name":       acct.Name,
 		"permission": acct.PermLevel,
-	}, secret.PrivateKey)
+	}, privateKey)
 }
