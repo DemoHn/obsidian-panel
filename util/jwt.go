@@ -55,6 +55,21 @@ func VerifyAndDecodeJWT(token string, secretPublicKey []byte) (map[string]interf
 	return nil, addErrorTag("verifyAndDecodeJWT", fmt.Errorf("not ok convert jwt claims to MapClaims"))
 }
 
+// DecodeJWT - just decode JWT
+func DecodeJWT(token string) (map[string]interface{}, error) {
+	tok, err := jwt.Parse(token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := tok.Claims.(jwt.MapClaims)
+	if ok {
+		return claims, nil
+	}
+
+	return nil, addErrorTag("decodeJWT", fmt.Errorf("decoded fail"))
+}
+
 // bytesToPrivateKey bytes to private key
 func bytesToPrivateKey(priv []byte) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode(priv)
