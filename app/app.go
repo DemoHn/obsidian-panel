@@ -93,10 +93,8 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 		return err
 	}
 	log.Info("upgrade core db schema finish")
-
-	// 02. load permission middleware
-	drv.Echo.SetSecretPublicKey(secret.PublicKey)
-
+	// 02. load secret provider?
+	
 	// 03. reload process manager config
 	prv.ProcessManager.ReloadConfig(config)
 	return nil

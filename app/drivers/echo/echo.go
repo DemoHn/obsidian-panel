@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/DemoHn/obsidian-panel/app/providers/secret"
 	"github.com/DemoHn/obsidian-panel/util"
 
 	"github.com/DemoHn/obsidian-panel/infra"
@@ -14,8 +15,8 @@ import (
 // Driver - echo http driver
 type Driver struct {
 	*echo.Echo
-	address       string
-	currentSecret authSecret
+	address        string
+	SecretProvider *secret.Provider
 }
 
 // Context - same as `echo.Context`
@@ -26,11 +27,6 @@ type Group = echo.Group
 
 // HandlerFunc -
 type HandlerFunc = echo.HandlerFunc
-
-type authSecret struct {
-	secretPublicKey []byte
-	isEnable        bool
-}
 
 // New - new echo instance
 func New(config *infra.Config) (*Driver, error) {
@@ -49,10 +45,6 @@ func New(config *infra.Config) (*Driver, error) {
 	return &Driver{
 		Echo:    e,
 		address: address,
-		currentSecret: authSecret{
-			isEnable:        false,
-			secretPublicKey: []byte{},
-		},
 	}, nil
 }
 
@@ -60,14 +52,6 @@ func New(config *infra.Config) (*Driver, error) {
 func (drv *Driver) GetAPIRouter(version string) *Group {
 	var prefix = fmt.Sprintf("/api/v%s", version)
 	return drv.Echo.Group(prefix)
-}
-
-// SetSecretPublicKey -
-func (drv *Driver) SetSecretPublicKey(secretPublicKey []byte) {
-	drv.currentSecret = authSecret{
-		isEnable:        true,
-		secretPublicKey: secretPublicKey,
-	}
 }
 
 // Listen - listen to a preset port
@@ -79,12 +63,6 @@ func (drv *Driver) Listen() error {
 func (drv *Driver) Permission(perms ...string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			var secretPublicKey = drv.currentSecret.secretPublicKey
-			// get secret key
-			if !drv.currentSecret.isEnable {
-				return fmt.Errorf("secretKey is not enabled - maybe forget `SetSecretPublicKey()` call")
-			}
-
 			// get header
 			var authHeader = c.Request().Header.Get("Authorization")
 			// authorize
@@ -93,12 +71,18 @@ func (drv *Driver) Permission(perms ...string) echo.MiddlewareFunc {
 				if err != nil {
 					return err
 				}
+
+				token, err := util.DecodeJWT(rawHeader)
+				if err != nil {
+					return err
+				}
+				/**
 				// verify rawHeader
 				token, err := util.VerifyAndDecodeJWT(rawHeader, secretPublicKey)
 				if err != nil {
 					return err
 				}
-
+				*/
 				var tokPerm = token["permission"]
 				// check if permission validates
 				for _, p := range perms {
