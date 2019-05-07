@@ -5,12 +5,25 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/DemoHn/obsidian-panel/infra"
+
 	"github.com/DemoHn/obsidian-panel/util"
 
 	"github.com/labstack/echo"
 
 	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 )
+
+// AuthError -define authentication error
+func AuthError(err error) *infra.Error {
+	return &infra.Error{
+		Name:       "AuthError",
+		StatusCode: 401,
+		ErrorCode:  10100,
+		Info:       err.Error(),
+		Detail:     err.Error(),
+	}
+}
 
 // Auth - new auth middleware
 func Auth(db *sqlite.Driver, perms ...string) echo.MiddlewareFunc {
@@ -22,12 +35,12 @@ func Auth(db *sqlite.Driver, perms ...string) echo.MiddlewareFunc {
 			if len(perms) > 0 {
 				jwt, err := parseAuthHeader(authHeader)
 				if err != nil {
-					return err
+					return AuthError(err)
 				}
 
 				token, err := authenticateJWT(db, jwt)
 				if err != nil {
-					return err
+					return AuthError(err)
 				}
 
 				var tokPerm = token["permission"]
@@ -38,7 +51,7 @@ func Auth(db *sqlite.Driver, perms ...string) echo.MiddlewareFunc {
 					}
 				}
 
-				return fmt.Errorf("invalid permission: %s", tokPerm)
+				return AuthError(fmt.Errorf("invalid permission: %s", tokPerm))
 			}
 			return next(c)
 		}

@@ -3,8 +3,8 @@ package echo
 import (
 	"fmt"
 
-	"github.com/DemoHn/obsidian-panel/app/providers/secret"
 	"github.com/DemoHn/obsidian-panel/app/middlewares"
+	"github.com/DemoHn/obsidian-panel/app/providers/secret"
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
@@ -42,7 +42,7 @@ func New(config *infra.Config) (*Driver, error) {
 	e.Use(echoMW.Logger())
 	e.Use(echoMW.Recover())
 
-	e.Use(middlewares.Error())
+	e.Use(middlewares.ErrorHandler())
 
 	return &Driver{
 		Echo:    e,
