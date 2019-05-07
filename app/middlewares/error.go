@@ -7,8 +7,8 @@ import (
 	"github.com/go-playground/validator"
 )
 
-// Error - new Error middleware
-func Error() echo.MiddlewareFunc {
+// ErrorHandler - new Error middleware
+func ErrorHandler() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if err := next(c); err != nil {
