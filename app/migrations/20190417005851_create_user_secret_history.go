@@ -20,7 +20,7 @@ func Up_20190417005851(db *sql.DB) error {
 	var createTableStmt = fmt.Sprintf(`create table %s (
 		id integer primary key autoincrement,
 		account_id integer not null,
-		action varchar(20) not null
+		action varchar(20) not null,
 		happened_at datetime not null
 	)`, ushTableName)
 

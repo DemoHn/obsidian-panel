@@ -58,8 +58,8 @@ func VerifyAndDecodeJWT(token string, secretPublicKey []byte) (map[string]interf
 // DecodeJWT - just decode JWT
 func DecodeJWT(token string) (map[string]interface{}, error) {
 	tok, err := jwt.Parse(token, nil)
-	if err != nil {
-		return nil, err
+	if err.(*jwt.ValidationError).Errors&jwt.ValidationErrorMalformed == 1 {
+		return nil, fmt.Errorf("Token is malformed: " + err.Error())
 	}
 
 	claims, ok := tok.Claims.(jwt.MapClaims)

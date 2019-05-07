@@ -2,14 +2,13 @@ package echo
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/DemoHn/obsidian-panel/app/providers/secret"
-	"github.com/DemoHn/obsidian-panel/util"
-
+	"github.com/DemoHn/obsidian-panel/app/middlewares"
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
+	echoMW "github.com/labstack/echo/middleware"
 )
 
 // Driver - echo http driver
@@ -39,8 +38,11 @@ func New(config *infra.Config) (*Driver, error) {
 	if address, err = config.FindString("api.address"); err != nil {
 		return nil, err
 	}
-	// load middlewares
-	loadMiddlewares(e)
+	// logger & error recover
+	e.Use(echoMW.Logger())
+	e.Use(echoMW.Recover())
+
+	e.Use(middlewares.Error())
 
 	return &Driver{
 		Echo:    e,
@@ -57,53 +59,4 @@ func (drv *Driver) GetAPIRouter(version string) *Group {
 // Listen - listen to a preset port
 func (drv *Driver) Listen() error {
 	return drv.Start(drv.address)
-}
-
-// Permission - compose a Middleware that checks the permission
-func (drv *Driver) Permission(perms ...string) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			// get header
-			var authHeader = c.Request().Header.Get("Authorization")
-			// authorize
-			if len(perms) > 0 {
-				rawHeader, err := parseAuthHeader(authHeader)
-				if err != nil {
-					return err
-				}
-
-				token, err := util.DecodeJWT(rawHeader)
-				if err != nil {
-					return err
-				}
-				/**
-				// verify rawHeader
-				token, err := util.VerifyAndDecodeJWT(rawHeader, secretPublicKey)
-				if err != nil {
-					return err
-				}
-				*/
-				var tokPerm = token["permission"]
-				// check if permission validates
-				for _, p := range perms {
-					if p == tokPerm {
-						return next(c)
-					}
-				}
-
-				return fmt.Errorf("invalid permission: %s", tokPerm)
-			}
-			return next(c)
-		}
-	}
-}
-
-// internal function
-func parseAuthHeader(authHeader string) (string, error) {
-	const Bearer = "Bearer "
-	if strings.HasPrefix(authHeader, Bearer) {
-		return authHeader[len(Bearer):], nil
-	}
-
-	return "", fmt.Errorf("invalid authorization header (should be 'Bearer' prefix)")
 }
