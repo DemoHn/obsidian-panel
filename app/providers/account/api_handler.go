@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/DemoHn/obsidian-panel/app/drivers/echo"
+	mw "github.com/DemoHn/obsidian-panel/app/middlewares"
 )
 
 func (p iProvider) registerAPIs() {
@@ -12,11 +13,11 @@ func (p iProvider) registerAPIs() {
 	// register login
 	router.POST("/accounts/login", loginHandler(p))
 	// list all accounts - only ADMIN could have such permission
-	router.GET("/accounts", listAccountsHandler(p), e.Permission("ADMIN"))
+	router.GET("/accounts", listAccountsHandler(p), mw.Auth(p.db, "ADMIN"))
 	// change password
-	router.PATCH("/accounts/password", changePasswordHandler(p), e.Permission("ADMIN"))
+	router.PATCH("/accounts/password", changePasswordHandler(p), mw.Auth(p.db, "ADMIN"))
 	// change permission
-	router.PATCH("/account/permission", changePermissionHandler(p), e.Permission("ADMIN"))
+	router.PATCH("/account/permission", changePermissionHandler(p), mw.Auth(p.db, "ADMIN"))
 }
 
 // internal functions
