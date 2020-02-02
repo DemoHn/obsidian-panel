@@ -10,7 +10,7 @@ TODO
 
 - Install `task` as an alternative of `Makefile`:
 ```sh
-go get -u github.com/go-task/task/cmd/task
+go get -u -v github.com/go-task/task/cmd/task
 ```
 
 - Test Project
