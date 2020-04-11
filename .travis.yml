@@ -12,5 +12,6 @@ env:
   - DEV=0
 
 script:
-  - go test -v ./...
-  - go build -o obs github.com/DemoHn/obsidian-panel/cmd/obs
+  - curl -s https://taskfile.org/install.sh | sh
+  - ./bin/task test
+  - ./bin/task build

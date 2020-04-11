@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+service AccountService {
+    rpc Login(LoginPayload) returns (LoginReply) {}
+}
+
+message LoginPayload {
+    string name = 1;
+    string password = 2;
+}
+
+message ErrorReply {
+    string name = 1;
+    int32 errorCode = 2;
+    string detail = 3;
+    bytes info = 4;
+}
+
+message LoginResponse {
+    string jwt = 1;
+}
+
+message LoginReply {
+    oneof SuccessOrFail {
+        LoginResponse resp = 1;
+        ErrorReply error = 2;
+    }
+}

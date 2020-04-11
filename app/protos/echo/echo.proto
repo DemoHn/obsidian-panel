@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+service EchoService {
+  rpc Echo(EchoPayload) returns (EchoPayload) {}
+}
+
+message EchoPayload {
+  string info = 1;
+}
