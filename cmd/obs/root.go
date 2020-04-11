@@ -1,13 +1,10 @@
-package main
+package obs
 
 import (
-	"os"
-
 	"github.com/DemoHn/obsidian-panel/app"
 	"github.com/DemoHn/obsidian-panel/cmd/obs/account"
 	"github.com/DemoHn/obsidian-panel/cmd/obs/apm"
 	"github.com/DemoHn/obsidian-panel/infra"
-
 	"github.com/spf13/cobra"
 )
 
@@ -30,10 +27,9 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
-func main() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+// Execute - execute `obs` command
+func Execute() error {
+	return rootCmd.Execute()
 }
 
 func init() {

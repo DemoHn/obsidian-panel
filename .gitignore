@@ -1,5 +1,9 @@
 /obs
 /obs-cli
+/obs-dev
+/obs.exe
+/obs-cli.exe
+/obs-dev.exe
 _dev/build
 /build
 vendor

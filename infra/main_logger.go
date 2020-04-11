@@ -29,8 +29,8 @@ func init() {
 	logger.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp:          true,
 		DisableLevelTruncation: true,
-		// <date>/<month>/<year> <Hour>:<minute>:<second>.<ms> <tz>
-		TimestampFormat: "02/01/2006 15:04:05.999 MST",
+		// <year>-<month>-<date> <Hour>:<minute>:<second>.<ms> <tz>
+		TimestampFormat: "2006-01-02 15:04:05.999 MST",
 	})
 	// set default logger level
 	logger.SetLevel(logrus.InfoLevel)
