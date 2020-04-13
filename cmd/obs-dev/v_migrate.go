@@ -48,7 +48,7 @@ var migrateUpCmd = &cobra.Command{
 }
 
 var migrateDownCmd = &cobra.Command{
-	Use: "migrate:down",
+	Use:   "migrate:down",
 	Short: "migrate db schema down to its initial state",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dbPath, _ := viper.Get("db").(string)
@@ -67,7 +67,7 @@ var migrateDownCmd = &cobra.Command{
 
 		log.PrintOK("migrate down done")
 		return nil
-	}
+	},
 }
 
 func init() {
