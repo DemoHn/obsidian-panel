@@ -7,11 +7,11 @@ import (
 )
 
 func init() {
-	dbmigrate.AddMigration("20190209212436_create_account", Up_20190209212436, Down_20190209212436)
+	dbmigrate.AddMigration("20190209212436_create_account", UpT20190209212436, DownT20190209212436)
 }
 
-// Up_20190209212436 - migration up script
-func Up_20190209212436(db *sql.DB) error {
+// UpT20190209212436 - migration up script
+func UpT20190209212436(db *sql.DB) error {
 	// Add Up Logic Here!
 	var err error
 
@@ -31,8 +31,8 @@ func Up_20190209212436(db *sql.DB) error {
 	return nil
 }
 
-// Down_20190209212436 - migration down script
-func Down_20190209212436(db *sql.DB) error {
+// DownT20190209212436 - migration down script
+func DownT20190209212436(db *sql.DB) error {
 	// Add Down Logic Here!
 	var err error
 

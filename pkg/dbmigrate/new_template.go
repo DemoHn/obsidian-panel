@@ -20,17 +20,17 @@ import (
 )
 
 func init() {
-	dbmigrate.AddMigration("{{.FormatTime}}_{{.MigrationName}}", Up_{{.FormatTime}}, Down_{{.FormatTime}})
+	dbmigrate.AddMigration("{{.FormatTime}}_{{.MigrationName}}", UpT{{.FormatTime}}, DownT{{.FormatTime}})
 }
 
-// Up_{{.FormatTime}} - migration up script
-func Up_{{.FormatTime}}(db *sql.DB) error {
+// UpT{{.FormatTime}} - migration up script
+func UpT{{.FormatTime}}(db *sql.DB) error {
 	// Add Up Logic Here!
 	return nil
 }
 
-// Down_{{.FormatTime}} - migration down script
-func Down_{{.FormatTime}}(db *sql.DB) error {
+// DownT{{.FormatTime}} - migration down script
+func DownT{{.FormatTime}}(db *sql.DB) error {
 	// Add Down Logic Here!
 	return nil
 }

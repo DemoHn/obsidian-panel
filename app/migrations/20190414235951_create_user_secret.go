@@ -10,11 +10,11 @@ import (
 const tableName = "user_secrets"
 
 func init() {
-	dbmigrate.AddMigration("20190414235951_create_user_secret", Up_20190414235951, Down_20190414235951)
+	dbmigrate.AddMigration("20190414235951_create_user_secret", UpT20190414235951, DownT20190414235951)
 }
 
-// Up_20190414235951 - migration up script
-func Up_20190414235951(db *sql.DB) error {
+// UpT20190414235951 - migration up script
+func UpT20190414235951(db *sql.DB) error {
 	var err error
 
 	var createTableStmt = fmt.Sprintf(`create table %s (
@@ -29,8 +29,8 @@ func Up_20190414235951(db *sql.DB) error {
 	return nil
 }
 
-// Down_20190414235951 - migration down script
-func Down_20190414235951(db *sql.DB) error {
+// DownT20190414235951 - migration down script
+func DownT20190414235951(db *sql.DB) error {
 	var err error
 	var stmt = fmt.Sprintf("drop table %s", tableName)
 	if _, err = db.Exec(stmt); err != nil {

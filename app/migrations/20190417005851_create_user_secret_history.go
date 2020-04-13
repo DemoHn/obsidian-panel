@@ -10,11 +10,11 @@ import (
 const ushTableName = "user_secrets_history"
 
 func init() {
-	dbmigrate.AddMigration("20190417005851_create_user_secret_history", Up_20190417005851, Down_20190417005851)
+	dbmigrate.AddMigration("20190417005851_create_user_secret_history", UpT20190417005851, DownT20190417005851)
 }
 
-// Up_20190417005851 - migration up script
-func Up_20190417005851(db *sql.DB) error {
+// UpT20190417005851 - migration up script
+func UpT20190417005851(db *sql.DB) error {
 	var err error
 
 	var createTableStmt = fmt.Sprintf(`create table %s (
@@ -30,8 +30,8 @@ func Up_20190417005851(db *sql.DB) error {
 	return nil
 }
 
-// Down_20190417005851 - migration down script
-func Down_20190417005851(db *sql.DB) error {
+// DownT20190417005851 - migration down script
+func DownT20190417005851(db *sql.DB) error {
 	var err error
 	var stmt = fmt.Sprintf("drop table %s", ushTableName)
 	if _, err = db.Exec(stmt); err != nil {
