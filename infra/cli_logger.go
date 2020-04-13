@@ -45,6 +45,9 @@ func (*CLILogger) PrintError(err error) {
 
 var cliLogger *CLILogger
 
+// LogT - exported var of cliLogger
+var LogT *CLILogger
+
 // GetCLILogger - CLI Logger
 func GetCLILogger() *CLILogger {
 	return cliLogger
@@ -52,4 +55,5 @@ func GetCLILogger() *CLILogger {
 
 func init() {
 	cliLogger = &CLILogger{}
+	LogT = cliLogger
 }

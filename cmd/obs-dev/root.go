@@ -20,4 +20,6 @@ func main() {
 func init() {
 	rootCmd.AddCommand(migrateNewCmd)
 	rootCmd.AddCommand(migrateUpCmd)
+	rootCmd.AddCommand(migrateDownCmd)
+	rootCmd.AddCommand(initCmd)
 }
