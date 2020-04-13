@@ -1,10 +1,17 @@
 package app
 
 import (
+	"database/sql"
+	"fmt"
+	"os"
+
 	"github.com/DemoHn/obsidian-panel/app/drivers"
 	"github.com/DemoHn/obsidian-panel/app/providers"
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/spf13/cobra"
+
+	// import sqlite3
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // App - main app
@@ -94,7 +101,7 @@ func beforeSetup(config *infra.Config, drv *drivers.Drivers, prv *providers.Prov
 	}
 	log.Info("upgrade core db schema finish")
 	// 02. load secret provider?
-	
+
 	// 03. reload process manager config
 	prv.ProcessManager.ReloadConfig(config)
 	return nil
@@ -120,4 +127,43 @@ func loadAppFromCmd(cmd *cobra.Command) (*App, error) {
 	}
 
 	return appInstance, nil
+}
+
+//// helpers
+
+// FindRootDB - Find root DB location and open it
+func FindRootDB(dbFile *string) (*sql.DB, error) {
+	// if dbFile is empty, then we will attempt to find rootDB from the
+	// following dirs:
+	//
+	// 1. $HOME/.obs-root/sql/root.db
+	// 2. $CWD/data/sql/root.db
+	//
+	// An error will be thrown if both locations are not found.
+
+	// I. first try to open DB from predefined dbFile
+	if dbFile != nil {
+		path := *dbFile
+		return sql.Open("sqlite3", path)
+	}
+
+	// II. try to get path from home dir
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	pathII := fmt.Sprintf("%s/.obs-root/sql/root.db", home)
+	if _, err := os.Stat(pathII); os.IsNotExist(err) {
+		// III. try to get path from data dir
+		wd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		pathIII := fmt.Sprintf("%s/data/sql/root.db", wd)
+		if _, err := os.Stat(pathIII); os.IsNotExist(err) {
+			return nil, err
+		}
+		return sql.Open("sqlite3", pathIII)
+	}
+	return sql.Open("sqlite3", pathII)
 }

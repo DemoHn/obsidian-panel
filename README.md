@@ -20,3 +20,5 @@ go build cmd/obs-dev -o obs-dev
 ```
 
 - Or simply run `./build.sh`.
+
+NOTE: `Go 1.12+` required
