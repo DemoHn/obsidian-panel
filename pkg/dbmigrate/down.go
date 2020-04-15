@@ -19,10 +19,7 @@ func Down(db *sql.DB) error {
 
 	execMigrations := filterMigrations(versions, gMigrations, false)
 	// no need to order since `versions` are naturally ordered
-	if err = downMigrations(db, execMigrations); err != nil {
-		return err
-	}
-	return nil
+	return downMigrations(db, execMigrations)
 }
 
 func downMigrations(db *sql.DB, migrations []*Migration) error {

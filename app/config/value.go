@@ -23,10 +23,8 @@ const (
 
 func (v Value) toString() string {
 	switch v.typeHint {
-	case IntType:
-	case StringType:
-	case BoolType:
-		return fmt.Sprintf("%v", v)
+	case IntType, StringType, BoolType:
+		return fmt.Sprintf("%v", v.data)
 	case IntListType:
 		vv, _ := v.data.([]int)
 		strs := []string{}
@@ -114,5 +112,58 @@ func newStringList(value []string) Value {
 	return Value{
 		data:     value,
 		typeHint: StringListType,
+	}
+}
+
+func newFromString(data string, typeHint int) Value {
+	switch typeHint {
+	case IntType:
+		d := 0
+		if v, err := strconv.Atoi(data); err == nil {
+			d = v
+		}
+		return Value{
+			data:     d,
+			typeHint: typeHint,
+		}
+
+	case StringType:
+		return Value{
+			data:     data,
+			typeHint: typeHint,
+		}
+	case BoolType:
+		d := false
+		if data == "1" {
+			d = true
+		}
+		return Value{
+			data:     d,
+			typeHint: typeHint,
+		}
+	case IntListType:
+		strs := strings.Split(data, ",")
+		final := []int{}
+		for _, str := range strs {
+			d := 0
+			if v, err := strconv.Atoi(str); err == nil {
+				d = v
+			}
+			final = append(final, d)
+		}
+		return Value{
+			data:     final,
+			typeHint: typeHint,
+		}
+	case StringListType:
+		strs := strings.Split(data, ",")
+		return Value{
+			data:     strs,
+			typeHint: typeHint,
+		}
+	}
+	return Value{
+		data:     data,
+		typeHint: StringType,
 	}
 }

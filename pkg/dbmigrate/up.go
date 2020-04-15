@@ -24,10 +24,7 @@ func Up(db *sql.DB) error {
 		return execMigrations[i].Version < execMigrations[j].Version
 	})
 
-	if err = upMigrations(db, execMigrations); err != nil {
-		return err
-	}
-	return nil
+	return upMigrations(db, execMigrations)
 }
 
 func upMigrations(db *sql.DB, migrations []*Migration) error {

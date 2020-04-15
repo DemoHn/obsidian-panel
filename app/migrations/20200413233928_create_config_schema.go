@@ -29,7 +29,7 @@ func UpT20200413233928(db *sql.DB) error {
 		return err
 	}
 
-	var createIndexStmt = fmt.Sprintf("create unique %s on %s (key)", keyIndexName, configTableName)
+	var createIndexStmt = fmt.Sprintf("create unique index %s on %s (key)", keyIndexName, configTableName)
 	if _, err := db.Exec(createIndexStmt); err != nil {
 		return err
 	}

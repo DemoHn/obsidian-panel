@@ -18,17 +18,17 @@ type sqlFixture struct {
 const sqliteFile = "/tmp/dbmigrate_test_12138.sql"
 
 var fixtures = []sqlFixture{
-	sqlFixture{
+	{
 		version: "01_A",
 		upSQL:   "create table table_01(id integer, name string)",
 		downSQL: "drop table table_01",
 	},
-	sqlFixture{
+	{
 		version: "02_B",
 		upSQL:   "create table table_02(id integer, name string)",
 		downSQL: "drop table table_02",
 	},
-	sqlFixture{
+	{
 		version: "03_C",
 		upSQL:   "create table table_03(id integer, name string)",
 		downSQL: "drop table table_03",
