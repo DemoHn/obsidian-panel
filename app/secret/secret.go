@@ -4,22 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"database/sql"
 	"encoding/pem"
 	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
-
-	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 )
-
-// Provider - define interface of secret Provider
-type Provider interface {
-	// user secrets
-	NewUserSecret(accountID int) ([]byte, error)
-	GetUserSecret(accountID int) (*UserSecret, error)
-	RotateUserSecret(accountID int) ([]byte, error)
-	RevokeUserSecret(accountID int) error
-}
 
 // Secret - JWT secret key
 type Secret struct {
@@ -48,11 +38,6 @@ type UserSecretHistory struct {
 // UserSecretAction - define some enums for user secret actions (login/update/revoke)
 type UserSecretAction = string
 
-// iProvider - internal provider
-type iProvider struct {
-	db *sqlite.Driver
-}
-
 const (
 	// LOGIN - login
 	LOGIN UserSecretAction = "LOGIN"
@@ -63,20 +48,13 @@ const (
 )
 
 // helper variables
-var log = infra.GetMainLogger()
-
-// New - new provider
-func New(db *sqlite.Driver) Provider {
-	return &iProvider{
-		db: db,
-	}
-}
+var log = infra.Log
 
 // NewUserSecret - create user secret for login
-func (p iProvider) NewUserSecret(accountID int) ([]byte, error) {
+func NewUserSecret(db *sql.DB, accountID int) ([]byte, error) {
 	var err error
 	// verify accountID first
-	if err = verifyAccountID(p.db, accountID); err != nil {
+	if err = verifyAccountID(db, accountID); err != nil {
 		return nil, err
 	}
 	// new rsa key pair
@@ -85,7 +63,7 @@ func (p iProvider) NewUserSecret(accountID int) ([]byte, error) {
 		return nil, err
 	}
 
-	if _, err = insertUserPublicKey(p.db, accountID, publicBytes); err != nil {
+	if _, err = insertUserPublicKey(db, accountID, publicBytes); err != nil {
 		return nil, err
 	}
 
@@ -93,14 +71,14 @@ func (p iProvider) NewUserSecret(accountID int) ([]byte, error) {
 }
 
 // GetUserSecret - get user secret
-func (p iProvider) GetUserSecret(accountID int) (*UserSecret, error) {
+func GetUserSecret(db *sql.DB, accountID int) (*UserSecret, error) {
 	var err error
 	// verify accountID first
-	if err = verifyAccountID(p.db, accountID); err != nil {
+	if err = verifyAccountID(db, accountID); err != nil {
 		return nil, err
 	}
 	// get user secret
-	find, secret, err := findUserSecret(p.db, accountID)
+	find, secret, err := findUserSecret(db, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +90,10 @@ func (p iProvider) GetUserSecret(accountID int) (*UserSecret, error) {
 }
 
 // RotateUserSecret - insert or update user secret & generate the final jwt
-func (p iProvider) RotateUserSecret(accountID int) ([]byte, error) {
+func RotateUserSecret(db *sql.DB, accountID int) ([]byte, error) {
 	var err error
 	// verify accountID first
-	if err = verifyAccountID(p.db, accountID); err != nil {
+	if err = verifyAccountID(db, accountID); err != nil {
 		return nil, err
 	}
 	// new rsa key pair
@@ -125,16 +103,16 @@ func (p iProvider) RotateUserSecret(accountID int) ([]byte, error) {
 	}
 
 	// get user secret to determine insert or update
-	find, _, err := findUserSecret(p.db, accountID)
+	find, _, err := findUserSecret(db, accountID)
 	if err != nil {
 		return nil, err
 	}
 	if find == false {
-		if _, err = insertUserPublicKey(p.db, accountID, publicBytes); err != nil {
+		if _, err = insertUserPublicKey(db, accountID, publicBytes); err != nil {
 			return nil, err
 		}
 	} else {
-		if _, err = updateUserPublicKey(p.db, accountID, publicBytes); err != nil {
+		if _, err = updateUserPublicKey(db, accountID, publicBytes); err != nil {
 			return nil, err
 		}
 	}
@@ -142,14 +120,14 @@ func (p iProvider) RotateUserSecret(accountID int) ([]byte, error) {
 }
 
 // RevokeUserSecret - revoke user secret
-func (p iProvider) RevokeUserSecret(accountID int) error {
+func RevokeUserSecret(db *sql.DB, accountID int) error {
 	var err error
 	// verify accountID first
-	if err = verifyAccountID(p.db, accountID); err != nil {
+	if err = verifyAccountID(db, accountID); err != nil {
 		return err
 	}
 	// get user secret
-	find, _, err := findUserSecret(p.db, accountID)
+	find, _, err := findUserSecret(db, accountID)
 	if err != nil {
 		return err
 	}
@@ -158,10 +136,10 @@ func (p iProvider) RevokeUserSecret(accountID int) error {
 		return nil
 	}
 
-	return revokeUserPublicKey(p.db, accountID)
+	return revokeUserPublicKey(db, accountID)
 }
 
-// internal functions
+// internal helpers
 func generateRsaKeyPair(bits int) (publicBytes []byte, privateBytes []byte, err error) {
 	// generate RSA key pair
 	var privKey *rsa.PrivateKey

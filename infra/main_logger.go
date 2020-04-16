@@ -23,6 +23,9 @@ func SetMainLogger(newLogger *logrus.Logger) {
 	logger = newLogger
 }
 
+// Log - main Log instance
+var Log *logrus.Logger
+
 func init() {
 	logger = logrus.New()
 	// set defaults
@@ -34,4 +37,5 @@ func init() {
 	})
 	// set default logger level
 	logger.SetLevel(logrus.InfoLevel)
+	Log = logger
 }

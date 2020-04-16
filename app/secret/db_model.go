@@ -6,7 +6,7 @@ import (
 
 	"time"
 
-	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
+	"github.com/DemoHn/obsidian-panel/util"
 )
 
 const (
@@ -20,13 +20,13 @@ const (
 // generated key pair.
 // BTW, the **PRIVATE** key will be used to genearte a jwt string in the
 // following time without saving to persist db
-func insertUserPublicKey(db *sqlite.Driver, accountID int, publicKey []byte) (*UserSecret, error) {
+func insertUserPublicKey(db *sql.DB, accountID int, publicKey []byte) (*UserSecret, error) {
 	var err error
 
 	var insertStmt = fmt.Sprintf("insert into %s (account_id, public_key) values (?, ?)", usTableName)
 	var insertHistoryStmt = fmt.Sprintf("insert into %s (account_id, action, happened_at) values (?, ?, ?)", ushTableName)
 
-	err = db.Transaction(func(tx *sql.Tx) error {
+	err = util.TransactionDB(db, func(tx *sql.Tx) error {
 		var e error
 		if _, e = tx.Exec(insertStmt, accountID, publicKey); e != nil {
 			return e
@@ -49,7 +49,7 @@ func insertUserPublicKey(db *sqlite.Driver, accountID int, publicKey []byte) (*U
 // return `true, <item>, nil` if the according userSecret has found
 // return `false, nil, nil` if the according userSecret has not found
 // return `xx, xx, <error>` if the error has been happened
-func findUserSecret(db *sqlite.Driver, accountID int) (bool, *UserSecret, error) {
+func findUserSecret(db *sql.DB, accountID int) (bool, *UserSecret, error) {
 	var err error
 	var uSecret = UserSecret{}
 	var findStmt = fmt.Sprintf("select %s from %s where account_id = ?", usAllColumns, usTableName)
@@ -64,14 +64,14 @@ func findUserSecret(db *sqlite.Driver, accountID int) (bool, *UserSecret, error)
 	return true, &uSecret, nil
 }
 
-func updateUserPublicKey(db *sqlite.Driver, accountID int, publicKey []byte) (*UserSecret, error) {
+func updateUserPublicKey(db *sql.DB, accountID int, publicKey []byte) (*UserSecret, error) {
 	var err error
 	// ensure accountID exists, since we don't use foreign keys
 
 	var insertStmt = fmt.Sprintf("update %s set public_key = ? where account_id = ?", usTableName)
 	var insertHistoryStmt = fmt.Sprintf("insert into %s (account_id, action, happened_at) values (?, ?, ?)", ushTableName)
 
-	err = db.Transaction(func(tx *sql.Tx) error {
+	err = util.TransactionDB(db, func(tx *sql.Tx) error {
 		var e error
 		if _, e = tx.Exec(insertStmt, publicKey, accountID); e != nil {
 			return e
@@ -90,13 +90,13 @@ func updateUserPublicKey(db *sqlite.Driver, accountID int, publicKey []byte) (*U
 	}, nil
 }
 
-func revokeUserPublicKey(db *sqlite.Driver, accountID int) error {
+func revokeUserPublicKey(db *sql.DB, accountID int) error {
 	var err error
 
 	var revokeStmt = fmt.Sprintf("delete from %s where account_id = ?", usTableName)
 	var insertHistoryStmt = fmt.Sprintf("insert into %s (account_id, action, happened_at) values (?, ?, ?)", ushTableName)
 
-	err = db.Transaction(func(tx *sql.Tx) error {
+	err = util.TransactionDB(db, func(tx *sql.Tx) error {
 		var e error
 		if _, e = tx.Exec(revokeStmt, accountID); e != nil {
 			return e
@@ -113,7 +113,7 @@ func revokeUserPublicKey(db *sqlite.Driver, accountID int) error {
 	return nil
 }
 
-func verifyAccountID(db *sqlite.Driver, accountID int) error {
+func verifyAccountID(db *sql.DB, accountID int) error {
 	var err error
 	var stmt = fmt.Sprintf("select id from %s where id = ?", acctTableName)
 	var acctID int
