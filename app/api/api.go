@@ -33,7 +33,9 @@ func StartServer(cfg *config.Config, db *sql.DB) error {
 	infra.Log.Infof("going to start server on address: %s", address)
 
 	// III. load routes
-	bindAPIs(server, db, "v1")
+	bindAccountAPIs(server, db, "v1")
+	bindConfigAPIs(cfg, db, "v1")
+
 	return server.Start(address)
 }
 

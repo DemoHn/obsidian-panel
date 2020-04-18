@@ -48,6 +48,16 @@ func (v Value) GetStringList() ([]string, bool) {
 	return v.getStringList()
 }
 
+// ToString -
+func (v Value) ToString() string {
+	return v.toString()
+}
+
+// GetTypeHint -
+func (v Value) GetTypeHint() int {
+	return v.typeHint
+}
+
 //// helpers
 func (v Value) toString() string {
 	switch v.typeHint {
