@@ -2,7 +2,7 @@ package obs
 
 import (
 	"github.com/DemoHn/obsidian-panel/app"
-	"github.com/DemoHn/obsidian-panel/cmd/obs/account"
+	//"github.com/DemoHn/obsidian-panel/cmd/obs/account"
 	"github.com/DemoHn/obsidian-panel/cmd/obs/apm"
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/spf13/cobra"
@@ -35,7 +35,7 @@ func Execute() error {
 
 func init() {
 	// add sub-command
-	rootCmd.AddCommand(account.RootCmd)
+	//rootCmd.AddCommand(account.RootCmd)
 	rootCmd.AddCommand(apm.RootCmd)
 
 	// add flags

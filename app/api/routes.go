@@ -16,11 +16,11 @@ func bindAPIs(server *echo.Echo, db *sql.DB, version string) {
 	// accounts
 	router.POST("/accounts/login", loginHandler(db))
 	// list all accounts - only ADMIN could have such permission
-	router.GET("/accounts", listAccountsHandler(db), Auth(db, "ADMIN"))
+	router.GET("/accounts", listAccountsHandler(db), Auth(db, account.ADMIN))
 	// change password
-	router.PATCH("/accounts/password", changePasswordHandler(db), Auth(db, "ADMIN"))
+	router.PATCH("/accounts/password", changePasswordHandler(db), Auth(db, account.ADMIN))
 	// change permission
-	router.PATCH("/account/permission", changePermissionHandler(db), Auth(db, "ADMIN"))
+	router.PATCH("/account/permission", changePermissionHandler(db), Auth(db, account.ADMIN))
 }
 
 // LoginRequest -

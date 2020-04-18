@@ -25,9 +25,9 @@ const (
 
 	// ADMIN - administrator - ownes all permissions except those related
 	// to the HOST server itself.
-	ADMIN PermLevel = "ADMIN"
+	ADMIN PermLevel = "admin"
 	// USER - normal user
-	USER PermLevel = "USER"
+	USER PermLevel = "user"
 
 	// VISITOR - visitor
 	// VISITOR PermLevel = "VISITOR"
@@ -125,6 +125,17 @@ func getAccountByName(db *sql.DB, name string) (*Account, error) {
 	}
 
 	return &newAccount, nil
+}
+
+func accountExists(db *sql.DB, name string) (bool, error) {
+	var stmt = fmt.Sprintf("select name from %s where name = ?", tableName)
+	if _, err := db.Query(stmt, name); err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // countTotalAccounts - get total accounts

@@ -9,7 +9,7 @@ import (
 )
 
 // infra variables
-var log = infra.GetMainLogger()
+var log = infra.Log
 
 // AccountsFilter - define filter properties for listing accounts
 type AccountsFilter struct {
@@ -31,12 +31,25 @@ func RegisterAdmin(db *sql.DB, name string, password string) error {
 	return registerAdmin(db, name, password)
 }
 
+// RegisterAdminNS - register admin if NOT EXISTS
+func RegisterAdminNS(db *sql.DB, name string, password string) error {
+	exists, err := accountExists(db, name)
+	if err != nil {
+		return err
+	}
+	// only insert admin if not exists
+	if !exists {
+		return registerAdmin(db, name, password)
+	}
+	return nil
+}
+
 // ListAccountsByFilter -
 func ListAccountsByFilter(db *sql.DB, filter AccountsFilter) ([]Account, error) {
 	return listAccountsRecord(db, filter)
 }
 
-// CountAccounts -
+// CountAccounts - count the number of total accounts
 func CountAccounts(db *sql.DB) (int, error) {
 	return countTotalAccounts(db)
 }

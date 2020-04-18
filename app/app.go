@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/DemoHn/obsidian-panel/app/account"
 	"github.com/DemoHn/obsidian-panel/app/api"
 	"github.com/DemoHn/obsidian-panel/app/config"
 	"github.com/DemoHn/obsidian-panel/app/sqlc"
@@ -15,6 +16,11 @@ import (
 var (
 	rootPath string // if empty, use default one
 	debug    bool   // enter debug mode
+)
+
+const (
+	dtUser     = "account"
+	dtPassword = "0bs-pane1"
 )
 
 // App - new app data
@@ -63,9 +69,9 @@ func Start(app *App) error {
 		return err
 	}
 	// III. set default admin user/password
-	// TODO
-	// username: admin
-	// password: 0bs-pane1
+	if err := account.RegisterAdminNS(app.db, dtUser, dtPassword); err != nil {
+		return err
+	}
 	return api.StartServer(app.cfg, app.db)
 }
 
