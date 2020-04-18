@@ -76,12 +76,13 @@ const (
 
 func writeValueToDB(db *sql.DB, key string, value Value) error {
 	var insertStmt = fmt.Sprintf("insert into %s (%s) values (?, ?, ?)", tableName, insertColumns)
-	var selectStmt = fmt.Sprintf("select value from %s where key = ?", tableName)
-	var updateStmt = fmt.Sprintf("update %s set value = ? where key = ?", tableName)
+	var selectStmt = fmt.Sprintf("select value, type_hint from %s where key = ?", tableName)
+	var updateStmt = fmt.Sprintf("update %s set value = ?, type_hint = ? where key = ?", tableName)
 	var pValue string
+	var pTypeHint int
 
 	// I. find data
-	if err := db.QueryRow(selectStmt, key).Scan(&pValue); err != nil {
+	if err := db.QueryRow(selectStmt, key).Scan(&pValue, &pTypeHint); err != nil {
 		if err == sql.ErrNoRows {
 			// insert
 			if _, err := db.Exec(insertStmt, key, value.toString(), value.typeHint); err != nil {
@@ -92,10 +93,11 @@ func writeValueToDB(db *sql.DB, key string, value Value) error {
 		return err
 	}
 	// II. updated data is some, no need to update db again
-	if pValue != value.toString() {
-		if _, err := db.Query(updateStmt, value.toString(), key); err != nil {
-			return err
-		}
+	if pValue == value.toString() && pTypeHint == value.typeHint {
+		return nil
+	}
+	if _, err := db.Query(updateStmt, value.toString(), key, value.typeHint); err != nil {
+		return err
 	}
 	return nil
 }

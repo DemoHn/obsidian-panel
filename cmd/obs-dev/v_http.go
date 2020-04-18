@@ -112,10 +112,10 @@ func doGet(host string, port int, url string, qs []string) (bool, error) {
 
 	// send request
 	resp, err := client.Do(req)
-	data, _ := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return false, err
 	}
+	data, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
 		if resp.StatusCode == 401 {
 			infra.LogT.PrintInfo("Not Authorized! will ask for login")
@@ -144,10 +144,10 @@ func doPost(host string, port int, url string, dataBuf string) (bool, error) {
 	}
 
 	resp, err := client.Do(req)
-	data, _ := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return false, err
 	}
+	data, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
 		if resp.StatusCode == 401 {
 			infra.LogT.PrintInfo("Not Authorized! will ask for login")
