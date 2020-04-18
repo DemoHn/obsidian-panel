@@ -129,7 +129,8 @@ func getAccountByName(db *sql.DB, name string) (*Account, error) {
 
 func accountExists(db *sql.DB, name string) (bool, error) {
 	var stmt = fmt.Sprintf("select name from %s where name = ?", tableName)
-	if _, err := db.Query(stmt, name); err != nil {
+	var nop string
+	if err := db.QueryRow(stmt, name).Scan(&nop); err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}

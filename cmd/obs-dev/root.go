@@ -7,8 +7,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "obs-dev",
-	Short: "dev helper for obsidian-panel",
+	Use:          "obs-dev",
+	Short:        "dev helper for obsidian-panel",
+	SilenceUsage: true,
 }
 
 func main() {
@@ -19,8 +20,11 @@ func main() {
 
 func init() {
 	rootCmd.AddCommand(migrateNewCmd)
+	// migrate
 	rootCmd.AddCommand(migrateUpCmd)
 	rootCmd.AddCommand(migrateDownCmd)
+	// http
 	rootCmd.AddCommand(httpGetCmd)
+	rootCmd.AddCommand(httpPostCmd)
 	rootCmd.AddCommand(initCmd)
 }

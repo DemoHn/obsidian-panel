@@ -10,7 +10,7 @@ import (
 )
 
 func bindAPIs(server *echo.Echo, db *sql.DB, version string) {
-	var prefix = fmt.Sprintf("/api/v%s", version)
+	var prefix = fmt.Sprintf("/api/%s", version)
 	router := server.Group(prefix)
 
 	// accounts
@@ -31,7 +31,7 @@ type LoginRequest struct {
 
 // LoginResponse -
 type LoginResponse struct {
-	Jwt string
+	Jwt string `json:"jwt"`
 }
 
 func loginHandler(db *sql.DB) echo.HandlerFunc {
@@ -107,7 +107,7 @@ type ChangePasswordRequest struct {
 
 // ChangePasswordResponse -
 type ChangePasswordResponse struct {
-	Jwt string
+	Jwt string `json:"jwt"`
 }
 
 func changePasswordHandler(db *sql.DB) echo.HandlerFunc {

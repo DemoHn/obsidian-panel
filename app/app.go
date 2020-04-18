@@ -19,7 +19,7 @@ var (
 )
 
 const (
-	dtUser     = "account"
+	dtUser     = "admin"
 	dtPassword = "0bs-pane1"
 )
 
