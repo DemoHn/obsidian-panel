@@ -21,6 +21,34 @@ const (
 	StringListType = 24
 )
 
+// public helpers
+
+// GetInt -
+func (v Value) GetInt() (int, bool) {
+	return v.getInt()
+}
+
+// GetString -
+func (v Value) GetString() (string, bool) {
+	return v.getString()
+}
+
+// GetBool -
+func (v Value) GetBool() (bool, bool) {
+	return v.getBool()
+}
+
+// GetIntList -
+func (v Value) GetIntList() ([]int, bool) {
+	return v.getIntList()
+}
+
+// GetStringList -
+func (v Value) GetStringList() ([]string, bool) {
+	return v.getStringList()
+}
+
+//// helpers
 func (v Value) toString() string {
 	switch v.typeHint {
 	case IntType, StringType, BoolType:

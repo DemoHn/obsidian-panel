@@ -60,28 +60,28 @@ func listAccountsRecord(db *sql.DB, filter AccountsFilter) ([]Account, error) {
 	var conditionBlocks = []string{}
 	var valueBlocks = []interface{}{}
 
-	if filter.nameLike != nil {
+	if filter.NameLike != nil {
 		whereFlag = true
 		conditionBlocks = append(conditionBlocks, "name like ?")
-		valueBlocks = append(valueBlocks, *(filter.nameLike))
+		valueBlocks = append(valueBlocks, *(filter.NameLike))
 	}
 	// limit
-	if filter.limit != nil {
-		if *(filter.limit) < 0 {
+	if filter.Limit != nil {
+		if *(filter.Limit) < 0 {
 			return nil, ValidationError("limit < 0")
 		}
 
 		conditionBlocks = append(conditionBlocks, "limit ?")
-		valueBlocks = append(valueBlocks, *(filter.limit))
+		valueBlocks = append(valueBlocks, *(filter.Limit))
 	}
 	// offset
-	if filter.limit != nil && filter.offset != nil {
-		if *(filter.offset) < 0 {
+	if filter.Limit != nil && filter.Offset != nil {
+		if *(filter.Offset) < 0 {
 			return nil, ValidationError("offset < 0")
 		}
 
 		conditionBlocks = append(conditionBlocks, "offset ?")
-		valueBlocks = append(valueBlocks, *(filter.offset))
+		valueBlocks = append(valueBlocks, *(filter.Offset))
 	}
 	// add "where" statement if necessary
 	if whereFlag {

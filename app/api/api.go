@@ -26,10 +26,15 @@ func StartServer(cfg *config.Config, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	vhost, _ := host.GetString()
+	vport, _ := port.GetInt()
 	// II. set validator MW
-	address := fmt.Sprintf("%s:%d", host, port)
+	address := fmt.Sprintf("%s:%d", vhost, vport)
 	infra.Log.Infof("going to start server on address: %s", address)
-	server.Start(address)
+
+	// III. load routes
+	bindAPIs(server, db, "0.7")
+	return server.Start(address)
 }
 
 func init() {

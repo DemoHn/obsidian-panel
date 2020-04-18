@@ -16,9 +16,9 @@ var config = infra.GetConfig()
 
 // AccountsFilter - define filter properties for listing accounts
 type AccountsFilter struct {
-	nameLike *string
-	limit    *int
-	offset   *int
+	NameLike *string
+	Limit    *int
+	Offset   *int
 }
 
 // Account - account model
