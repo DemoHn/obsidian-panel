@@ -8,21 +8,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var log = infra.GetCLILogger()
-
+var (
+	rootDir string
+	debug   bool
+)
 var rootCmd = &cobra.Command{
 	Use:     "obs",
 	Short:   "obsidian-panel main command",
 	Version: "0.7.0",
 	Run: func(cmd *cobra.Command, args []string) {
-		var err error
-		var appInstance *app.App
-		if appInstance, err = app.LoadAppFromCmd(cmd); err != nil {
-			log.PrintError(err)
+		inst, err := app.New(rootDir, debug)
+		if err != nil {
+			infra.LogT.PrintError(err)
 			return
 		}
 
-		log.PrintError(appInstance.Start())
+		infra.LogT.PrintError(app.Start(inst))
 	},
 	SilenceUsage: true,
 }
@@ -38,6 +39,6 @@ func init() {
 	rootCmd.AddCommand(apm.RootCmd)
 
 	// add flags
-	rootCmd.PersistentFlags().StringP("config", "c", "", "config filepath")
-	rootCmd.PersistentFlags().BoolP("debug", "d", true, "debug mode")
+	rootCmd.PersistentFlags().StringVar(&rootDir, "root-dir", "", "panel operation data root path")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", true, "debug mode")
 }

@@ -7,6 +7,8 @@ import (
 
 	"github.com/DemoHn/obsidian-panel/app/api"
 	"github.com/DemoHn/obsidian-panel/app/config"
+	"github.com/DemoHn/obsidian-panel/app/sqlc"
+	"github.com/DemoHn/obsidian-panel/infra"
 )
 
 // declare input params
@@ -49,6 +51,21 @@ func New(rootPath string, debug bool) (*App, error) {
 
 // Start - start app
 func Start(app *App) error {
+	infra.SetMainLoggerLevel(app.debug)
+	// I. migrate up
+	infra.Log.Info("establish db schema...")
+	if err := sqlc.MigrateUp(app.db); err != nil {
+		return err
+	}
+	// II. Load config
+	infra.Log.Info("load config...")
+	if err := app.cfg.Load(); err != nil {
+		return err
+	}
+	// III. set default admin user/password
+	// TODO
+	// username: admin
+	// password: 0bs-pane1
 	return api.StartServer(app.cfg, app.db)
 }
 
