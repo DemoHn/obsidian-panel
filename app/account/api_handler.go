@@ -7,6 +7,8 @@ import (
 	mw "github.com/DemoHn/obsidian-panel/app/middlewares"
 )
 
+// GOING TO MOVE SOMEWHERE ELSE
+
 func (p iProvider) registerAPIs() {
 	e := p.echo
 	router := e.GetAPIRouter("1.0")

@@ -1,6 +1,7 @@
 package account
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"reflect"
@@ -30,8 +31,8 @@ func init() {
 	}
 }
 
-func setup(t *testing.T) *sqlite.Driver {
-	db, _ := sqlite.NewForTest(sqliteFile)
+func setup(t *testing.T) *sql.DB {
+	db, _ := sql.Open("sqlite3", sqliteFile)
 	if err := db.SchemaUp(); err != nil {
 		t.Errorf("%v", err)
 		return nil

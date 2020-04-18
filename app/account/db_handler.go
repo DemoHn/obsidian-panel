@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
 )
 
 const (
@@ -36,7 +34,7 @@ const (
 )
 
 // insertAccountRecord - create Account model
-func insertAccountRecord(db *sqlite.Driver, account *Account) error {
+func insertAccountRecord(db *sql.DB, account *Account) error {
 	var err error
 	var stmt = fmt.Sprintf(`insert into %s (%s, created_at, updated_at) values (?, ?, ?, ?, ?)`, tableName, insertColumns)
 
@@ -53,7 +51,7 @@ func insertAccountRecord(db *sqlite.Driver, account *Account) error {
 // ListAccountsRecord - list account data (without displaying credential, of course)
 // notice: limit, offset can be optional
 // notice2: offset only affective when limit is not null
-func listAccountsRecord(db *sqlite.Driver, filter AccountsFilter) ([]Account, error) {
+func listAccountsRecord(db *sql.DB, filter AccountsFilter) ([]Account, error) {
 	var err error
 	var rows *sql.Rows
 
@@ -110,7 +108,7 @@ func listAccountsRecord(db *sqlite.Driver, filter AccountsFilter) ([]Account, er
 }
 
 // getAccountByName - get account model by name
-func getAccountByName(db *sqlite.Driver, name string) (*Account, error) {
+func getAccountByName(db *sql.DB, name string) (*Account, error) {
 	var err error
 	var newAccount Account
 
@@ -130,7 +128,7 @@ func getAccountByName(db *sqlite.Driver, name string) (*Account, error) {
 }
 
 // countTotalAccounts - get total accounts
-func countTotalAccounts(db *sqlite.Driver) (int, error) {
+func countTotalAccounts(db *sql.DB) (int, error) {
 	var err error
 	var stmt = fmt.Sprintf("select count(*) from %s", tableName)
 
@@ -142,7 +140,7 @@ func countTotalAccounts(db *sqlite.Driver) (int, error) {
 }
 
 // changePermission - change permission of one account
-func changePermission(db *sqlite.Driver, acct *Account, newPerm PermLevel) (*Account, error) {
+func changePermission(db *sql.DB, acct *Account, newPerm PermLevel) (*Account, error) {
 	var err error
 	var stmt = fmt.Sprintf("update %s set permission_level = ? where id = ?", tableName)
 	if _, err = db.Exec(stmt, newPerm, acct.ID); err != nil {
@@ -154,7 +152,7 @@ func changePermission(db *sqlite.Driver, acct *Account, newPerm PermLevel) (*Acc
 }
 
 // changeCredential - update credential
-func changeCredential(db *sqlite.Driver, acct *Account, credential []byte) (*Account, error) {
+func changeCredential(db *sql.DB, acct *Account, credential []byte) (*Account, error) {
 	var err error
 	var stmt = fmt.Sprintf("update %s set credential = ? where id = ?", tableName)
 	if _, err = db.Exec(stmt, credential, acct.ID); err != nil {
