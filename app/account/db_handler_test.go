@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/AlekSi/pointer"
-	"github.com/DemoHn/obsidian-panel/app/drivers/sqlite"
+	"github.com/DemoHn/obsidian-panel/app/sqlc"
 )
 
 const sqliteFile = "/tmp/account_repo_test_1984.sql"
@@ -33,19 +33,19 @@ func init() {
 
 func setup(t *testing.T) *sql.DB {
 	db, _ := sql.Open("sqlite3", sqliteFile)
-	if err := db.SchemaUp(); err != nil {
+	if err := sqlc.MigrateUp(db); err != nil {
 		t.Errorf("%v", err)
 		return nil
 	}
 	return db
 }
 
-func clear(db *sqlite.Driver) {
+func clear(db *sql.DB) {
 	db.Exec("delete from accounts")
 	db.Exec("delete from sqlite_sequence where name = 'accounts'")
 }
 
-func teardown(db *sqlite.Driver) {
+func teardown(db *sql.DB) {
 	db.Close()
 	os.Remove(sqliteFile)
 }
@@ -100,7 +100,7 @@ func Test_listAccountsRecord(t *testing.T) {
 
 	// construct args
 	type args struct {
-		db     *sqlite.Driver
+		db     *sql.DB
 		filter AccountsFilter
 	}
 	tests := []struct {
@@ -119,11 +119,11 @@ func Test_listAccountsRecord(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "list with nameLike",
+			name: "list with NameLike",
 			args: args{
 				db: gDB,
 				filter: AccountsFilter{
-					nameLike: pointer.ToString("1%"),
+					NameLike: pointer.ToString("1%"),
 				},
 			},
 			want:    []Account{allAccounts[0], allAccounts[9]},
@@ -134,8 +134,8 @@ func Test_listAccountsRecord(t *testing.T) {
 			args: args{
 				db: gDB,
 				filter: AccountsFilter{
-					limit:  pointer.ToInt(3),
-					offset: pointer.ToInt(4),
+					Limit:  pointer.ToInt(3),
+					Offset: pointer.ToInt(4),
 				},
 			},
 			want:    []Account{allAccounts[4], allAccounts[5], allAccounts[6]},
@@ -161,7 +161,7 @@ func Test_getAccountByName(t *testing.T) {
 	var gDB = setup(t)
 
 	type args struct {
-		db   *sqlite.Driver
+		db   *sql.DB
 		name string
 	}
 	tests := []struct {
@@ -214,7 +214,7 @@ func Test_countTotalAccounts(t *testing.T) {
 	defer teardown(gDB)
 
 	type args struct {
-		db *sqlite.Driver
+		db *sql.DB
 	}
 	tests := []struct {
 		name    string
@@ -251,7 +251,7 @@ func Test_changePermission(t *testing.T) {
 	defer teardown(gDB)
 
 	type args struct {
-		db      *sqlite.Driver
+		db      *sql.DB
 		acct    *Account
 		newPerm PermLevel
 	}
@@ -292,7 +292,7 @@ func Test_changeCredential(t *testing.T) {
 	defer teardown(gDB)
 
 	type args struct {
-		db         *sqlite.Driver
+		db         *sql.DB
 		acct       *Account
 		credential []byte
 	}

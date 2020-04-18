@@ -6,6 +6,7 @@ import (
 	"github.com/DemoHn/obsidian-panel/pkg/dbmigrate"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	// migraitons init
 )
 
 var log = infra.GetCLILogger()
@@ -16,7 +17,7 @@ var migrateNewCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
-		if path, err := dbmigrate.NewTemplate(name, "app/migrations"); err != nil {
+		if path, err := dbmigrate.NewTemplate(name, "app/sqlc/migrations"); err != nil {
 			panic(err)
 		} else {
 			log.PrintOK("create new migration template on: %s", path)
@@ -29,12 +30,7 @@ var migrateUpCmd = &cobra.Command{
 	Short: "update db schema to latest version",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dbPath, _ := viper.Get("db").(string)
-		var target *string
-
-		if dbPath != "" {
-			target = &dbPath
-		}
-		db, err := app.FindRootDB(target)
+		db, err := app.FindRootDB(dbPath)
 		if err != nil {
 			return err
 		}
@@ -52,12 +48,7 @@ var migrateDownCmd = &cobra.Command{
 	Short: "migrate db schema down to its initial state",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dbPath, _ := viper.Get("db").(string)
-		var target *string
-
-		if dbPath != "" {
-			target = &dbPath
-		}
-		db, err := app.FindRootDB(target)
+		db, err := app.FindRootDB(dbPath)
 		if err != nil {
 			return err
 		}
