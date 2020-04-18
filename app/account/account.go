@@ -4,15 +4,12 @@ import (
 	"database/sql"
 
 	"github.com/DemoHn/obsidian-panel/app/secret"
-	"github.com/DemoHn/obsidian-panel/util"
-
-	// init infra configs
 	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/DemoHn/obsidian-panel/util"
 )
 
 // infra variables
 var log = infra.GetMainLogger()
-var config = infra.GetConfig()
 
 // AccountsFilter - define filter properties for listing accounts
 type AccountsFilter struct {
