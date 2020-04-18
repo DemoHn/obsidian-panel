@@ -117,6 +117,11 @@ func (v Value) getStringList() ([]string, bool) {
 	return nil, false
 }
 
+// NewFromString -
+func NewFromString(data string, typeHint int) Value {
+	return newFromString(data, typeHint)
+}
+
 // internal initialize functions
 func newInt(value int) Value {
 	return Value{
