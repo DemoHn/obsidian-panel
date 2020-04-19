@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/DemoHn/obsidian-panel/app/account"
-	"github.com/DemoHn/obsidian-panel/app/api"
 	"github.com/DemoHn/obsidian-panel/app/config"
+	"github.com/DemoHn/obsidian-panel/app/proc"
 	"github.com/DemoHn/obsidian-panel/app/sqlc"
 	"github.com/DemoHn/obsidian-panel/infra"
 )
@@ -72,7 +72,9 @@ func Start(app *App) error {
 	if err := account.RegisterAdminNS(app.db, dtUser, dtPassword); err != nil {
 		return err
 	}
-	return api.StartServer(app.cfg, app.db)
+
+	return proc.StartWorker(app.rootPath, app.debug)
+	//return api.StartServer(app.cfg, app.db)
 }
 
 // FindRootDB -

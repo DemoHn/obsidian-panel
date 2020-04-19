@@ -23,7 +23,12 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
-		infra.LogT.PrintError(app.Start(inst))
+		if err := app.Start(inst); err != nil {
+			infra.LogT.PrintError(err)
+		} else {
+			infra.LogT.PrintOK("start panel success!")
+		}
+
 	},
 	SilenceUsage: true,
 }
@@ -40,5 +45,5 @@ func init() {
 
 	// add flags
 	rootCmd.PersistentFlags().StringVar(&rootDir, "root-dir", "", "panel operation data root path")
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", true, "debug mode")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug mode")
 }
