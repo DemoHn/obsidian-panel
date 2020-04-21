@@ -73,7 +73,7 @@ func Start(app *App) error {
 		return err
 	}
 
-	return proc.StartWorker(app.rootPath, app.debug)
+	return proc.StartDaemon(app.rootPath, app.debug, false)
 	//return api.StartServer(app.cfg, app.db)
 }
 
