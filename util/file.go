@@ -52,7 +52,7 @@ func InitFileDir(path string) error {
 
 //// helpers
 func openFile(path string, isAppend bool) (*os.File, error) {
-	flags := os.O_RDWR | os.O_CREATE
+	flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
 	if isAppend {
 		flags |= os.O_APPEND
 	}
@@ -68,5 +68,5 @@ func writeFile(path string, isAppend bool, data []byte) error {
 	if _, err := f.Write(data); err != nil {
 		return err
 	}
-	return nil
+	return f.Sync()
 }

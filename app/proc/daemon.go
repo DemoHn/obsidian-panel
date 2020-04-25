@@ -2,11 +2,11 @@ package proc
 
 import (
 	"fmt"
-	"net"
 	"os"
+	"os/exec"
 	"strconv"
-	"strings"
 	"syscall"
+	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/DemoHn/obsidian-panel/util"
@@ -15,32 +15,19 @@ import (
 
 // StartDaemon -
 func StartDaemon(rootPath string, debug bool, foreground bool) error {
-	logFile := fmt.Sprintf("%s/log/obs-daemon.log", rootPath)
 	pidFile := fmt.Sprintf("%s/proc/obs-daemon.pid", rootPath)
-	sockFile := fmt.Sprintf("%s/proc/obs-daemon-recv.sock", rootPath)
 
 	// I. start worker
 	infra.Log.Info("start obs worker...")
 	cmd := reexec.Command("<obs-daemon>")
 
-	// III. set log
-	if foreground {
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stdout
-	} else {
-		// redirect stdout/stderr to log file
-		fi, err := util.OpenFileNS(logFile, true)
-		infra.Log.Debugf("going to open %s", logFile)
-		if err != nil {
-			infra.Log.Info("open obs-worker logFile failed")
-			return err
-		}
-		// redirect stdout/stderr to file
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = fi
-		cmd.Stderr = fi
+	// III. set pipes
+	// create r/w pipe pair for child/parent process communication
+	rp, wp, err := os.Pipe()
+	if err != nil {
+		return err
 	}
+	setProcPipe(rootPath, cmd, foreground, wp)
 
 	// IV. set env
 	cmd.Env = append(cmd.Env,
@@ -70,7 +57,14 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 		}
 		return nil
 	}
+
+	b := make([]byte, 1024)
+	for {
+		n, _ := rp.Read(b)
+		fmt.Println(string(b[:n]))
+	}
 	// do on background
+	/**
 	if err := util.InitFileDir(sockFile); err != nil {
 		return err
 	}
@@ -79,29 +73,18 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 		infra.Log.Debugf("listen recv sock error ==")
 		return err
 	}
+
+	b := make([]byte, 1024)
 	for {
-		b := make([]byte, 1024)
-		conn, err := ln.Accept()
-		if err != nil {
-			return err
-		}
-		conn.Read(b)
-		if strings.Contains(string(b), "OK") {
-			infra.Log.Info("done!")
-			break
-		}
+		rp.Read(b)
+		fmt.Println(b)
 	}
+	*/
 
 	return nil
 }
 
-func init() {
-	reexec.Register("<obs-daemon>", childWorker)
-	if reexec.Init() {
-		os.Exit(0)
-	}
-}
-
+//// child worker
 func childWorker() {
 	// execution func of child process
 	var rootPath = ""
@@ -121,6 +104,14 @@ func childWorker() {
 		infra.Log.Error("rootPath is empty, stop executing further logic")
 		return
 	}
+
+	f := os.NewFile(4, "pipe")
+	for {
+		f.Write([]byte("HelloWOrld"))
+		time.Sleep(1 * time.Second)
+	}
+	////
+
 	var sockFile = fmt.Sprintf("%s/proc/obs-daemon.sock", rootPath)
 	master, err := NewMaster(sockFile)
 	if err != nil {
@@ -135,7 +126,31 @@ func childWorker() {
 	}
 }
 
-//// helper
+// set stdin/stdout/stderr pipe
+func setProcPipe(rootPath string, cmd *exec.Cmd, foreground bool, wp *os.File) error {
+	var logFile = fmt.Sprintf("%s/log/obs-daemon.log", rootPath)
+	if foreground {
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stdout
+	} else {
+		// redirect stdout/stderr to log file
+		fi, err := util.OpenFileNS(logFile, true)
+		infra.Log.Debugf("going to open %s", logFile)
+		if err != nil {
+			infra.Log.Info("open obs-worker logFile failed")
+			return err
+		}
+		// redirect stdout/stderr to file
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = fi
+		cmd.Stderr = fi
+	}
+	cmd.ExtraFiles = []*os.File{nil, wp}
+	return nil
+}
+
+//// helpers
 func bool2str(data bool) string {
 	if data {
 		return "1"
@@ -146,4 +161,11 @@ func bool2str(data bool) string {
 func writePid(pidFile string, pid int) error {
 	infra.Log.Debugf("start daemon pid: %d", pid)
 	return util.WriteFileNS(pidFile, false, []byte(strconv.Itoa(pid)))
+}
+
+func init() {
+	reexec.Register("<obs-daemon>", childWorker)
+	if reexec.Init() {
+		os.Exit(0)
+	}
 }
