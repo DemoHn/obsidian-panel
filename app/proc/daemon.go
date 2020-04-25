@@ -3,11 +3,13 @@ package proc
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/DemoHn/obsidian-panel/util"
@@ -26,6 +28,11 @@ type ipcMessage struct {
 // StartDaemon -
 func StartDaemon(rootPath string, debug bool, foreground bool) error {
 	pidFile := fmt.Sprintf("%s/proc/obs-daemon.pid", rootPath)
+	// DO NOT start daemon TWICE
+	if exists, _ := daemonExists(pidFile); exists {
+		infra.Log.Info("obs-daemon has been started")
+		return nil
+	}
 
 	// I. start worker
 	infra.Log.Info("start obs worker...")
@@ -51,13 +58,13 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 		Foreground: false,
 		Setsid:     true,
 	}
+
 	if err := cmd.Start(); err != nil {
 		infra.Log.Error("start obs worker failed")
 		return err
 	}
 	// V. write pid
 	writePid(pidFile, cmd.Process.Pid)
-	defer os.Remove(pidFile)
 
 	// VI. wait or listen sock
 	if foreground {
@@ -65,9 +72,12 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 			infra.Log.Error("wait obs worker failed")
 			return err
 		}
+
+		cmd.Process.Kill()
 		return nil
 	}
 
+	// for background - recv data from child proc's ipc channel
 	dec := json.NewDecoder(rp)
 	for {
 		var msg ipcMessage
@@ -76,14 +86,67 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 		}
 
 		// handle message
-		if msg.Status == "ok" {
+		if msg.Status == "ok-start" {
 			infra.Log.Info("start worker success")
 			return nil
-		} else {
-			infra.Log.Info("start child worker failed:", msg.Message)
-			return err
 		}
+		// or return fail message
+		infra.Log.Info("start child worker failed:", msg.Message)
+		return err
 	}
+}
+
+// KillDaemon -
+func KillDaemon(rootPath string) error {
+	pidFile := fmt.Sprintf("%s/proc/obs-daemon.pid", rootPath)
+	sockFile := fmt.Sprintf("%s/proc/obs-daemon.sock", rootPath)
+
+	exists, pid := daemonExists(pidFile)
+	if !exists {
+		infra.Log.Info("could not kill a non-existing worker process")
+		return nil
+	}
+
+	// I. kill process
+	if err := syscall.Kill(pid, syscall.SIGTERM); err != nil {
+		return err
+	}
+
+	// II. check if sock file has been deleted
+	countDown := 5
+	for {
+		if countDown == 0 {
+			infra.Log.Error("kill daemon timeout (after 5s)")
+			return nil
+		}
+		if !util.FileExists(sockFile) {
+			infra.Log.Info("kill worker success")
+			return nil
+		}
+		time.Sleep(1 * time.Second)
+		countDown = countDown - 1
+	}
+}
+
+// DaemonExists - if obs-daemon has been started already
+// Notice: any errors occured during reading pidFile
+// will return false directly!
+func daemonExists(pidFile string) (bool, int) {
+	data, err := ioutil.ReadFile(pidFile)
+	if err != nil {
+		return false, 0
+	}
+	// II. get pid
+	pid, err := strconv.Atoi(string(data))
+	if err != nil {
+		return false, 0
+	}
+
+	// III. find process
+	if kerr := syscall.Kill(pid, syscall.Signal(0)); kerr != nil {
+		return false, 0
+	}
+	return true, pid
 }
 
 //// child worker
@@ -138,12 +201,15 @@ func childWorker() {
 		case <-sig:
 			// TODO: any trim logic
 			infra.Log.Info("received signal, going to close worker")
+			sendIpcMessage(enc, "ok-stop", "ok")
+			os.Remove(sockFile)
 			return
 		case err := <-doneErr:
 			sendIpcMessage(enc, "err", "listen to master error: "+err.Error())
+			os.Remove(sockFile)
 			return
 		case <-doneOK:
-			sendIpcMessage(enc, "ok", "ok")
+			sendIpcMessage(enc, "ok-start", "ok")
 		}
 	}
 }

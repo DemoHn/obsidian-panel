@@ -56,7 +56,7 @@ func New(rootPath string, debug bool) (*App, error) {
 }
 
 // Start - start app
-func Start(app *App) error {
+func Start(app *App, foreground bool) error {
 	infra.SetMainLoggerLevel(app.debug)
 	// I. migrate up
 	infra.Log.Info("establish db schema...")
@@ -73,8 +73,15 @@ func Start(app *App) error {
 		return err
 	}
 
-	return proc.StartDaemon(app.rootPath, app.debug, false)
-	//return api.StartServer(app.cfg, app.db)
+	return proc.StartDaemon(app.rootPath, app.debug, foreground)
+}
+
+// Stop -
+func Stop(app *App) error {
+	infra.SetMainLoggerLevel(app.debug)
+	// I.
+	infra.Log.Info("going to kill panel daemon...")
+	return proc.KillDaemon(app.rootPath)
 }
 
 // FindRootDB -
