@@ -1,17 +1,27 @@
 package proc
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
 	"syscall"
-	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/DemoHn/obsidian-panel/util"
 	"github.com/moby/moby/pkg/reexec"
 )
+
+const (
+	ipcPipe = 4
+)
+
+type ipcMessage struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
 
 // StartDaemon -
 func StartDaemon(rootPath string, debug bool, foreground bool) error {
@@ -52,36 +62,28 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 	// VI. wait or listen sock
 	if foreground {
 		if err := cmd.Wait(); err != nil {
-			infra.Log.Error("wait obs worker failed:")
+			infra.Log.Error("wait obs worker failed")
 			return err
 		}
 		return nil
 	}
 
-	b := make([]byte, 1024)
+	dec := json.NewDecoder(rp)
 	for {
-		n, _ := rp.Read(b)
-		fmt.Println(string(b[:n]))
-	}
-	// do on background
-	/**
-	if err := util.InitFileDir(sockFile); err != nil {
-		return err
-	}
-	ln, err := net.Listen("unix", sockFile)
-	if err != nil {
-		infra.Log.Debugf("listen recv sock error ==")
-		return err
-	}
+		var msg ipcMessage
+		if err := dec.Decode(&msg); err != nil {
+			return err
+		}
 
-	b := make([]byte, 1024)
-	for {
-		rp.Read(b)
-		fmt.Println(b)
+		// handle message
+		if msg.Status == "ok" {
+			infra.Log.Info("start worker success")
+			return nil
+		} else {
+			infra.Log.Info("start child worker failed:", msg.Message)
+			return err
+		}
 	}
-	*/
-
-	return nil
 }
 
 //// child worker
@@ -101,28 +103,48 @@ func childWorker() {
 	infra.Log.Debugf("rootPath=%s, debugMode=%s", rootPath, debugMode)
 	// set root path
 	if rootPath == "" {
-		infra.Log.Error("rootPath is empty, stop executing further logic")
+		infra.Log.Error("rootPath is empty, stop execute worker")
 		return
 	}
 
-	f := os.NewFile(4, "pipe")
-	for {
-		f.Write([]byte("HelloWOrld"))
-		time.Sleep(1 * time.Second)
-	}
-	////
+	// ipc pipe
+	enc := json.NewEncoder(os.NewFile(ipcPipe, "pipe"))
 
 	var sockFile = fmt.Sprintf("%s/proc/obs-daemon.sock", rootPath)
 	master, err := NewMaster(sockFile)
 	if err != nil {
 		infra.Log.Error("create master error:", err)
+		// ignore errors of sendIpcMessage()
+		sendIpcMessage(enc, "err", "create master error: "+err.Error())
 		return
 	}
 
-	infra.Log.Info("going to begin daemon master")
-	if err := Listen(master); err != nil {
-		infra.Log.Error("listen to master error:", err)
-		return
+	doneErr := make(chan error, 1)
+	doneOK := make(chan bool, 1)
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGHUP, syscall.SIGTERM)
+	// listen to data
+	go func() {
+		infra.Log.Info("going to begin daemon master")
+		if err := Listen(master, doneOK); err != nil {
+			infra.Log.Error("listen to master error:", err)
+			doneErr <- err
+		}
+	}()
+
+	// block until a signal received
+	for {
+		select {
+		case <-sig:
+			// TODO: any trim logic
+			infra.Log.Info("received signal, going to close worker")
+			return
+		case err := <-doneErr:
+			sendIpcMessage(enc, "err", "listen to master error: "+err.Error())
+			return
+		case <-doneOK:
+			sendIpcMessage(enc, "ok", "ok")
+		}
 	}
 }
 
@@ -148,6 +170,14 @@ func setProcPipe(rootPath string, cmd *exec.Cmd, foreground bool, wp *os.File) e
 	}
 	cmd.ExtraFiles = []*os.File{nil, wp}
 	return nil
+}
+
+func sendIpcMessage(enc *json.Encoder, status string, message string) error {
+	ipcMsg := ipcMessage{
+		Status:  status,
+		Message: message,
+	}
+	return enc.Encode(&ipcMsg)
 }
 
 //// helpers

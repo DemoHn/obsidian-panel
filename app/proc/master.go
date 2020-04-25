@@ -27,16 +27,17 @@ func NewMaster(sockFile string) (*Master, error) {
 	}
 
 	rpc.HandleHTTP()
-	return nil, nil
+	return master, nil
 }
 
 // Echo for test
-func (m *Master) Echo(input string) string {
-	return input
+func (m *Master) Echo(input string, out *string) error {
+	*out = input
+	return nil
 }
 
 // Listen - listen to corresponding file
-func Listen(master *Master) error {
+func Listen(master *Master, done chan<- bool) error {
 	// I. delete old sockFile
 	// ignore errors here
 	os.Remove(master.sockFile)
@@ -45,6 +46,7 @@ func Listen(master *Master) error {
 	if err != nil {
 		return err
 	}
-
+	// send signal to chan
+	done <- true
 	return master.server.Serve(l)
 }
