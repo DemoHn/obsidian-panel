@@ -51,9 +51,19 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+
+	doneErr := make(chan error, 1)
 	// wait for background
 	writePid(pidFile, cmd.Process.Pid)
-	return handleIpcMessageBG(rp)
+	go handleIpcMessageBG(rp, doneErr)
+
+	select {
+	case <-time.After(3 * time.Second):
+		infra.Log.Info("wait for child worker response timeout (3s)")
+	case err := <-doneErr:
+		return err
+	}
+	return nil
 }
 
 // KillDaemon -
@@ -63,7 +73,7 @@ func KillDaemon(rootPath string) error {
 
 	exists, pid := daemonExists(pidFile)
 	if !exists {
-		infra.Log.Info("could not kill a non-existing worker process")
+		infra.Log.Warn("could not kill a non-existing worker process")
 		return nil
 	}
 
@@ -72,8 +82,8 @@ func KillDaemon(rootPath string) error {
 		return err
 	}
 
-	// II. check if sock file has been deleted
-	countDown := 5
+	// II. check if sock file has been deleted (for 5 seconds)
+	countDown := 10
 	for {
 		if countDown == 0 {
 			infra.Log.Error("kill daemon timeout (after 5s)")
@@ -159,25 +169,30 @@ func setProcPipeBG(rootPath string, cmd *exec.Cmd) (*os.File, error) {
 // handleIpcMessageBG - when child worker started at background
 // we could wait for a moment to recv message from child worker to
 // indicate its status - thus we can easily realize whether it starts fail or success.
-func handleIpcMessageBG(rp *os.File) error {
+func handleIpcMessageBG(rp *os.File, doneErr chan error) {
 	// for background - recv data from child proc's ipc channel
 	dec := json.NewDecoder(rp)
+
 	for {
 		var msg ipcMessage
 		if err := dec.Decode(&msg); err != nil {
-			return err
+			doneErr <- err
+			return
 		}
 
 		// handle message
 		if msg.Status == "ok-start" {
 			infra.Log.Info("start worker success")
-			return nil
+			doneErr <- nil
+			return
 		}
 		// or return fail message
 		infra.Log.Info("start child worker failed:", msg.Message)
-		return fmt.Errorf(msg.Message)
+		doneErr <- fmt.Errorf(msg.Message)
+		return
 	}
 }
+
 func sendIpcMessage(enc *json.Encoder, status string, message string) error {
 	ipcMsg := ipcMessage{
 		Status:  status,
