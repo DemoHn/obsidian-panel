@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
@@ -25,7 +24,10 @@ type ipcMessage struct {
 	Message string `json:"message"`
 }
 
-// StartDaemon -
+// StartDaemon - start child worker
+// there're 2 types to start <obs-daemon> (i.e. the child worker):
+//
+// 1. run worker foreground -
 func StartDaemon(rootPath string, debug bool, foreground bool) error {
 	pidFile := fmt.Sprintf("%s/proc/obs-daemon.pid", rootPath)
 	// DO NOT start daemon TWICE
@@ -33,67 +35,25 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 		infra.Log.Info("obs-daemon has been started")
 		return nil
 	}
+	// 0. For foreground process, just call core function directly
+	if foreground {
+		return childCoreWorker(workerEnv{rootPath, debug}, nil)
+	}
 
 	// I. start worker
 	infra.Log.Info("start obs worker...")
-	cmd := reexec.Command("<obs-daemon>")
-
-	// III. set pipes
-	// create r/w pipe pair for child/parent process communication
-	rp, wp, err := os.Pipe()
+	rp, cmd, err := registerCmd(rootPath, debug)
 	if err != nil {
 		return err
 	}
-	setProcPipe(rootPath, cmd, foreground, wp)
 
-	// IV. set env
-	cmd.Env = append(cmd.Env,
-		fmt.Sprintf("OBS_DAEMON_ROOTPATH=%s", rootPath),
-		fmt.Sprintf("OBS_DAEMON_DEBUG_MODE=%s", bool2str(debug)),
-	)
-	infra.Log.Debugf("obs worker env: %+v", cmd.Env)
-
-	// set daemon flags
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Foreground: false,
-		Setsid:     true,
-	}
-
+	// II. start cmd
 	if err := cmd.Start(); err != nil {
-		infra.Log.Error("start obs worker failed")
 		return err
 	}
-	// V. write pid
+	// wait for background
 	writePid(pidFile, cmd.Process.Pid)
-
-	// VI. wait or listen sock
-	if foreground {
-		if err := cmd.Wait(); err != nil {
-			infra.Log.Error("wait obs worker failed")
-			return err
-		}
-
-		cmd.Process.Kill()
-		return nil
-	}
-
-	// for background - recv data from child proc's ipc channel
-	dec := json.NewDecoder(rp)
-	for {
-		var msg ipcMessage
-		if err := dec.Decode(&msg); err != nil {
-			return err
-		}
-
-		// handle message
-		if msg.Status == "ok-start" {
-			infra.Log.Info("start worker success")
-			return nil
-		}
-		// or return fail message
-		infra.Log.Info("start child worker failed:", msg.Message)
-		return err
-	}
+	return handleIpcMessageBG(rp)
 }
 
 // KillDaemon -
@@ -123,9 +83,33 @@ func KillDaemon(rootPath string) error {
 			infra.Log.Info("kill worker success")
 			return nil
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 		countDown = countDown - 1
 	}
+}
+
+// registerCmd - only for background process
+func registerCmd(rootPath string, debug bool) (*os.File, *exec.Cmd, error) {
+	cmd := reexec.Command("<obs-daemon>")
+	var rp *os.File
+	var err error
+	if rp, err = setProcPipeBG(rootPath, cmd); err != nil {
+		return nil, nil, err
+	}
+
+	// II. set env
+	cmd.Env = append(cmd.Env,
+		fmt.Sprintf("OBS_DAEMON_ROOTPATH=%s", rootPath),
+		fmt.Sprintf("OBS_DAEMON_DEBUG_MODE=%s", bool2str(debug)),
+	)
+	infra.Log.Debugf("obs worker env: %+v", cmd.Env)
+
+	// set daemon flags
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Foreground: false,
+		Setsid:     true,
+	}
+	return rp, cmd, nil
 }
 
 // DaemonExists - if obs-daemon has been started already
@@ -149,95 +133,51 @@ func daemonExists(pidFile string) (bool, int) {
 	return true, pid
 }
 
-//// child worker
-func childWorker() {
-	// execution func of child process
-	var rootPath = ""
-	var debugMode = "0"
-	// I. load env
-	rootPath, _ = os.LookupEnv("OBS_DAEMON_ROOTPATH")
-	debugMode, _ = os.LookupEnv("OBS_DAEMON_DEBUG_MODE")
-	var isDebug = false
-	if debugMode == "1" {
-		isDebug = true
-	}
-	// set logger
-	infra.SetMainLoggerLevel(isDebug)
-	infra.Log.Debugf("rootPath=%s, debugMode=%s", rootPath, debugMode)
-	// set root path
-	if rootPath == "" {
-		infra.Log.Error("rootPath is empty, stop execute worker")
-		return
-	}
-
-	// ipc pipe
-	enc := json.NewEncoder(os.NewFile(ipcPipe, "pipe"))
-
-	var sockFile = fmt.Sprintf("%s/proc/obs-daemon.sock", rootPath)
-	master, err := NewMaster(sockFile)
+// set stdin/stdout/stderr pipe (for background processes)
+func setProcPipeBG(rootPath string, cmd *exec.Cmd) (*os.File, error) {
+	logFile := fmt.Sprintf("%s/log/obs-daemon.log", rootPath)
+	rp, wp, err := os.Pipe()
 	if err != nil {
-		infra.Log.Error("create master error:", err)
-		// ignore errors of sendIpcMessage()
-		sendIpcMessage(enc, "err", "create master error: "+err.Error())
-		return
+		return nil, err
 	}
 
-	doneErr := make(chan error, 1)
-	doneOK := make(chan bool, 1)
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGHUP, syscall.SIGTERM)
-	// listen to data
-	go func() {
-		infra.Log.Info("going to begin daemon master")
-		if err := Listen(master, doneOK); err != nil {
-			infra.Log.Error("listen to master error:", err)
-			doneErr <- err
-		}
-	}()
-
-	// block until a signal received
-	for {
-		select {
-		case <-sig:
-			// TODO: any trim logic
-			infra.Log.Info("received signal, going to close worker")
-			sendIpcMessage(enc, "ok-stop", "ok")
-			os.Remove(sockFile)
-			return
-		case err := <-doneErr:
-			sendIpcMessage(enc, "err", "listen to master error: "+err.Error())
-			os.Remove(sockFile)
-			return
-		case <-doneOK:
-			sendIpcMessage(enc, "ok-start", "ok")
-		}
+	// redirect stdout/stderr to log file
+	fi, err := util.OpenFileNS(logFile, true)
+	infra.Log.Debugf("going to open %s", logFile)
+	if err != nil {
+		infra.Log.Info("open obs-worker logFile failed")
+		return nil, err
 	}
+	// redirect stdout/stderr to file
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = fi
+	cmd.Stderr = fi
+	cmd.ExtraFiles = []*os.File{nil, wp}
+	return rp, nil
 }
 
-// set stdin/stdout/stderr pipe
-func setProcPipe(rootPath string, cmd *exec.Cmd, foreground bool, wp *os.File) error {
-	var logFile = fmt.Sprintf("%s/log/obs-daemon.log", rootPath)
-	if foreground {
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stdout
-	} else {
-		// redirect stdout/stderr to log file
-		fi, err := util.OpenFileNS(logFile, true)
-		infra.Log.Debugf("going to open %s", logFile)
-		if err != nil {
-			infra.Log.Info("open obs-worker logFile failed")
+// handleIpcMessageBG - when child worker started at background
+// we could wait for a moment to recv message from child worker to
+// indicate its status - thus we can easily realize whether it starts fail or success.
+func handleIpcMessageBG(rp *os.File) error {
+	// for background - recv data from child proc's ipc channel
+	dec := json.NewDecoder(rp)
+	for {
+		var msg ipcMessage
+		if err := dec.Decode(&msg); err != nil {
 			return err
 		}
-		// redirect stdout/stderr to file
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = fi
-		cmd.Stderr = fi
-	}
-	cmd.ExtraFiles = []*os.File{nil, wp}
-	return nil
-}
 
+		// handle message
+		if msg.Status == "ok-start" {
+			infra.Log.Info("start worker success")
+			return nil
+		}
+		// or return fail message
+		infra.Log.Info("start child worker failed:", msg.Message)
+		return fmt.Errorf(msg.Message)
+	}
+}
 func sendIpcMessage(enc *json.Encoder, status string, message string) error {
 	ipcMsg := ipcMessage{
 		Status:  status,
@@ -257,11 +197,4 @@ func bool2str(data bool) string {
 func writePid(pidFile string, pid int) error {
 	infra.Log.Debugf("start daemon pid: %d", pid)
 	return util.WriteFileNS(pidFile, false, []byte(strconv.Itoa(pid)))
-}
-
-func init() {
-	reexec.Register("<obs-daemon>", childWorker)
-	if reexec.Init() {
-		os.Exit(0)
-	}
 }

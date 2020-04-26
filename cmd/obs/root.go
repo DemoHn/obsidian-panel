@@ -47,8 +47,6 @@ var rootCmd = &cobra.Command{
 func startApp(inst *app.App, foreground bool) {
 	if err := app.Start(inst, foreground); err != nil {
 		infra.LogT.PrintError(err)
-	} else {
-		infra.LogT.PrintOK("start panel success!")
 	}
 }
 
