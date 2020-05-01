@@ -43,7 +43,7 @@ func New(rootPath string, debug bool) (*App, error) {
 		return nil, err
 	}
 	// III. open db
-	db, err := findRootDB(path)
+	db, err := FindRootDB(path)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,12 @@ func Stop(app *App) error {
 
 // FindRootDB -
 func FindRootDB(rootPath string) (*sql.DB, error) {
-	return findRootDB(rootPath)
+	path, err := findRootPath(rootPath)
+	if err != nil {
+		return nil, err
+	}
+	sqlFile := fmt.Sprintf("%s/root.db", path)
+	return sqlc.OpenDB(sqlFile)
 }
 
 //// helpers
@@ -126,31 +131,4 @@ func initDirs(rootPath string) error {
 		}
 	}
 	return nil
-}
-
-func findRootDB(rootPath string) (*sql.DB, error) {
-	const (
-		sqlPathFmt = "%s/sql"
-		sqlFileFmt = "%s/sql/root.db"
-	)
-	// 1. $rootPath
-	// 2. $HOME/.obs-root/sql/root.db
-	//
-	// An error will be thrown if both locations are not found.
-
-	// I. first try to open DB from predefined dbFile
-	if rootPath == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return nil, err
-		}
-		rootPath = fmt.Sprintf(sqlPathFmt, home)
-	}
-
-	// ensure rootPath exists
-	if _, err := os.Stat(rootPath); err != nil {
-		return nil, err
-	}
-	// then open db directly
-	return sql.Open("sqlite3", fmt.Sprintf(sqlFileFmt, rootPath))
 }

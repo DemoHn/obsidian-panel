@@ -26,7 +26,7 @@ func Test_MigrateDown(t *testing.T) {
 
 		g.It("should migrate down all", func() {
 			var err error
-			if err = Down(db); err != nil {
+			if err = Down(db, 0); err != nil {
 				g.Fail(err)
 			}
 

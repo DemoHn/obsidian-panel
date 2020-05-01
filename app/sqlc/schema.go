@@ -14,6 +14,6 @@ func MigrateUp(db *sql.DB) error {
 }
 
 // MigrateDown -
-func MigrateDown(db *sql.DB) error {
-	return dbmigrate.Down(db)
+func MigrateDown(db *sql.DB, step int) error {
+	return dbmigrate.Down(db, step)
 }

@@ -9,6 +9,7 @@ import (
 	// migraitons init
 )
 
+var step int
 var log = infra.GetCLILogger()
 
 var migrateNewCmd = &cobra.Command{
@@ -52,7 +53,7 @@ var migrateDownCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		if err := dbmigrate.Down(db); err != nil {
+		if err := dbmigrate.Down(db, step); err != nil {
 			return err
 		}
 
@@ -67,4 +68,6 @@ func init() {
 
 	migrateDownCmd.Flags().String("db", "", "assign db path")
 	viper.BindPFlag("db", migrateDownCmd.Flags().Lookup("db"))
+
+	migrateDownCmd.Flags().IntVar(&step, "step", 1, "migrate down steps")
 }

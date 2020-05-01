@@ -40,7 +40,7 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 		return childCoreWorker(workerEnv{rootPath, debug}, nil)
 	}
 
-	// I. start worker
+	// I. start worker (background)
 	infra.Log.Info("start obs worker...")
 	rp, cmd, err := registerCmd(rootPath, debug)
 	if err != nil {
@@ -77,7 +77,7 @@ func KillDaemon(rootPath string) error {
 		return nil
 	}
 
-	// I. kill process
+	// I. kill process - send SIGTERM signal
 	if err := syscall.Kill(pid, syscall.SIGTERM); err != nil {
 		return err
 	}

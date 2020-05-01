@@ -6,7 +6,7 @@ import (
 )
 
 // Down - down to lowest version
-func Down(db *sql.DB) error {
+func Down(db *sql.DB, step int) error {
 	var err error
 	if err = initMigrationTable(db); err != nil {
 		return fmt.Errorf("init migration table failed: %s", err.Error())
@@ -18,6 +18,11 @@ func Down(db *sql.DB) error {
 	}
 
 	execMigrations := filterMigrations(versions, gMigrations, false)
+	// filter migrations by step
+	if step > 0 {
+		execMigrations = execMigrations[:step]
+	}
+
 	// no need to order since `versions` are naturally ordered
 	return downMigrations(db, execMigrations)
 }
