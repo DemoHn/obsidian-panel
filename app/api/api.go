@@ -6,7 +6,6 @@ import (
 
 	"github.com/DemoHn/obsidian-panel/app/config"
 	"github.com/DemoHn/obsidian-panel/infra"
-	"github.com/go-playground/validator"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -42,20 +41,10 @@ func StartServer(cfg *config.Config, db *sql.DB) error {
 func init() {
 	server = echo.New()
 	// III. set validator
-	server.Validator = &structValidator{validator: validator.New()}
+	server.Validator = newValidator()
 	// II. load middlewares
 	server.Use(middleware.Logger())
 	server.Use(middleware.Recover())
 
 	server.Use(ErrorHandler())
-}
-
-// validator
-type structValidator struct {
-	validator *validator.Validate
-}
-
-// Validate - validate struct by tag
-func (cv *structValidator) Validate(i interface{}) error {
-	return cv.validator.Struct(i)
 }

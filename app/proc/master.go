@@ -9,6 +9,7 @@ import (
 // Master - masters all processes
 type Master struct {
 	sockFile string
+	rootPath string
 	server   *http.Server
 	workers  map[string]string
 }
