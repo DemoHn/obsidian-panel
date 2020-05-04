@@ -37,6 +37,10 @@ func StartDaemon(rootPath string, debug bool, foreground bool) error {
 	}
 	// 0. For foreground process, just call core function directly
 	if foreground {
+		// the existance of pidFile is unnecessary but confusing - thus for FG mode,
+		// we delete it to ensure no background process spawned.
+		// (and we ignore the errors here)
+		removePidFile(pidFile)
 		return childCoreWorker(workerEnv{rootPath, debug}, nil)
 	}
 
@@ -212,4 +216,8 @@ func bool2str(data bool) string {
 func writePid(pidFile string, pid int) error {
 	infra.Log.Debugf("start daemon pid: %d", pid)
 	return util.WriteFileNS(pidFile, false, []byte(strconv.Itoa(pid)))
+}
+
+func removePidFile(pidFile string) {
+	os.Remove(pidFile)
 }

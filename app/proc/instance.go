@@ -48,7 +48,7 @@ func StartInstance(rootPath string, inst Instance) error {
 		return startInstance(rootPath, inst)
 	}
 
-	infra.Log.Info("process is running: pid(%d)", pid)
+	infra.Log.Info("process is alreay running (pid:%d), skip execution", pid)
 	return nil
 }
 

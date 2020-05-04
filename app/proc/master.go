@@ -11,14 +11,14 @@ type Master struct {
 	sockFile string
 	rootPath string
 	server   *http.Server
-	workers  map[string]string
+	workers  map[string]Instance
 }
 
 // NewMaster - new master controller
 func NewMaster(sockFile string) (*Master, error) {
 	master := &Master{
 		sockFile: sockFile,
-		workers:  map[string]string{},
+		workers:  map[string]Instance{},
 		server:   new(http.Server),
 	}
 
@@ -33,6 +33,24 @@ func NewMaster(sockFile string) (*Master, error) {
 // Echo for test
 func (m *Master) Echo(input string, out *string) error {
 	*out = input
+	return nil
+}
+
+// Sync - sync instance configurations
+func (m *Master) Sync() error {
+	// TODO
+	return nil
+}
+
+// Start - start an instance
+func (m *Master) Start(procSign string, out *string) error {
+	// TODO
+	return nil
+}
+
+// Stop - stop an instance
+func (m *Master) Stop(procSign string, out *string) error {
+	// TODO
 	return nil
 }
 
