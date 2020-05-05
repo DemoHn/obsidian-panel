@@ -39,9 +39,10 @@ func childCoreWorker(env workerEnv, enc *json.Encoder) error {
 	infra.Log.Debugf("rootPath=%s, debug=%v", env.rootPath, env.debug)
 	// sock file
 	sockFile := fmt.Sprintf("%s/proc/obs-daemon.sock", env.rootPath)
+	procRoot := fmt.Sprintf("%s/proc", env.rootPath)
 
 	// listen to data
-	go listenToSock(sockFile, doneErr, doneOK)
+	go listenToSock(sockFile, procRoot, doneErr, doneOK)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 
 	// block until a signal received
@@ -100,9 +101,9 @@ func readWorkerEnv() (workerEnv, error) {
 	return workerEnv{rootPath, debugMode}, nil
 }
 
-func listenToSock(sockFile string, doneErr chan<- error, doneOK chan<- bool) {
+func listenToSock(sockFile string, rootPath string, doneErr chan<- error, doneOK chan<- bool) {
 	// start master
-	master, err := NewMaster(sockFile)
+	master, err := NewMaster(sockFile, rootPath)
 	if err != nil {
 		doneErr <- err
 		return
