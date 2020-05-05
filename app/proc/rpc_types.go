@@ -20,3 +20,28 @@ type DataRsp struct {
 	Message string
 	Data    map[string]interface{}
 }
+
+func rspOK(data map[string]interface{}) *DataRsp {
+	return &DataRsp{
+		Code:    0,
+		Message: "",
+		Data:    data,
+	}
+}
+
+func rspFail(code int, message string) *DataRsp {
+	return &DataRsp{
+		Code:    code,
+		Message: message,
+		Data:    map[string]interface{}{},
+	}
+}
+
+// fail with data
+func rspFailD(code int, message string, data map[string]interface{}) *DataRsp {
+	return &DataRsp{
+		Code:    code,
+		Message: message,
+		Data:    data,
+	}
+}

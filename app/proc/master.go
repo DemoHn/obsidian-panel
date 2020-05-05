@@ -1,6 +1,7 @@
 package proc
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -15,9 +16,10 @@ type Master struct {
 }
 
 // NewMaster - new master controller
-func NewMaster(sockFile string) (*Master, error) {
+func NewMaster(sockFile string, rootPath string) (*Master, error) {
 	master := &Master{
 		sockFile: sockFile,
+		rootPath: rootPath,
 		workers:  map[string]Instance{},
 		server:   new(http.Server),
 	}
@@ -30,21 +32,48 @@ func NewMaster(sockFile string) (*Master, error) {
 	return master, nil
 }
 
-// Echo for test
+// Echo - output exactly what input (usually for ping test)
 func (m *Master) Echo(input string, out *string) error {
 	*out = input
 	return nil
 }
 
 // Sync - sync instance configurations
-func (m *Master) Sync() error {
+func (m *Master) Sync(input []InstanceReq, out *DataRsp) error {
+	// copy instance
+	for _, req := range input {
+		nInst := Instance{
+			name:          req.Name,
+			procSign:      req.ProcSign,
+			command:       req.Command,
+			directory:     req.Directory,
+			env:           req.Env,
+			autoStart:     req.AutoStart,
+			autoRestart:   req.AutoRestart,
+			maxRetry:      req.MaxRetry,
+			stdoutLogFile: req.StdoutLogFile,
+			stderrLogFile: req.StderrLogFile,
+			protected:     false,
+		}
+		m.workers[req.ProcSign] = nInst
+	}
 	// TODO
+	out = rspOK(nil)
 	return nil
 }
 
 // Start - start an instance
-func (m *Master) Start(procSign string, out *string) error {
+func (m *Master) Start(procSign string, out *DataRsp) error {
 	// TODO
+	inst, ok := m.workers[procSign]
+	if !ok {
+		out = rspFail(-1, fmt.Sprintf("procSign: %s not found", procSign))
+		return nil
+	}
+	if err := StartInstance(m.rootPath, inst); err != nil {
+		return err
+	}
+	out = rspOK(nil)
 	return nil
 }
 
