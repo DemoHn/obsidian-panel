@@ -28,5 +28,6 @@ func init() {
 	rootCmd.AddCommand(httpPostCmd)
 	rootCmd.AddCommand(initCmd)
 	// apm
-	rootCmd.AddCommand(apmCmd)
+	rootCmd.AddCommand(apmProcCmd)
+	rootCmd.AddCommand(apmCtrlCmd)
 }

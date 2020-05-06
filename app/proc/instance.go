@@ -91,7 +91,13 @@ func startInstance(rootPath string, inst Instance) error {
 		Setsid:     true,
 	}
 	// start cmd
-	return cmd.Start()
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	// write pid
+	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
+	pidStr := strconv.Itoa(cmd.Process.Pid)
+	return util.WriteFileNS(pidFile, false, []byte(pidStr))
 }
 
 //// helper functions

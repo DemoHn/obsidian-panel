@@ -7,6 +7,9 @@ import (
 	"os/signal"
 	"time"
 
+	"net/rpc"
+
+	"github.com/DemoHn/obsidian-panel/app/proc"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -15,9 +18,10 @@ var (
 	printEnv  bool
 	exitAfter int
 	writeRAM  int
+	sockFile  string
 )
 
-var apmCmd = &cobra.Command{
+var apmProcCmd = &cobra.Command{
 	Use:   "apm:proc",
 	Short: "example proc, used for testing spawn processes",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -64,10 +68,75 @@ var apmCmd = &cobra.Command{
 	},
 }
 
+var apmCtrlCmd = &cobra.Command{
+	Use:   "apm:ctrl",
+	Short: "send ctrl commands to daemon process valid command:sync,start",
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		var sock = sockFile
+		if sockFile == "" {
+			home, _ := os.UserHomeDir()
+			sock = fmt.Sprintf("%s/.obs-root/proc/obs-daemon.sock", home)
+		}
+
+		client, err := rpc.DialHTTP("unix", sock)
+		if err != nil {
+			panic(err)
+		}
+		switch args[0] {
+		case "start":
+			var rsp proc.DataRsp
+			var procSign = "proc1"
+			if len(args) > 1 {
+				procSign = args[1]
+			}
+
+			if err := client.Call("Master.Start", procSign, &rsp); err != nil {
+				panic(err)
+			}
+			fmt.Println("rsp:", rsp)
+		case "sync":
+			var rsp proc.DataRsp
+			// sync with example data
+			exampleData := []proc.InstanceReq{
+				{
+					ProcSign:      "proc1",
+					Name:          "example hello",
+					Command:       "./obs-dev apm:proc --printEnv",
+					Directory:     "",
+					Env:           map[string]string{},
+					AutoStart:     true,
+					AutoRestart:   true,
+					StdoutLogFile: "$rootPath/$procSign.log",
+					StderrLogFile: "$rootPath/$procSign.log",
+					MaxRetry:      3,
+				},
+			}
+			if err := client.Call("Master.Sync", &exampleData, &rsp); err != nil {
+				panic(err)
+			}
+			fmt.Println("rsp:", rsp)
+		case "echo":
+			var reply string
+			var input = "ping"
+			if len(args) > 1 {
+				input = args[1]
+			}
+			err := client.Call("Master.Echo", &input, &reply)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("echo: %s\n", reply)
+		}
+	},
+}
+
 func init() {
-	apmCmd.Flags().BoolVar(&printEnv, "printEnv", false, "print current env")
-	apmCmd.Flags().IntVar(&exitAfter, "exitAfter", 0, "assign exit after (N) seconds, 0 for never exit")
-	apmCmd.Flags().IntVar(&writeRAM, "writeRAM", 0, "write (N)M RAM (for testing pidusage)")
+	apmProcCmd.Flags().BoolVar(&printEnv, "printEnv", false, "print current env")
+	apmProcCmd.Flags().IntVar(&exitAfter, "exitAfter", 0, "assign exit after (N) seconds, 0 for never exit")
+	apmProcCmd.Flags().IntVar(&writeRAM, "writeRAM", 0, "write (N)M RAM (for testing pidusage)")
+
+	apmCtrlCmd.Flags().StringVar(&sockFile, "sockFile", "", "daemon connection socket file")
 }
 
 func writeRAMWorker(block []byte, num int) {
