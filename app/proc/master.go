@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"syscall"
 )
 
 // Master - masters all processes
@@ -78,8 +79,11 @@ func (m *Master) Start(procSign string, out *DataRsp) error {
 }
 
 // Stop - stop an instance
-func (m *Master) Stop(procSign string, out *string) error {
-	// TODO
+func (m *Master) Stop(procSign string, out *DataRsp) error {
+	if err := StopInstance(m, procSign, syscall.SIGTERM); err != nil {
+		return err
+	}
+	out = rspOK(nil)
 	return nil
 }
 

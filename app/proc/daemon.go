@@ -87,7 +87,7 @@ func KillDaemon(rootPath string) error {
 	}
 
 	// II. check if sock file has been deleted (for 5 seconds)
-	countDown := 10
+	countDown := 25
 	for {
 		if countDown == 0 {
 			infra.Log.Error("kill daemon timeout (after 5s)")
@@ -97,7 +97,7 @@ func KillDaemon(rootPath string) error {
 			infra.Log.Info("kill worker success")
 			return nil
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		countDown = countDown - 1
 	}
 }

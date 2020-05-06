@@ -95,6 +95,17 @@ var apmCtrlCmd = &cobra.Command{
 				panic(err)
 			}
 			fmt.Println("rsp:", rsp)
+		case "stop":
+			var rsp proc.DataRsp
+			var procSign = "proc1"
+			if len(args) > 1 {
+				procSign = args[1]
+			}
+
+			if err := client.Call("Master.Stop", procSign, &rsp); err != nil {
+				panic(err)
+			}
+			fmt.Println("rsp:", rsp)
 		case "sync":
 			var rsp proc.DataRsp
 			// sync with example data

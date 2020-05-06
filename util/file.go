@@ -45,6 +45,26 @@ func OpenFile(path string, isAppend bool) (*os.File, error) {
 	return openFile(path, isAppend)
 }
 
+// RemoveContents -
+func RemoveContents(dir string) error {
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // InitFileDir - initialize the parent directory of file
 func InitFileDir(path string) error {
 	return os.MkdirAll(filepath.Dir(path), 0755)

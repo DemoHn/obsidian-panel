@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/DemoHn/obsidian-panel/pkg/cmdspliter"
@@ -36,6 +37,7 @@ type Instance struct {
 
 // StartInstance - start one instance
 func StartInstance(rootPath string, inst Instance) error {
+	infra.Log.Infof("going to start process: %s", inst.procSign)
 	// I. check if rootPath is empty
 	if rootPath == "" {
 		return fmt.Errorf("rootPath of daemon should not be empty")
@@ -48,8 +50,24 @@ func StartInstance(rootPath string, inst Instance) error {
 		return startInstance(rootPath, inst)
 	}
 
-	infra.Log.Info("process is alreay running (pid:%d), skip execution", pid)
+	infra.Log.Infof("process is alreay running (pid:%d), skip execution", pid)
 	return nil
+}
+
+// StopInstance - stop instance
+func StopInstance(master *Master, procSign string, signal syscall.Signal) error {
+	infra.Log.Infof("going to stop process: %s", procSign)
+	// I. check if rootPath is empty
+	if master.rootPath == "" {
+		return fmt.Errorf("rootPath of daemon should not be empty")
+	}
+	// II. check instance
+	inst, ok := master.workers[procSign]
+	if !ok {
+		return fmt.Errorf("process: %s not found", procSign)
+	}
+	// III. stop instance
+	return stopInstance(master.rootPath, inst, signal)
 }
 
 //// sub helpers
@@ -98,6 +116,39 @@ func startInstance(rootPath string, inst Instance) error {
 	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
 	pidStr := strconv.Itoa(cmd.Process.Pid)
 	return util.WriteFileNS(pidFile, false, []byte(pidStr))
+}
+
+// stop instance - send stop signal to an instance, wait until process is terminated
+func stopInstance(rootPath string, inst Instance, signal syscall.Signal) error {
+	// read pid first
+	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
+	data, err := ioutil.ReadFile(pidFile)
+	if err != nil {
+		return fmt.Errorf("pidFile:%s not found", pidFile)
+	}
+	pid, _ := strconv.Atoi(string(data))
+
+	if err := syscall.Kill(pid, signal); err != nil {
+		return err
+	}
+	countDown := 25
+	for {
+		if countDown == 0 {
+			return fmt.Errorf("kill process timeout (5s)")
+		}
+		// III. find process
+		if kerr := syscall.Kill(pid, syscall.Signal(0)); kerr != nil {
+			infra.Log.Infof("process: %s has killed successfully", inst.procSign)
+			util.RemoveContents(parseDir(rootPath, inst.procSign, "$rootPath/$procSign"))
+			return nil
+		}
+		time.Sleep(200 * time.Millisecond)
+		countDown = countDown - 1
+	}
+}
+
+func getPidInfo() {
+
 }
 
 //// helper functions
