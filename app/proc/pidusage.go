@@ -1,4 +1,4 @@
-package process
+package proc
 
 import (
 	"fmt"
@@ -10,17 +10,9 @@ import (
 	"strings"
 )
 
-// IPidUsage - interface for pid usage
-type IPidUsage interface {
-	GetStat() (*PidStat, error)
-	GetPID() int
-	SetPID(pid int)
-}
-
-// PidUsage - main
+// PidUsage -
 type PidUsage struct {
-	Pid        int
-	pidSet     bool
+	pid        int
 	oldCPUStat *cpuTimeStat
 }
 
@@ -39,6 +31,8 @@ type PidStat struct {
 	Memory int64
 	// Elapsed time since process start in second
 	Elapsed float64
+	// Status shows the current
+	Status int
 }
 
 // internal cpuTime stat for recording historial data
@@ -48,35 +42,18 @@ type cpuTimeStat struct {
 	uptime float64
 }
 
-// NewPidUsage - new Pidusage object
-func NewPidUsage() *PidUsage {
+// InitPidUsage -
+func InitPidUsage(pid int) *PidUsage {
 	return &PidUsage{
-		pidSet: false,
+		pid:        pid,
+		oldCPUStat: nil,
 	}
-}
-
-// GetPID - get current pid
-func (usage *PidUsage) GetPID() int {
-	return usage.Pid
-}
-
-// SetPID - set PID to stat
-// Notice, once executed, *oldCPUInfo will be automatically removed!
-func (usage *PidUsage) SetPID(pid int) {
-	usage.pidSet = true
-	// clear old data
-	usage.oldCPUStat = nil
-	// set PID
-	usage.Pid = pid
 }
 
 // GetStat - get pid stat
 func (usage *PidUsage) GetStat() (*PidStat, error) {
 	var err error
 
-	if !usage.pidSet {
-		return nil, fmt.Errorf("[NotSet] Pid not set")
-	}
 	// OS should support
 	if !usage.supportedOS() {
 		return nil, fmt.Errorf("[NotSupported] OS:%s is not supported to get stat now", runtime.GOOS)
