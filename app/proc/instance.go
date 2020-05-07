@@ -36,18 +36,21 @@ type Instance struct {
 // const upCount = 3 * time.Second
 
 // StartInstance - start one instance
-func StartInstance(rootPath string, inst Instance) error {
+func StartInstance(master *Master, inst Instance) error {
 	infra.Log.Infof("going to start process: %s", inst.procSign)
-	// I. check if rootPath is empty
-	if rootPath == "" {
-		return fmt.Errorf("rootPath of daemon should not be empty")
-	}
-	// II. get pid file
+	rootPath := master.rootPath
+
 	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
 	pid := getPid(pidFile)
 	if pid == 0 {
 		infra.Log.Debugf("pid info not found from %s, mostly there's no existing process.", pidFile)
-		return startInstance(rootPath, inst)
+		cmd, err := startInstance(rootPath, inst)
+		if err != nil {
+			return err
+		}
+		// set cmd worker
+		master.workers[inst.procSign] = cmd
+		return nil
 	}
 
 	infra.Log.Infof("process is alreay running (pid:%d), skip execution", pid)
@@ -57,45 +60,41 @@ func StartInstance(rootPath string, inst Instance) error {
 // StopInstance - stop instance
 func StopInstance(master *Master, procSign string, signal syscall.Signal) error {
 	infra.Log.Infof("going to stop process: %s", procSign)
-	// I. check if rootPath is empty
-	if master.rootPath == "" {
-		return fmt.Errorf("rootPath of daemon should not be empty")
-	}
-	// II. check instance
-	inst, ok := master.workers[procSign]
+	// I. check instance
+	inst, ok := master.instances[procSign]
 	if !ok {
 		return fmt.Errorf("process: %s not found", procSign)
 	}
 	// III. stop instance
-	return stopInstance(master.rootPath, inst, signal)
+	return stopInstance(master, inst, signal)
 }
 
 //// sub helpers
 // start instance directly - without checking if process has
 // been executed and running, rootPath is empty or not, etc...
-func startInstance(rootPath string, inst Instance) error {
+func startInstance(rootPath string, inst Instance) (*exec.Cmd, error) {
 	// get command
 	prog, args, err := cmdspliter.SplitCommand(inst.command)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cmd := exec.Command(prog, args...)
 
 	// stdout logfile
 	stdlogFile, err := util.OpenFileNS(parseDir(rootPath, inst.procSign, inst.stdoutLogFile), true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	stderrFile, err := util.OpenFileNS(parseDir(rootPath, inst.procSign, inst.stderrLogFile), true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = stdlogFile
 	cmd.Stderr = stderrFile
 	// set wd
 	if err := setCwd(cmd, rootPath, inst); err != nil {
-		return err
+		return nil, err
 	}
 	// set env
 	envStrs := []string{}
@@ -110,16 +109,21 @@ func startInstance(rootPath string, inst Instance) error {
 	}
 	// start cmd
 	if err := cmd.Start(); err != nil {
-		return err
+		return nil, err
 	}
 	// write pid
 	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
 	pidStr := strconv.Itoa(cmd.Process.Pid)
-	return util.WriteFileNS(pidFile, false, []byte(pidStr))
+	if err := util.WriteFileNS(pidFile, false, []byte(pidStr)); err != nil {
+		return nil, err
+	}
+
+	return cmd, nil
 }
 
 // stop instance - send stop signal to an instance, wait until process is terminated
-func stopInstance(rootPath string, inst Instance, signal syscall.Signal) error {
+func stopInstance(master *Master, inst Instance, signal syscall.Signal) error {
+	rootPath := master.rootPath
 	// read pid first
 	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
 	data, err := ioutil.ReadFile(pidFile)
@@ -131,6 +135,19 @@ func stopInstance(rootPath string, inst Instance, signal syscall.Signal) error {
 	if err := syscall.Kill(pid, signal); err != nil {
 		return err
 	}
+	// I. find if cmd worker exists -
+	cmd, ok := master.workers[inst.procSign]
+	// if exists - wait for
+	if ok {
+		if err := cmd.Wait(); err != nil {
+			return err
+		}
+		infra.Log.Infof("process: %s has killed successfully", inst.procSign)
+		exitCode := cmd.ProcessState.ExitCode()
+		infra.Log.Infof("with exitCode: %d", exitCode)
+		return nil
+	}
+
 	countDown := 25
 	for {
 		if countDown == 0 {

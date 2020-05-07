@@ -5,30 +5,36 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"os/exec"
 	"syscall"
 )
 
 // Master - masters all processes
 type Master struct {
-	sockFile string
-	rootPath string
-	server   *http.Server
-	workers  map[string]Instance
+	sockFile  string
+	rootPath  string
+	server    *http.Server
+	instances map[string]Instance
+	workers   map[string]*exec.Cmd
 }
 
 // NewMaster - new master controller
 func NewMaster(sockFile string, rootPath string) (*Master, error) {
 	master := &Master{
-		sockFile: sockFile,
-		rootPath: rootPath,
-		workers:  map[string]Instance{},
-		server:   new(http.Server),
+		sockFile:  sockFile,
+		rootPath:  rootPath,
+		instances: map[string]Instance{},
+		workers:   map[string]*exec.Cmd{},
+		server:    new(http.Server),
+	}
+	// check rootPath
+	if rootPath == "" {
+		return nil, fmt.Errorf("rootPath of daemon should not be empty")
 	}
 
 	if err := rpc.Register(master); err != nil {
 		return nil, err
 	}
-
 	rpc.HandleHTTP()
 	return master, nil
 }
@@ -56,7 +62,7 @@ func (m *Master) Sync(input []InstanceReq, out *DataRsp) error {
 			stderrLogFile: req.StderrLogFile,
 			protected:     false,
 		}
-		m.workers[req.ProcSign] = nInst
+		m.instances[req.ProcSign] = nInst
 	}
 	// TODO
 	out = rspOK(nil)
@@ -66,12 +72,12 @@ func (m *Master) Sync(input []InstanceReq, out *DataRsp) error {
 // Start - start an instance
 func (m *Master) Start(procSign string, out *DataRsp) error {
 	// TODO
-	inst, ok := m.workers[procSign]
+	inst, ok := m.instances[procSign]
 	if !ok {
 		out = rspFail(-1, fmt.Sprintf("procSign: %s not found", procSign))
 		return nil
 	}
-	if err := StartInstance(m.rootPath, inst); err != nil {
+	if err := StartInstance(m, inst); err != nil {
 		return err
 	}
 	out = rspOK(nil)
@@ -80,7 +86,7 @@ func (m *Master) Start(procSign string, out *DataRsp) error {
 
 // Stop - stop an instance
 func (m *Master) Stop(procSign string, out *DataRsp) error {
-	if err := StopInstance(m, procSign, syscall.SIGTERM); err != nil {
+	if err := StopInstance(m, procSign, syscall.SIGINT); err != nil {
 		return err
 	}
 	out = rspOK(nil)
