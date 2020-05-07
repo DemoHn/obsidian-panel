@@ -2,10 +2,8 @@ package proc
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -38,13 +36,12 @@ type Instance struct {
 // StartInstance - start one instance
 func StartInstance(master *Master, inst Instance) error {
 	infra.Log.Infof("going to start process: %s", inst.procSign)
-	rootPath := master.rootPath
+	fflags := NewFFlags(master.rootPath)
 
-	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
-	pid := getPid(pidFile)
+	pid := fflags.ReadPid(inst.procSign)
 	if pid == 0 {
-		infra.Log.Debugf("pid info not found from %s, mostly there's no existing process.", pidFile)
-		cmd, err := startInstance(rootPath, inst)
+		infra.Log.Debugf("pid info file:%s not found, mostly there's no existing process.", fflags.getPidFile(inst.procSign))
+		cmd, err := startInstance(master, inst, fflags)
 		if err != nil {
 			return err
 		}
@@ -72,7 +69,8 @@ func StopInstance(master *Master, procSign string, signal syscall.Signal) error 
 //// sub helpers
 // start instance directly - without checking if process has
 // been executed and running, rootPath is empty or not, etc...
-func startInstance(rootPath string, inst Instance) (*exec.Cmd, error) {
+func startInstance(master *Master, inst Instance, fflags *FFlags) (*exec.Cmd, error) {
+	rootPath := master.rootPath
 	// get command
 	prog, args, err := cmdspliter.SplitCommand(inst.command)
 	if err != nil {
@@ -112,25 +110,21 @@ func startInstance(rootPath string, inst Instance) (*exec.Cmd, error) {
 		return nil, err
 	}
 	// write pid
-	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
-	pidStr := strconv.Itoa(cmd.Process.Pid)
-	if err := util.WriteFileNS(pidFile, false, []byte(pidStr)); err != nil {
+	if err := fflags.StorePid(inst.procSign, cmd.Process.Pid); err != nil {
 		return nil, err
 	}
-
 	return cmd, nil
 }
 
 // stop instance - send stop signal to an instance, wait until process is terminated
 func stopInstance(master *Master, inst Instance, signal syscall.Signal) error {
 	rootPath := master.rootPath
+	fflags := NewFFlags(master.rootPath)
 	// read pid first
-	pidFile := parseDir(rootPath, inst.procSign, "$rootPath/$procSign/pid")
-	data, err := ioutil.ReadFile(pidFile)
-	if err != nil {
-		return fmt.Errorf("pidFile:%s not found", pidFile)
+	pid := fflags.ReadPid(inst.procSign)
+	if pid == 0 {
+		return fmt.Errorf("no active pid found")
 	}
-	pid, _ := strconv.Atoi(string(data))
 
 	if err := syscall.Kill(pid, signal); err != nil {
 		return err
@@ -195,22 +189,4 @@ func setCwd(cmd *exec.Cmd, rootPath string, inst Instance) error {
 	}
 	cmd.Dir = cwd
 	return nil
-}
-
-// getPid - read pidFile and get pid info
-// if any error, then return 0
-func getPid(pidFile string) int {
-	if util.FileExists(pidFile) {
-		data, err := ioutil.ReadFile(pidFile)
-		if err != nil {
-			return 0
-		}
-		// II. get pid
-		pid, err := strconv.Atoi(string(data))
-		if err != nil {
-			return 0
-		}
-		return pid
-	}
-	return 0
 }
