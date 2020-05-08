@@ -3,7 +3,9 @@ package proc
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/DemoHn/obsidian-panel/util"
 )
@@ -50,6 +52,16 @@ func (f *FFlags) ReadPid(procSign string) int {
 	return 0
 }
 
+// RemovePid - remove pid file
+func (f *FFlags) RemovePid(procSign string) error {
+	return os.Remove(f.getPidFile(procSign))
+}
+
+// PidExists -
+func (f *FFlags) PidExists(procSign string) bool {
+	return util.FileExists(f.getPidFile(procSign))
+}
+
 // ReadRetryCount -
 func (f *FFlags) ReadRetryCount(procSign string) int {
 	retryFile := f.getRetryFile(procSign)
@@ -88,6 +100,58 @@ func (f *FFlags) ResetRetryCount(procSign string) error {
 	return util.WriteFileNS(retryFile, false, []byte("0"))
 }
 
+// RemoveRetryCount -
+func (f *FFlags) RemoveRetryCount(procSign string) error {
+	return os.Remove(f.getRetryFile(procSign))
+}
+
+// RetryCountExists -
+func (f *FFlags) RetryCountExists(procSign string) bool {
+	return util.FileExists(f.getRetryFile(procSign))
+}
+
+// StoreTimestamp -
+func (f *FFlags) StoreTimestamp(procSign string) error {
+	tsFile := f.getTsFile(procSign)
+	tsStr := strconv.FormatInt(time.Now().Unix(), 10)
+
+	return util.WriteFileNS(tsFile, false, []byte(tsStr))
+}
+
+// ReadTimestamp -
+func (f *FFlags) ReadTimestamp(procSign string) int64 {
+	tsFile := f.getTsFile(procSign)
+	if util.FileExists(tsFile) {
+		q, _ := ioutil.ReadFile(tsFile)
+		r, _ := strconv.ParseInt(string(q), 10, 64)
+		return r
+	}
+	return 0
+}
+
+// RemoveTimestamp -
+func (f *FFlags) RemoveTimestamp(procSign string) error {
+	tsFile := f.getTsFile(procSign)
+	return os.Remove(tsFile)
+}
+
+// StoreStop -
+func (f *FFlags) StoreStop(procSign string) error {
+	stopFile := f.getStopFile(procSign)
+	return util.WriteFileNS(stopFile, false, []byte("1"))
+}
+
+// RemoveStop -
+func (f *FFlags) RemoveStop(procSign string) error {
+	tsFile := f.getStopFile(procSign)
+	return os.Remove(tsFile)
+}
+
+// StopExists -
+func (f *FFlags) StopExists(procSign string) bool {
+	return util.FileExists(f.getStopFile(procSign))
+}
+
 //// helpers
 func (f *FFlags) getPidFile(procSign string) string {
 	return fmt.Sprintf("%s/%s/pid", f.rootDir, procSign)
@@ -99,4 +163,8 @@ func (f *FFlags) getRetryFile(procSign string) string {
 
 func (f *FFlags) getTsFile(procSign string) string {
 	return fmt.Sprintf("%s/%s/timestamp", f.rootDir, procSign)
+}
+
+func (f *FFlags) getStopFile(procSign string) string {
+	return fmt.Sprintf("%s/%s/stop", f.rootDir, procSign)
 }

@@ -77,29 +77,15 @@ func startInstance(master *Master, inst Instance, fflags *FFlags) (*exec.Cmd, er
 		return nil, err
 	}
 	cmd := exec.Command(prog, args...)
-
-	// stdout logfile
-	stdlogFile, err := util.OpenFileNS(parseDir(rootPath, inst.procSign, inst.stdoutLogFile), true)
-	if err != nil {
+	if err := setLogFile(cmd, rootPath, inst); err != nil {
 		return nil, err
 	}
-	stderrFile, err := util.OpenFileNS(parseDir(rootPath, inst.procSign, inst.stderrLogFile), true)
-	if err != nil {
-		return nil, err
-	}
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = stdlogFile
-	cmd.Stderr = stderrFile
 	// set wd
 	if err := setCwd(cmd, rootPath, inst); err != nil {
 		return nil, err
 	}
-	// set env
-	envStrs := []string{}
-	for k, v := range inst.env {
-		envStrs = append(envStrs, fmt.Sprintf("%s=%s", k, v))
-	}
-	cmd.Env = envStrs
+	setEnv(cmd, inst.env)
+
 	// set daemon flags
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Foreground: false,
@@ -188,5 +174,29 @@ func setCwd(cmd *exec.Cmd, rootPath string, inst Instance) error {
 		cwd = parseDir(rootPath, inst.procSign, inst.directory)
 	}
 	cmd.Dir = cwd
+	return nil
+}
+
+func setEnv(cmd *exec.Cmd, env map[string]string) {
+	envStrs := []string{}
+	for k, v := range env {
+		envStrs = append(envStrs, fmt.Sprintf("%s=%s", k, v))
+	}
+	cmd.Env = envStrs
+}
+
+func setLogFile(cmd *exec.Cmd, rootPath string, inst Instance) error {
+	// stdout logfile
+	stdlogFile, err := util.OpenFileNS(parseDir(rootPath, inst.procSign, inst.stdoutLogFile), true)
+	if err != nil {
+		return err
+	}
+	stderrFile, err := util.OpenFileNS(parseDir(rootPath, inst.procSign, inst.stderrLogFile), true)
+	if err != nil {
+		return err
+	}
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = stdlogFile
+	cmd.Stderr = stderrFile
 	return nil
 }
