@@ -29,6 +29,7 @@ func NewMaster(sockFile string, rootPath string) (*Master, error) {
 		rootPath:  rootPath,
 		instances: map[string]Instance{},
 		workers:   map[string]*exec.Cmd{},
+		pidInfo:   map[string]PidInfo{},
 		server:    new(http.Server),
 	}
 	// check rootPath
@@ -141,6 +142,24 @@ func (m *Master) Restart(procSign string, out *StartRsp) error {
 	NewFFlags(m.rootPath).SetForStopped(inst.procSign)
 	// III. start instance
 	return m.Start(procSign, out)
+}
+
+// GetInfo - get info of a procSign
+func (m *Master) GetInfo(procSign string, out *InfoRsp) error {
+	if err := m.updatePidInfo(procSign); err != nil {
+		return err
+	}
+	info := m.pidInfo[procSign]
+
+	*out = InfoRsp{
+		ProcSign: procSign,
+		Pid:      info.Pid,
+		Elapsed:  info.Elapsed,
+		Status:   info.Status,
+		CPU:      info.CPU,
+		Memory:   info.Memory,
+	}
+	return nil
 }
 
 //// helpers

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/DemoHn/obsidian-panel/util"
 )
 
 // EnumPidStatus - status enum
@@ -50,7 +52,7 @@ type cpuTimeStat struct {
 }
 
 // UpdatePidInfo -
-func (m *Master) UpdatePidInfo(procSign string) error {
+func (m *Master) updatePidInfo(procSign string) error {
 	status := getStatus(m.rootPath, procSign)
 	info, ok := m.pidInfo[procSign]
 	if !ok {
@@ -186,9 +188,16 @@ func getStatOnNix(pid int, oldCPUData cpuTimeStat) (cpuTimeStat, PidInfo, error)
 		uptime: cInfo.uptime,
 		old:    false,
 	}
+
+	// read memory
+	var memory = int64(nInfo.rss * cInfo.pageSize) // RSS (default)
+	if memData, ok := readSmaps(pid); ok {
+		memory = int64(memData * 1024) //
+	}
+
 	return cpuTs, PidInfo{
 		CPU:    cpu,
-		Memory: int64(nInfo.rss * cInfo.pageSize), // TODO: more precise calculation!
+		Memory: memory,
 	}, nil
 }
 
@@ -249,13 +258,13 @@ type procCPUInfo struct {
 	clockTick float64
 }
 
-func parseCPUInfo() (*procCPUInfo, error) {
+func parseCPUInfo() (procCPUInfo, error) {
 	var clkTck float64 = 100
 	var pageSize float64 = 4096
 
 	uptimeFileBytes, err := ioutil.ReadFile("/proc/uptime")
 	if err != nil {
-		return nil, err
+		return procCPUInfo{}, err
 	}
 	uptime, _ := strconv.ParseFloat(strings.Split(string(uptimeFileBytes), " ")[0], 64)
 	clkTckStdout, err := exec.Command("getconf", "CLK_TCK").Output()
@@ -268,9 +277,52 @@ func parseCPUInfo() (*procCPUInfo, error) {
 		pageSize, _ = strconv.ParseFloat(strings.Split(string(pageSizeStdout), "\n")[0], 64)
 	}
 
-	return &procCPUInfo{
+	return procCPUInfo{
 		uptime:    uptime,
 		clockTick: clkTck,
 		pageSize:  pageSize,
 	}, nil
+}
+
+// return actual memory usage of pid (unit: KB)
+func readSmaps(pid int) (int, bool) {
+	var fdata []byte
+	var err error
+	rollUpFile := fmt.Sprintf("/proc/%d/smaps_rollup", pid)
+	smapsFile := fmt.Sprintf("/proc/%d/smaps", pid)
+
+	if util.FileExists(rollUpFile) {
+		fdata, err = ioutil.ReadFile(rollUpFile)
+		if err != nil {
+			return 0, false
+		}
+	} else {
+		fdata, err = ioutil.ReadFile(smapsFile)
+		if err != nil {
+			return 0, false
+		}
+	}
+
+	var pssSum int
+	var privateSum int
+	var pssExists = false
+	lines := strings.Split(string(fdata), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "Private") {
+			numS := strings.Fields(line)[1]
+			num, _ := strconv.Atoi(numS)
+			privateSum += num
+		}
+		if strings.HasPrefix(line, "Pss:") {
+			numS := strings.Fields(line)[1]
+			num, _ := strconv.Atoi(numS)
+			pssSum += num
+			pssExists = true
+		}
+	}
+
+	if pssExists {
+		return pssSum, true
+	}
+	return privateSum, true
 }

@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"github.com/DemoHn/obsidian-panel/app"
-	//"github.com/DemoHn/obsidian-panel/cmd/obs/account"
-	"github.com/DemoHn/obsidian-panel/cmd/obs/apm"
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/spf13/cobra"
 )
@@ -65,8 +63,7 @@ func Execute() error {
 
 func init() {
 	// add sub-command
-	//rootCmd.AddCommand(account.RootCmd)
-	rootCmd.AddCommand(apm.RootCmd)
+	//rootCmd.AddCommand(account.RootCmd)	
 
 	// add flags
 	rootCmd.PersistentFlags().StringVar(&rootDir, "root-dir", "", "panel operation data root path")

@@ -85,7 +85,7 @@ func KillDaemon(rootPath string) error {
 	if err := syscall.Kill(pid, syscall.SIGTERM); err != nil {
 		return err
 	}
-
+	
 	// II. check if sock file has been deleted (for 5 seconds)
 	countDown := 25
 	for {

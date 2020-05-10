@@ -27,6 +27,16 @@ type StopRsp struct {
 	ReturnCode int    `json:"returnCode"`
 }
 
+// InfoRsp - pid info
+type InfoRsp struct {
+	ProcSign string  `json:"procSign"`
+	Pid      int     `json:"pid"`
+	Status   int     `json:"status"`
+	CPU      float64 `json:"cpu"`
+	Memory   int64   `json:"memory"`
+	Elapsed  int64   `json:"elapsed"`
+}
+
 // DataRsp - general data response
 type DataRsp struct {
 	Code    int
