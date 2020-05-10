@@ -8,31 +8,37 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
-// PidUsage -
-type PidUsage struct {
-	pid        int
-	oldCPUStat *cpuTimeStat
-}
+// EnumPidStatus - status enum
+type EnumPidStatus = int
+
+const (
+	sInit       EnumPidStatus = 0
+	sStarting   EnumPidStatus = 1
+	sRunning    EnumPidStatus = 2
+	sStopped    EnumPidStatus = 3
+	sTerminated EnumPidStatus = 4
+)
 
 // ref: https://github.com/soyuka/pidusage
 // Current State: only support *ix!
 
-// PidStat - pid stat result
-type PidStat struct {
-	// PPid = parent pid
-	PPid int
-	// Process actual pid
+// PidInfo -
+type PidInfo struct {
+	// Status
+	Status EnumPidStatus
+	// Pid
 	Pid int
 	// CPU time in ratio * cores
 	CPU float64
 	// Memory (maxrss) in bytes
 	Memory int64
 	// Elapsed time since process start in second
-	Elapsed float64
-	// Status shows the current
-	Status int
+	Elapsed int64
+	// old cpu data
+	oldCPUData cpuTimeStat
 }
 
 // internal cpuTime stat for recording historial data
@@ -40,37 +46,93 @@ type cpuTimeStat struct {
 	stime  float64
 	utime  float64
 	uptime float64
+	old    bool
 }
 
-// InitPidUsage -
-func InitPidUsage(pid int) *PidUsage {
-	return &PidUsage{
-		pid:        pid,
-		oldCPUStat: nil,
+// UpdatePidInfo -
+func (m *Master) UpdatePidInfo(procSign string) error {
+	status := getStatus(m.rootPath, procSign)
+	info, ok := m.pidInfo[procSign]
+	if !ok {
+		info = m.resetPidInfo(procSign)
 	}
+
+	if status == sRunning {
+		// OS should support
+		if !supportedOS() {
+			return fmt.Errorf("[NotSupported] OS:%s is not supported to get stat now", runtime.GOOS)
+		}
+		// get pid
+		f := NewFFlags(m.rootPath)
+		pid := f.ReadPid(procSign)
+		startTs := f.ReadTimestamp(procSign)
+		now := time.Now().Unix()
+		cpuTs, stat, err := getStatOnNix(pid, info.oldCPUData)
+		if err != nil {
+			return err
+		}
+		newInfo := PidInfo{
+			Status:     status,
+			Pid:        pid,
+			CPU:        stat.CPU,
+			Memory:     stat.Memory,
+			Elapsed:    now - startTs,
+			oldCPUData: cpuTs,
+		}
+		m.pidInfo[procSign] = newInfo
+		return nil
+	}
+	// for other states, we don't show
+	newInfo := PidInfo{
+		Status: status,
+		oldCPUData: cpuTimeStat{
+			old: true,
+		},
+	}
+	m.pidInfo[procSign] = newInfo
+	return nil
 }
 
-// GetStat - get pid stat
-func (usage *PidUsage) GetStat() (*PidStat, error) {
-	var err error
-
-	// OS should support
-	if !usage.supportedOS() {
-		return nil, fmt.Errorf("[NotSupported] OS:%s is not supported to get stat now", runtime.GOOS)
+func (m *Master) resetPidInfo(procSign string) PidInfo {
+	newInfo := PidInfo{
+		Status:  sInit,
+		Pid:     0,
+		CPU:     0.0,
+		Memory:  0,
+		Elapsed: 0,
+		oldCPUData: cpuTimeStat{
+			stime:  0,
+			utime:  0,
+			uptime: 0,
+			old:    true,
+		},
 	}
+	m.pidInfo[procSign] = newInfo
+	return newInfo
+}
 
-	var stat *PidStat
-	if stat, err = usage.getStatOnNix(); err != nil {
-		return nil, err
+//// helpers
+func getStatus(rootDir string, procSign string) EnumPidStatus {
+	f := NewFFlags(rootDir)
+	if f.StopExists(procSign) {
+		return sStopped
 	}
-	return stat, nil
-
+	if f.RetryCountExists(procSign) {
+		return sTerminated
+	}
+	if f.TimestampExists(procSign) {
+		if f.PidExists(procSign) {
+			return sRunning
+		}
+		return sStarting
+	}
+	return sInit
 }
 
 // internal functions
 
 // get supported OS
-func (usage *PidUsage) supportedOS() bool {
+func supportedOS() bool {
 	var availableOS = []string{
 		"linux",
 		"freebsd",
@@ -86,26 +148,26 @@ func (usage *PidUsage) supportedOS() bool {
 }
 
 // get stat On *ix like systems (linux, unix)
-func (usage *PidUsage) getStatOnNix() (*PidStat, error) {
+func getStatOnNix(pid int, oldCPUData cpuTimeStat) (cpuTimeStat, PidInfo, error) {
 	// TODO - new method to make memory RSS more precise!
 	cpu := 0.0
 
-	nInfo, err := parseProcfile(usage.pid)
+	nInfo, err := parseProcfile(pid)
 	if err != nil {
-		return nil, err
+		return cpuTimeStat{}, PidInfo{}, err
 	}
 	cInfo, err := parseCPUInfo()
 	if err != nil {
-		return nil, err
+		return cpuTimeStat{}, PidInfo{}, err
 	}
 
 	// calculate cpu
 	var total = 0.0
 	var seconds = 0.0
-	oldStat := usage.oldCPUStat
+	oldStat := oldCPUData
 	childrens := nInfo.cutime + nInfo.cstime
 
-	if oldStat != nil {
+	if oldStat.old == false {
 		total = (nInfo.stime - oldStat.stime + nInfo.utime - oldStat.utime + childrens) / cInfo.clockTick
 		seconds = math.Abs(float64(cInfo.uptime - oldStat.uptime))
 	} else {
@@ -118,17 +180,15 @@ func (usage *PidUsage) getStatOnNix() (*PidStat, error) {
 	}
 
 	// update oldstat
-	usage.oldCPUStat = &cpuTimeStat{
+	cpuTs := cpuTimeStat{
 		utime:  nInfo.utime,
 		stime:  nInfo.stime,
 		uptime: cInfo.uptime,
+		old:    false,
 	}
-	return &PidStat{
-		PPid:    int(nInfo.ppid),
-		Pid:     usage.pid,
-		CPU:     cpu,
-		Memory:  int64(nInfo.rss * cInfo.pageSize), // TODO: more precise calculation!
-		Elapsed: cInfo.uptime - nInfo.start/cInfo.clockTick,
+	return cpuTs, PidInfo{
+		CPU:    cpu,
+		Memory: int64(nInfo.rss * cInfo.pageSize), // TODO: more precise calculation!
 	}, nil
 }
 

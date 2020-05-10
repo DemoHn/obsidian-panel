@@ -173,6 +173,11 @@ func (f *FFlags) RemoveTimestamp(procSign string) error {
 	return os.Remove(tsFile)
 }
 
+// TimestampExists -
+func (f *FFlags) TimestampExists(procSign string) bool {
+	return util.FileExists(f.getTsFile(procSign))
+}
+
 // StoreStop -
 func (f *FFlags) StoreStop(procSign string) error {
 	stopFile := f.getStopFile(procSign)

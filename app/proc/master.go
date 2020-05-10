@@ -19,6 +19,7 @@ type Master struct {
 	server    *http.Server
 	instances map[string]Instance
 	workers   map[string]*exec.Cmd
+	pidInfo   map[string]PidInfo
 }
 
 // NewMaster - new master controller
