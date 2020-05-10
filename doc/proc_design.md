@@ -52,9 +52,13 @@ $rootPath (:= ~/.obs-root/proc)
   |-- proc-sign-01/
       |-- pid
       |-- retry
+      |-- timestamp
+      |-- stop
   |-- proc-sign-02/
       |-- pid
       |-- retry
+      |-- timestamp
+      |-- stop
   ...
 
   |-- obs-daemon.pid
@@ -77,6 +81,15 @@ $rootPath (:= ~/.obs-root/proc)
 ```
 
 NOTE: when a process die before 3s, the status will be "terminated" then!
+
+proc file map table:
+
+|   | init | starting | running | stopped | terminated |
+|-----|:----:|:----:|:----:|:----:|:----:|
+|pid       | - | - | X | - | - |
+|retry     | - | - | - | - | X |
+|timestamp | - | X | X | - | - |
+|stop      | - | - | - | X | - |
 
 ### proc auto-restart background thread
 

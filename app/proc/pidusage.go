@@ -90,7 +90,7 @@ func (usage *PidUsage) getStatOnNix() (*PidStat, error) {
 	// TODO - new method to make memory RSS more precise!
 	cpu := 0.0
 
-	nInfo, err := parseProcfile(usage.Pid)
+	nInfo, err := parseProcfile(usage.pid)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (usage *PidUsage) getStatOnNix() (*PidStat, error) {
 	}
 	return &PidStat{
 		PPid:    int(nInfo.ppid),
-		Pid:     usage.Pid,
+		Pid:     usage.pid,
 		CPU:     cpu,
 		Memory:  int64(nInfo.rss * cInfo.pageSize), // TODO: more precise calculation!
 		Elapsed: cInfo.uptime - nInfo.start/cInfo.clockTick,

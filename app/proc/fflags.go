@@ -26,6 +26,44 @@ func NewFFlags(rootDir string) *FFlags {
 	}
 }
 
+// SetForInit - set flags for init(0) state
+func (f *FFlags) SetForInit(procSign string) {
+	// clear all files
+	f.RemovePid(procSign)
+	f.RemoveRetryCount(procSign)
+	f.RemoveTimestamp(procSign)
+	f.RemoveStop(procSign)
+}
+
+// SetForStarting - set flags for starting(1) state
+func (f *FFlags) SetForStarting(procSign string) {
+	f.RemovePid(procSign)
+	f.RemoveRetryCount(procSign)
+	f.RemoveStop(procSign)
+	f.StoreTimestamp(procSign)
+}
+
+// SetForRunning - from starting(1) -> running(2) state
+func (f *FFlags) SetForRunning(procSign string, pid int) {
+	f.StorePid(procSign, pid)
+}
+
+// SetForStopped - from running(2) -> stopped(3) state
+func (f *FFlags) SetForStopped(procSign string) {
+	f.RemovePid(procSign)
+	f.RemoveRetryCount(procSign)
+	f.RemoveTimestamp(procSign)
+	f.StoreStop(procSign)
+}
+
+// SetForTerminated - from running(2), starting(1) -> terminated(4) state
+func (f *FFlags) SetForTerminated(procSign string) {
+	f.RemovePid(procSign)
+	f.RemoveTimestamp(procSign)
+	f.RemoveStop(procSign)
+	f.AddRetryCount(procSign)
+}
+
 // StorePid - store pid data
 func (f *FFlags) StorePid(procSign string, pid int) error {
 	pidFile := f.getPidFile(procSign)

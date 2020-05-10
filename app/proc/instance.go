@@ -34,7 +34,7 @@ type Instance struct {
 // const upCount = 3 * time.Second
 
 // StartInstance - start one instance
-func StartInstance(master *Master, inst Instance) error {
+func StartInstance(master *Master, inst Instance) (*exec.Cmd, error) {
 	infra.Log.Infof("going to start process: %s", inst.procSign)
 	fflags := NewFFlags(master.rootPath)
 
@@ -43,27 +43,34 @@ func StartInstance(master *Master, inst Instance) error {
 		infra.Log.Debugf("pid info file:%s not found, mostly there's no existing process.", fflags.getPidFile(inst.procSign))
 		cmd, err := startInstance(master, inst, fflags)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		// set cmd worker
 		master.workers[inst.procSign] = cmd
-		return nil
+		fflags.SetForStarting(inst.procSign)
+
+		return cmd, nil
 	}
 
 	infra.Log.Infof("process is alreay running (pid:%d), skip execution", pid)
-	return nil
+	return nil, nil
 }
 
 // StopInstance - stop instance
-func StopInstance(master *Master, procSign string, signal syscall.Signal) error {
+func StopInstance(master *Master, procSign string, signal syscall.Signal) (int, error) {
 	infra.Log.Infof("going to stop process: %s", procSign)
 	// I. check instance
 	inst, ok := master.instances[procSign]
 	if !ok {
-		return fmt.Errorf("process: %s not found", procSign)
+		return 0, fmt.Errorf("process: %s not found", procSign)
 	}
-	// III. stop instance
-	return stopInstance(master, inst, signal)
+	// II. stop instance
+	rtnCode, err := stopInstance(master, inst, signal)
+	if err != nil {
+		return rtnCode, err
+	}
+	NewFFlags(master.rootPath).SetForStopped(procSign)
+	return rtnCode, err
 }
 
 //// sub helpers
@@ -95,49 +102,41 @@ func startInstance(master *Master, inst Instance, fflags *FFlags) (*exec.Cmd, er
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
-	// write pid
-	if err := fflags.StorePid(inst.procSign, cmd.Process.Pid); err != nil {
-		return nil, err
-	}
 	return cmd, nil
 }
 
 // stop instance - send stop signal to an instance, wait until process is terminated
-func stopInstance(master *Master, inst Instance, signal syscall.Signal) error {
-	rootPath := master.rootPath
+func stopInstance(master *Master, inst Instance, signal syscall.Signal) (int, error) {
 	fflags := NewFFlags(master.rootPath)
 	// read pid first
 	pid := fflags.ReadPid(inst.procSign)
 	if pid == 0 {
-		return fmt.Errorf("no active pid found")
+		return 0, fmt.Errorf("no active pid found")
 	}
 
-	if err := syscall.Kill(pid, signal); err != nil {
-		return err
-	}
+	syscall.Kill(pid, signal)
 	// I. find if cmd worker exists -
 	cmd, ok := master.workers[inst.procSign]
 	// if exists - wait for
 	if ok {
 		if err := cmd.Wait(); err != nil {
-			return err
+			return 0, err
 		}
 		infra.Log.Infof("process: %s has killed successfully", inst.procSign)
 		exitCode := cmd.ProcessState.ExitCode()
 		infra.Log.Infof("with exitCode: %d", exitCode)
-		return nil
+		return exitCode, nil
 	}
 
 	countDown := 25
 	for {
 		if countDown == 0 {
-			return fmt.Errorf("kill process timeout (5s)")
+			return 0, fmt.Errorf("kill process timeout (5s)")
 		}
 		// III. find process
 		if kerr := syscall.Kill(pid, syscall.Signal(0)); kerr != nil {
 			infra.Log.Infof("process: %s has killed successfully", inst.procSign)
-			util.RemoveContents(parseDir(rootPath, inst.procSign, "$rootPath/$procSign"))
-			return nil
+			return 0, nil
 		}
 		time.Sleep(200 * time.Millisecond)
 		countDown = countDown - 1

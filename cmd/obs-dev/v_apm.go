@@ -85,7 +85,7 @@ var apmCtrlCmd = &cobra.Command{
 		}
 		switch args[0] {
 		case "start":
-			var rsp proc.DataRsp
+			var rsp proc.StartRsp
 			var procSign = "proc1"
 			if len(args) > 1 {
 				procSign = args[1]
@@ -96,7 +96,7 @@ var apmCtrlCmd = &cobra.Command{
 			}
 			fmt.Println("rsp:", rsp)
 		case "stop":
-			var rsp proc.DataRsp
+			var rsp proc.StopRsp
 			var procSign = "proc1"
 			if len(args) > 1 {
 				procSign = args[1]

@@ -14,6 +14,19 @@ type InstanceReq struct {
 	MaxRetry      int               `json:"maxRetry"`
 }
 
+// StartRsp -
+type StartRsp struct {
+	ProcSign   string `json:"procSign"`
+	Pid        int    `json:"pid"`
+	HasRunning bool   `json:"hasRunning"`
+}
+
+// StopRsp - stop response
+type StopRsp struct {
+	ProcSign   string `json:"procSign"`
+	ReturnCode int    `json:"returnCode"`
+}
+
 // DataRsp - general data response
 type DataRsp struct {
 	Code    int
@@ -21,16 +34,16 @@ type DataRsp struct {
 	Data    map[string]interface{}
 }
 
-func rspOK(data map[string]interface{}) *DataRsp {
-	return &DataRsp{
+func rspOK(data map[string]interface{}) DataRsp {
+	return DataRsp{
 		Code:    0,
 		Message: "",
 		Data:    data,
 	}
 }
 
-func rspFail(code int, message string) *DataRsp {
-	return &DataRsp{
+func rspFail(code int, message string) DataRsp {
+	return DataRsp{
 		Code:    code,
 		Message: message,
 		Data:    map[string]interface{}{},
@@ -38,8 +51,8 @@ func rspFail(code int, message string) *DataRsp {
 }
 
 // fail with data
-func rspFailD(code int, message string, data map[string]interface{}) *DataRsp {
-	return &DataRsp{
+func rspFailD(code int, message string, data map[string]interface{}) DataRsp {
+	return DataRsp{
 		Code:    code,
 		Message: message,
 		Data:    data,
