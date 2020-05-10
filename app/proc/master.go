@@ -123,6 +123,25 @@ func (m *Master) Stop(procSign string, out *StopRsp) error {
 	return nil
 }
 
+// Restart - stop & start an instance
+func (m *Master) Restart(procSign string, out *StartRsp) error {
+	// I. find instance
+	inst, ok := m.instances[procSign]
+	if !ok {
+		return fmt.Errorf("process: %s not found", procSign)
+	}
+	// II. stop instance
+	if _, err := stopInstance(m, inst, syscall.SIGINT); err != nil {
+		// ignore "pid not found" error
+		if err.Error() != "no active pid found" {
+			return err
+		}
+	}
+	NewFFlags(m.rootPath).SetForStopped(inst.procSign)
+	// III. start instance
+	return m.Start(procSign, out)
+}
+
 //// helpers
 func (m *Master) waitForRunning(inst Instance, cmd *exec.Cmd, done chan<- bool) {
 	infra.Log.Debugf("process %s: wait 3 sec for running", inst.procSign)
