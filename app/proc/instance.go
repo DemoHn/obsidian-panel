@@ -38,21 +38,22 @@ func StartInstance(master *Master, inst Instance) (*exec.Cmd, error) {
 	fflags := NewFFlags(master.rootPath)
 
 	pid := fflags.ReadPid(inst.procSign)
-	if pid == 0 {
-		infra.Log.Debugf("pid info file:%s not found, mostly there's no existing process.", fflags.getPidFile(inst.procSign))
-		cmd, err := startInstance(master, inst, fflags)
-		if err != nil {
-			return nil, err
-		}
-		// set cmd worker
-		master.workers[inst.procSign] = cmd
-		fflags.SetForStarting(inst.procSign)
-
-		return cmd, nil
+	// pidExists
+	if pid > 0 && isPidRunning(pid) {
+		infra.Log.Infof("process is alreay running (pid:%d), skip execution", pid)
+		return nil, nil
 	}
 
-	infra.Log.Infof("process is alreay running (pid:%d), skip execution", pid)
-	return nil, nil
+	fflags.SetForInit(inst.procSign)
+	cmd, err := startInstance(master, inst, fflags)
+	if err != nil {
+		return nil, err
+	}
+	// set cmd worker
+	master.workers[inst.procSign] = cmd
+	fflags.SetForStarting(inst.procSign)
+
+	return cmd, nil
 }
 
 // StopInstance - stop instance

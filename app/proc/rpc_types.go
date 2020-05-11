@@ -13,6 +13,12 @@ type InstanceReq struct {
 	MaxRetry      int               `json:"maxRetry"`
 }
 
+// AddInstanceReq - add instance and start request
+type AddInstanceReq struct {
+	Override bool        `json:"override"`
+	Instance InstanceReq `json:"instance"`
+}
+
 // StartRsp -
 type StartRsp struct {
 	ProcSign   string `json:"procSign"`
@@ -41,6 +47,21 @@ type DataRsp struct {
 	Code    int
 	Message string
 	Data    map[string]interface{}
+}
+
+func exportInstanceFromReq(req InstanceReq) Instance {
+	return Instance{
+		name:          req.Name,
+		procSign:      req.ProcSign,
+		command:       req.Command,
+		directory:     req.Directory,
+		env:           req.Env,
+		autoRestart:   req.AutoRestart,
+		maxRetry:      req.MaxRetry,
+		stdoutLogFile: req.StdoutLogFile,
+		stderrLogFile: req.StderrLogFile,
+		protected:     false,
+	}
 }
 
 func rspOK(data map[string]interface{}) DataRsp {

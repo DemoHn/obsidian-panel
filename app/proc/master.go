@@ -54,23 +54,51 @@ func (m *Master) Echo(input string, out *string) error {
 func (m *Master) LoadConfig(input []InstanceReq, out *DataRsp) error {
 	// copy instance
 	for _, req := range input {
-		nInst := Instance{
-			name:          req.Name,
-			procSign:      req.ProcSign,
-			command:       req.Command,
-			directory:     req.Directory,
-			env:           req.Env,
-			autoRestart:   req.AutoRestart,
-			maxRetry:      req.MaxRetry,
-			stdoutLogFile: req.StdoutLogFile,
-			stderrLogFile: req.StderrLogFile,
-			protected:     false,
-		}
+		nInst := exportInstanceFromReq(req)
 		m.instances[req.ProcSign] = nInst
 	}
 	// TODO
 	*out = rspOK(nil)
 	return nil
+}
+
+// AddConfig -
+func (m *Master) AddConfig(req AddInstanceReq, out *DataRsp) error {
+	procSign := req.Instance.ProcSign
+
+	_, exists := m.instances[procSign]
+	if exists && !req.Override {
+		return fmt.Errorf("process: %s has exists", procSign)
+	}
+
+	m.instances[procSign] = exportInstanceFromReq(req.Instance)
+	*out = rspOK(nil)
+	return nil
+}
+
+// AddAndStart - add instance and start it
+// if same procSign has exists,
+//   - override = true, stop old procSign, update with new instance and then start
+//   - override = false, throw error
+func (m *Master) AddAndStart(req AddInstanceReq, out *StartRsp) error {
+	procSign := req.Instance.ProcSign
+
+	_, exists := m.instances[procSign]
+	if exists {
+		if req.Override {
+			_, err := StopInstance(m, procSign, syscall.SIGINT)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("process: %s has exists", procSign)
+		}
+	}
+	// else: add instance and start
+	nInst := exportInstanceFromReq(req.Instance)
+	m.instances[procSign] = nInst
+	// start
+	return m.Start(procSign, out)
 }
 
 // Start - start an instance
