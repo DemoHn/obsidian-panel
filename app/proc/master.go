@@ -50,8 +50,8 @@ func (m *Master) Echo(input string, out *string) error {
 	return nil
 }
 
-// Sync - sync instance configurations
-func (m *Master) Sync(input []InstanceReq, out *DataRsp) error {
+// LoadConfig - load all instance configurations
+func (m *Master) LoadConfig(input []InstanceReq, out *DataRsp) error {
 	// copy instance
 	for _, req := range input {
 		nInst := Instance{
@@ -169,7 +169,7 @@ func (m *Master) waitForRunning(inst Instance, cmd *exec.Cmd, done chan<- bool) 
 	time.Sleep(t)
 
 	// check pid
-	if kerr := syscall.Kill(cmd.Process.Pid, syscall.Signal(0)); kerr != nil {
+	if !isPidRunning(cmd.Process.Pid) {
 		done <- false
 	} else {
 		f := NewFFlags(m.rootPath)

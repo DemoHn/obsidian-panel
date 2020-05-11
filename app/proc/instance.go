@@ -133,7 +133,7 @@ func stopInstance(master *Master, inst Instance, signal syscall.Signal) (int, er
 			return 0, fmt.Errorf("kill process timeout (5s)")
 		}
 		// III. find process
-		if kerr := syscall.Kill(pid, syscall.Signal(0)); kerr != nil {
+		if !isPidRunning(pid) {
 			infra.Log.Infof("process: %s has killed successfully", inst.procSign)
 			return 0, nil
 		}
@@ -197,4 +197,11 @@ func setLogFile(cmd *exec.Cmd, rootPath string, inst Instance) error {
 	cmd.Stdout = stdlogFile
 	cmd.Stderr = stderrFile
 	return nil
+}
+
+func isPidRunning(pid int) bool {
+	if kerr := syscall.Kill(pid, syscall.Signal(0)); kerr != nil {
+		return false
+	}
+	return true
 }

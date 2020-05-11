@@ -74,7 +74,7 @@ func InitFileDir(path string) error {
 func openFile(path string, isAppend bool) (*os.File, error) {
 	flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
 	if isAppend {
-		flags |= os.O_APPEND
+		flags = os.O_RDWR | os.O_CREATE | os.O_APPEND
 	}
 	return os.OpenFile(path, flags, 0644)
 }

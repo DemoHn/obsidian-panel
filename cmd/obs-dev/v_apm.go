@@ -127,7 +127,7 @@ var apmCtrlCmd = &cobra.Command{
 				panic(err)
 			}
 			fmt.Println("rsp:", rsp)
-		case "sync":
+		case "load":
 			var rsp proc.DataRsp
 			// sync with example data
 			exampleData := []proc.InstanceReq{
@@ -143,7 +143,7 @@ var apmCtrlCmd = &cobra.Command{
 					MaxRetry:      3,
 				},
 			}
-			if err := client.Call("Master.Sync", &exampleData, &rsp); err != nil {
+			if err := client.Call("Master.LoadConfig", exampleData, &rsp); err != nil {
 				panic(err)
 			}
 			fmt.Println("rsp:", rsp)
