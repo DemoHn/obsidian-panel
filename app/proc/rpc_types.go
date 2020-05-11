@@ -7,7 +7,6 @@ type InstanceReq struct {
 	Command       string            `json:"command" validate:"required"`
 	Directory     string            `json:"directory" validate:"-"`
 	Env           map[string]string `json:"env"`
-	AutoStart     bool              `json:"autoStart"`
 	AutoRestart   bool              `json:"autoRestart"`
 	StdoutLogFile string            `json:"stdoutLogFile"`
 	StderrLogFile string            `json:"stderrLogFile"`

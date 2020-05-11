@@ -60,7 +60,6 @@ func (m *Master) Sync(input []InstanceReq, out *DataRsp) error {
 			command:       req.Command,
 			directory:     req.Directory,
 			env:           req.Env,
-			autoStart:     req.AutoStart,
 			autoRestart:   req.AutoRestart,
 			maxRetry:      req.MaxRetry,
 			stdoutLogFile: req.StdoutLogFile,

@@ -21,7 +21,6 @@ type Instance struct {
 	command       string
 	directory     string
 	env           map[string]string
-	autoStart     bool
 	autoRestart   bool
 	maxRetry      int
 	stdoutLogFile string

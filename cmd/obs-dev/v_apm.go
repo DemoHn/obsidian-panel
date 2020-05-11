@@ -137,7 +137,6 @@ var apmCtrlCmd = &cobra.Command{
 					Command:       "./obs-dev apm:proc --printEnv",
 					Directory:     "",
 					Env:           map[string]string{},
-					AutoStart:     true,
 					AutoRestart:   true,
 					StdoutLogFile: "$rootPath/$procSign.log",
 					StderrLogFile: "$rootPath/$procSign.log",
