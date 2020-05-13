@@ -6,33 +6,25 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/DemoHn/obsidian-panel/infra"
 )
 
 // Master - masters all processes
 type Master struct {
-	sockFile  string
-	rootPath  string
-	server    *http.Server
-	instances map[string]Instance
-	workers   map[string]*exec.Cmd
-	pidInfo   map[string]PidInfo
+	sockFile string
+	rootPath string
+	server   *http.Server
+	*InstanceHandler
 }
 
 // NewMaster - new master controller
 func NewMaster(sockFile string, rootPath string) (*Master, error) {
 	master := &Master{
-		sockFile:  sockFile,
-		rootPath:  rootPath,
-		instances: map[string]Instance{},
-		workers:   map[string]*exec.Cmd{},
-		pidInfo:   map[string]PidInfo{},
-		server:    new(http.Server),
+		sockFile:        sockFile,
+		server:          new(http.Server),
+		InstanceHandler: NewInstanceHandler(rootPath),
 	}
 	// check rootPath
 	if rootPath == "" {
@@ -54,6 +46,8 @@ func (m *Master) Echo(input string, out *string) error {
 
 // LoadConfig - load all instance configurations
 func (m *Master) LoadConfig(input []InstanceReq, out *DataRsp) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
 	// copy instance
 	for _, req := range input {
 		nInst := exportInstanceFromReq(req)
@@ -66,6 +60,9 @@ func (m *Master) LoadConfig(input []InstanceReq, out *DataRsp) error {
 
 // AddConfig -
 func (m *Master) AddConfig(req AddInstanceReq, out *DataRsp) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+
 	procSign := req.Instance.ProcSign
 
 	_, exists := m.instances[procSign]
@@ -88,7 +85,7 @@ func (m *Master) AddAndStart(req AddInstanceReq, out *StartRsp) error {
 	_, exists := m.instances[procSign]
 	if exists {
 		if req.Override {
-			_, err := StopInstance(m, procSign, syscall.SIGINT)
+			_, err := m.StopInstance(procSign, syscall.SIGINT)
 			if err != nil {
 				return err
 			}
@@ -106,21 +103,17 @@ func (m *Master) AddAndStart(req AddInstanceReq, out *StartRsp) error {
 // Start - start an instance
 func (m *Master) Start(procSign string, out *StartRsp) error {
 	// TODO
-	inst, ok := m.instances[procSign]
-	if !ok {
-		return fmt.Errorf("process: %s not found", procSign)
-	}
-	cmd, err := StartInstance(m, inst)
+	fflags := NewFFlags(m.rootPath)
+	cmd, err := m.StartInstance(procSign)
 	if err != nil {
 		return err
 	}
 	// when cmd is not nil, the process is starting for the first time
 	if cmd != nil {
-		done := make(chan bool, 1)
 		// wait 3 secs to see if process still exists, if so
-		m.waitForRunning(inst, cmd, done)
-		runOK := <-done
+		runOK := waitForRunning(procSign, cmd)
 		if runOK {
+			fflags.SetForRunning(procSign, cmd.Process.Pid)
 			*out = StartRsp{
 				ProcSign:   procSign,
 				Pid:        cmd.Process.Pid,
@@ -128,7 +121,7 @@ func (m *Master) Start(procSign string, out *StartRsp) error {
 			}
 			return nil
 		}
-		return fmt.Errorf("process: %s exits too quickly", inst.procSign)
+		return fmt.Errorf("process: %s exits too quickly", procSign)
 	}
 
 	f := NewFFlags(m.rootPath)
@@ -143,7 +136,7 @@ func (m *Master) Start(procSign string, out *StartRsp) error {
 
 // Stop - stop an instance
 func (m *Master) Stop(procSign string, out *StopRsp) error {
-	rtnCode, err := StopInstance(m, procSign, syscall.SIGINT)
+	rtnCode, err := m.StopInstance(procSign, syscall.SIGINT)
 	if err != nil {
 		return err
 	}
@@ -156,19 +149,14 @@ func (m *Master) Stop(procSign string, out *StopRsp) error {
 
 // Restart - stop & start an instance
 func (m *Master) Restart(procSign string, out *StartRsp) error {
-	// I. find instance
-	inst, ok := m.instances[procSign]
-	if !ok {
-		return fmt.Errorf("process: %s not found", procSign)
-	}
+	// I. find & stop instance
 	// II. stop instance
-	if _, err := stopInstance(m, inst, syscall.SIGINT); err != nil {
+	if _, err := m.StopInstance(procSign, syscall.SIGINT); err != nil {
 		// ignore "pid not found" error
 		if err.Error() != "no active pid found" {
 			return err
 		}
 	}
-	NewFFlags(m.rootPath).SetForStopped(inst.procSign)
 	// III. start instance
 	return m.Start(procSign, out)
 }
@@ -191,25 +179,10 @@ func (m *Master) GetInfo(procSign string, out *InfoRsp) error {
 	return nil
 }
 
-//// helpers
-func (m *Master) waitForRunning(inst Instance, cmd *exec.Cmd, done chan<- bool) {
-	infra.Log.Debugf("process %s: wait 3 sec for running", inst.procSign)
-	// TODO - use instance config
-	t := 3 * time.Second
-	time.Sleep(t)
-
-	// check pid
-	if !isPidRunning(cmd.Process.Pid) {
-		done <- false
-	} else {
-		f := NewFFlags(m.rootPath)
-		f.SetForRunning(inst.procSign, cmd.Process.Pid)
-		done <- true
-	}
-}
-
-// Listen - listen to corresponding file
-func Listen(master *Master, done chan<- bool) error {
+// StartMaster - start master doing those jobs:
+//  1. listen rpc server
+//  2. start sigchld handler
+func StartMaster(master *Master, done chan<- bool) error {
 	l, err := net.Listen("unix", master.sockFile)
 	if err != nil {
 		return err
@@ -222,7 +195,7 @@ func Listen(master *Master, done chan<- bool) error {
 		// find instance of corresponding pid
 		for procSign, w := range master.workers {
 			if w.Process.Pid == pid {
-				f.AddRetryCount(procSign)
+				f.SetForTerminated(procSign)
 				inst, ok := master.instances[procSign]
 				// to prevent instances updated/deleted
 				if ok {

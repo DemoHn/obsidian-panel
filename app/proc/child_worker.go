@@ -110,7 +110,7 @@ func listenToSock(sockFile string, rootPath string, doneErr chan<- error, doneOK
 	}
 
 	infra.Log.Info("going to begin daemon master")
-	if err := Listen(master, doneOK); err != nil {
+	if err := StartMaster(master, doneOK); err != nil {
 		infra.Log.Error("listen to master error: ", err)
 		doneErr <- err
 		return

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -12,6 +13,15 @@ import (
 	"github.com/DemoHn/obsidian-panel/pkg/cmdspliter"
 	"github.com/DemoHn/obsidian-panel/util"
 )
+
+// InstanceHandler - main controller of instances
+type InstanceHandler struct {
+	rootPath  string
+	instances map[string]Instance
+	workers   map[string]*exec.Cmd
+	pidInfo   map[string]PidInfo
+	mux       sync.Mutex
+}
 
 // Instance - the basic unit of process management
 type Instance struct {
@@ -30,12 +40,29 @@ type Instance struct {
 	protected bool
 }
 
-// const upCount = 3 * time.Second
+// NewInstanceHandler -
+func NewInstanceHandler(rootPath string) *InstanceHandler {
+	return &InstanceHandler{
+		rootPath:  rootPath,
+		instances: map[string]Instance{},
+		workers:   map[string]*exec.Cmd{},
+		pidInfo:   map[string]PidInfo{},
+	}
+}
 
-// StartInstance - start one instance
-func StartInstance(master *Master, inst Instance) (*exec.Cmd, error) {
-	infra.Log.Infof("going to start process: %s", inst.procSign)
-	fflags := NewFFlags(master.rootPath)
+// StartInstance -
+func (ih *InstanceHandler) StartInstance(procSign string) (*exec.Cmd, error) {
+	// I. find existing instance
+	ih.mux.Lock()
+	defer ih.mux.Unlock()
+
+	fflags := NewFFlags(ih.rootPath)
+	inst, exists := ih.instances[procSign]
+	if !exists {
+		return nil, fmt.Errorf("instance:%s not found", procSign)
+	}
+	// II. start instance
+	infra.Log.Infof("going to start instance: %s", inst.procSign)
 
 	pid := fflags.ReadPid(inst.procSign)
 	// pidExists
@@ -45,39 +72,51 @@ func StartInstance(master *Master, inst Instance) (*exec.Cmd, error) {
 	}
 
 	fflags.SetForInit(inst.procSign)
-	cmd, err := startInstance(master, inst, fflags)
+	cmd, err := startProcess(ih.rootPath, inst)
 	if err != nil {
 		return nil, err
 	}
-	// set cmd worker
-	master.workers[inst.procSign] = cmd
+	// goto starting(1) state
+	ih.workers[inst.procSign] = cmd
 	fflags.SetForStarting(inst.procSign)
 
 	return cmd, nil
 }
 
 // StopInstance - stop instance
-func StopInstance(master *Master, procSign string, signal syscall.Signal) (int, error) {
-	infra.Log.Infof("going to stop process: %s", procSign)
+func (ih *InstanceHandler) StopInstance(procSign string, signal syscall.Signal) (int, error) {
+	ih.mux.Lock()
+	defer ih.mux.Unlock()
+
+	fflags := NewFFlags(ih.rootPath)
+	infra.Log.Infof("going to stop instance: %s", procSign)
 	// I. check instance
-	inst, ok := master.instances[procSign]
+	inst, ok := ih.instances[procSign]
 	if !ok {
-		return 0, fmt.Errorf("process: %s not found", procSign)
+		return 0, fmt.Errorf("instance: %s not found", procSign)
 	}
-	// II. stop instance
-	rtnCode, err := stopInstance(master, inst, signal)
+	// II. stop instance from pid file
+
+	// read pid first
+	pid := fflags.ReadPid(inst.procSign)
+	if pid == 0 {
+		return 0, fmt.Errorf("no active pid found")
+	}
+	// then find current worker exists... (may not exists!)
+	cmd, _ := ih.workers[procSign]
+	rtnCode, err := stopProcess(pid, cmd, procSign, signal)
 	if err != nil {
 		return rtnCode, err
 	}
-	NewFFlags(master.rootPath).SetForStopped(procSign)
+	// set Stopped(3) state
+	fflags.SetForStopped(procSign)
 	return rtnCode, err
 }
 
 //// sub helpers
 // start instance directly - without checking if process has
 // been executed and running, rootPath is empty or not, etc...
-func startInstance(master *Master, inst Instance, fflags *FFlags) (*exec.Cmd, error) {
-	rootPath := master.rootPath
+func startProcess(rootPath string, inst Instance) (*exec.Cmd, error) {
 	// get command
 	prog, args, err := cmdspliter.SplitCommand(inst.command)
 	if err != nil {
@@ -106,41 +145,46 @@ func startInstance(master *Master, inst Instance, fflags *FFlags) (*exec.Cmd, er
 }
 
 // stop instance - send stop signal to an instance, wait until process is terminated
-func stopInstance(master *Master, inst Instance, signal syscall.Signal) (int, error) {
-	fflags := NewFFlags(master.rootPath)
-	// read pid first
-	pid := fflags.ReadPid(inst.procSign)
-	if pid == 0 {
-		return 0, fmt.Errorf("no active pid found")
-	}
-
+func stopProcess(pid int, cmd *exec.Cmd, procSign string, signal syscall.Signal) (int, error) {
 	syscall.Kill(pid, signal)
-	// I. find if cmd worker exists -
-	cmd, ok := master.workers[inst.procSign]
-	// if exists - wait for
-	if ok {
+	// I. find if cmd worker exists - i.e. current pid is exactly the childprocess of
+	if cmd != nil {
 		if err := cmd.Wait(); err != nil {
 			return 0, err
 		}
-		infra.Log.Infof("process: %s has killed successfully", inst.procSign)
 		exitCode := cmd.ProcessState.ExitCode()
-		infra.Log.Infof("with exitCode: %d", exitCode)
+		infra.Log.Infof("process: %s has killed successfully with exitCode=%d", procSign, exitCode)
 		return exitCode, nil
 	}
 
-	countDown := 25
-	for {
-		if countDown == 0 {
-			return 0, fmt.Errorf("kill process timeout (5s)")
+	// if worker not exists (i.e. obs-daemon has been restarted) - detect the status of pid by periodically check
+	// if process is still running - that we could not fetch its statusCode
+	err := pollingCheck(5*time.Second, 200*time.Millisecond, func(done bool) error {
+		if done {
+			return fmt.Errorf("kill process timeout (5s)")
+		} else if !isPidRunning(pid) {
+			infra.Log.Infof("process: %s has killed successfully", procSign)
+			return fmt.Errorf("OK")
 		}
-		// III. find process
-		if !isPidRunning(pid) {
-			infra.Log.Infof("process: %s has killed successfully", inst.procSign)
-			return 0, nil
-		}
-		time.Sleep(200 * time.Millisecond)
-		countDown = countDown - 1
+		return nil
+	})
+
+	if err != nil && err.Error() != "OK" {
+		return 0, err
 	}
+	return 0, nil
+}
+
+func waitForRunning(procSign string, cmd *exec.Cmd) bool {
+	infra.Log.Debugf("process %s: wait 3 sec for running", procSign)
+
+	err := pollingCheck(3*time.Second, 100*time.Millisecond, func(fin bool) error {
+		if !isPidRunning(cmd.Process.Pid) {
+			return fmt.Errorf("pid not running")
+		}
+		return nil
+	})
+	return err == nil
 }
 
 //// helper functions
@@ -201,4 +245,15 @@ func isPidRunning(pid int) bool {
 		return false
 	}
 	return true
+}
+
+func pollingCheck(total time.Duration, interval time.Duration, handler func(bool) error) error {
+	for it := time.Duration(0); it <= total; it = it + interval {
+		lastCall := it+interval >= total
+		if err := handler(lastCall); err != nil {
+			return err
+		}
+		time.Sleep(interval)
+	}
+	return nil
 }
