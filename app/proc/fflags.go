@@ -30,7 +30,6 @@ func NewFFlags(rootDir string) *FFlags {
 func (f *FFlags) SetForInit(procSign string) {
 	// clear all files
 	f.RemovePid(procSign)
-	f.RemoveRetryCount(procSign)
 	f.RemoveTimestamp(procSign)
 	f.RemoveStop(procSign)
 }
@@ -38,7 +37,6 @@ func (f *FFlags) SetForInit(procSign string) {
 // SetForStarting - set flags for starting(1) state
 func (f *FFlags) SetForStarting(procSign string) {
 	f.RemovePid(procSign)
-	f.RemoveRetryCount(procSign)
 	f.RemoveStop(procSign)
 	f.StoreTimestamp(procSign)
 }

@@ -5,7 +5,9 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"os"
 	"os/exec"
+	"os/signal"
 	"syscall"
 	"time"
 
@@ -212,7 +214,57 @@ func Listen(master *Master, done chan<- bool) error {
 	if err != nil {
 		return err
 	}
+
 	// send signal to chan
 	done <- true
+	go sigchldHandler(func(pid int) {
+		f := NewFFlags(master.rootPath)
+		// find instance of corresponding pid
+		for procSign, w := range master.workers {
+			if w.Process.Pid == pid {
+				f.AddRetryCount(procSign)
+				inst, ok := master.instances[procSign]
+				// to prevent instances updated/deleted
+				if ok {
+					retryCount := f.ReadRetryCount(procSign)
+					if inst.autoRestart && retryCount <= inst.maxRetry {
+						go restartHandler(master, procSign)
+						break
+					}
+				}
+			}
+		}
+	})
 	return master.server.Serve(l)
+}
+
+func sigchldHandler(callback func(int)) {
+	sigchld := make(chan os.Signal, 1)
+	// register SIGCHLD signal
+	signal.Notify(sigchld, syscall.SIGCHLD)
+
+	for {
+		// wait for recving SIGCHLD signal to continue
+		<-sigchld
+		for {
+			var waitStatus syscall.WaitStatus
+			var rusage syscall.Rusage
+			wpid, err := syscall.Wait4(-1, &waitStatus, syscall.WNOHANG, &rusage)
+			// stop iteration if no such pid pending to wait
+			if err != nil {
+				break
+			}
+
+			callback(wpid)
+		}
+	}
+}
+
+// restartHandler -
+func restartHandler(master *Master, procSign string) {
+	// wait for 1 second to avoid restart too frequently
+	time.Sleep(1 * time.Second)
+	var out StartRsp
+	// TODO: collect file
+	master.Start(procSign, &out)
 }

@@ -134,13 +134,13 @@ var apmCtrlCmd = &cobra.Command{
 				{
 					ProcSign:      "proc1",
 					Name:          "example hello",
-					Command:       "./obs-dev apm:proc --printEnv",
+					Command:       "./obs-dev apm:proc --exitAfter 2",
 					Directory:     "",
 					Env:           map[string]string{},
 					AutoRestart:   true,
 					StdoutLogFile: "$rootPath/$procSign.log",
 					StderrLogFile: "$rootPath/$procSign.log",
-					MaxRetry:      3,
+					MaxRetry:      3000,
 				},
 			}
 			if err := client.Call("Master.LoadConfig", exampleData, &rsp); err != nil {

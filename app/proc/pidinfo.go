@@ -119,14 +119,14 @@ func getStatus(rootDir string, procSign string) EnumPidStatus {
 	if f.StopExists(procSign) {
 		return sStopped
 	}
-	if f.RetryCountExists(procSign) {
-		return sTerminated
-	}
 	if f.TimestampExists(procSign) {
 		if f.PidExists(procSign) {
 			return sRunning
 		}
 		return sStarting
+	}
+	if f.RetryCountExists(procSign) {
+		return sTerminated
 	}
 	return sInit
 }

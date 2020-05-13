@@ -143,10 +143,6 @@ func stopInstance(master *Master, inst Instance, signal syscall.Signal) (int, er
 	}
 }
 
-func getPidInfo() {
-
-}
-
 //// helper functions
 // replace $rootPath, $procSign to actual values
 // example:
