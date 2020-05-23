@@ -28,24 +28,24 @@ var (
 	fullCols = append([]string{"id"}, cols...)
 )
 
-// insert instance data to proc_config table
-func insertToProcConfig(db *sql.DB, procInst *Instance) error {
+// InsertToProcConfig - insert instance data to proc_config table
+func InsertToProcConfig(db *sql.DB, instReq InstanceReq) error {
 	var keys = strings.Join(cols, ",")
 	var tpls = strings.Join(util.Repeat("?", len(cols)), ",")
 
 	var stmt = fmt.Sprintf("insert into %s (%s) values (%s)", tableName, keys, tpls)
 
 	var args = []interface{}{
-		procInst.name,
-		procInst.procSign,
-		procInst.command,
-		procInst.directory,
-		stringifyEnv(procInst.env),
-		procInst.autoRestart,
-		procInst.protected,
-		procInst.stdoutLogFile,
-		procInst.stderrLogFile,
-		procInst.maxRetry,
+		instReq.Name,
+		instReq.ProcSign,
+		instReq.Command,
+		instReq.Directory,
+		stringifyEnv(instReq.Env),
+		instReq.AutoRestart,
+		false,
+		instReq.StdoutLogFile,
+		instReq.StderrLogFile,
+		instReq.MaxRetry,
 	}
 	if _, err := db.Exec(stmt, args...); err != nil {
 		return err
@@ -63,7 +63,8 @@ func editProcFonfig(db *sql.DB, id int, procInst *Instance) (sql.Result, error) 
 	return db.Exec(stmt)
 }
 
-func listAllConfigs(db *sql.DB) ([]Instance, error) {
+// ListAllConfigs -
+func ListAllConfigs(db *sql.DB) ([]Instance, error) {
 	var stmt = fmt.Sprintf("select %s from %s", strings.Join(fullCols, ","), tableName)
 	insts := []Instance{}
 	rows, err := db.Query(stmt)

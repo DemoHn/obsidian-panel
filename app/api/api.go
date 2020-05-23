@@ -34,7 +34,7 @@ func StartServer(cfg *config.Config, db *sql.DB) error {
 	// III. load routes
 	bindAccountAPIs(server, db, "v1")
 	bindConfigAPIs(cfg, db, "v1")
-
+	bindProcAPIs(db, "v1")
 	return server.Start(address)
 }
 

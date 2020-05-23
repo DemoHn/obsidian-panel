@@ -55,6 +55,16 @@ func New(rootPath string, debug bool) (*App, error) {
 	}, nil
 }
 
+// GetConfig -
+func (ap *App) GetConfig() *config.Config {
+	return ap.cfg
+}
+
+// GetDB -
+func (ap *App) GetDB() *sql.DB {
+	return ap.db
+}
+
 // Start - start app
 func Start(app *App, foreground bool) error {
 	infra.SetMainLoggerLevel(app.debug)

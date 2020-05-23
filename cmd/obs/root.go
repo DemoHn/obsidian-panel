@@ -42,6 +42,17 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
+/**
+Current support subCmds:
+
+1. ./obs sys:proc http-server --port <port>
+*/
+var sysProcCmd = &cobra.Command{
+	Use:          "sys:proc",
+	Short:        "start system process (which are essential and run immediately)",
+	SilenceUsage: true,
+}
+
 func startApp(inst *app.App, foreground bool) {
 	if err := app.Start(inst, foreground); err != nil {
 		infra.LogT.PrintError(err)
@@ -63,11 +74,14 @@ func Execute() error {
 
 func init() {
 	// add sub-command
-	//rootCmd.AddCommand(account.RootCmd)	
+	//rootCmd.AddCommand(account.RootCmd)
 
 	// add flags
 	rootCmd.PersistentFlags().StringVar(&rootDir, "root-dir", "", "panel operation data root path")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "debug mode")
 
 	rootCmd.Flags().StringVarP(&ctrlOp, "s", "s", "", "start/stop/restart panel control")
+
+	// add sub-commands
+	rootCmd.AddCommand(sysProcCmd)
 }
