@@ -47,12 +47,12 @@ func (m *Master) Echo(input string, out *string) error {
 // LoadConfig - load all instance configurations
 func (m *Master) LoadConfig(input []InstanceReq, out *DataRsp) error {
 	m.mux.Lock()
-	defer m.mux.Unlock()
 	// copy instance
 	for _, req := range input {
 		nInst := exportInstanceFromReq(req)
 		m.instances[req.ProcSign] = nInst
 	}
+	m.mux.Unlock()
 	// TODO
 	*out = rspOK(nil)
 	return nil
@@ -81,8 +81,10 @@ func (m *Master) AddConfig(req AddInstanceReq, out *DataRsp) error {
 //   - override = false, throw error
 func (m *Master) AddAndStart(req AddInstanceReq, out *StartRsp) error {
 	procSign := req.Instance.ProcSign
-
+	m.mux.Lock()
 	_, exists := m.instances[procSign]
+	m.mux.Unlock()
+
 	if exists {
 		if req.Override {
 			_, err := m.StopInstance(procSign, syscall.SIGINT)

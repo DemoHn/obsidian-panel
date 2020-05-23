@@ -138,7 +138,7 @@ func startProcess(rootPath string, inst Instance) (*exec.Cmd, error) {
 		Setsid:     true,
 	}
 	// start cmd
-	if err := cmd.Start(); err != nil {
+	return cmd.Start(); err != nil {
 		return nil, err
 	}
 	return cmd, nil
