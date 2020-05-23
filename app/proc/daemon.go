@@ -31,10 +31,16 @@ type ipcMessage struct {
 func StartDaemon(rootPath string, debug bool, foreground bool) error {
 	pidFile := fmt.Sprintf("%s/proc/obs-daemon.pid", rootPath)
 	// DO NOT start daemon TWICE
-	if exists, _ := daemonExists(pidFile); exists {
-		infra.Log.Info("obs-daemon has been started")
-		return nil
+	if exists, pid := daemonExists(pidFile); exists {
+		if isPidRunning(pid) {
+			infra.Log.Info("obs-daemon has been started")
+			return nil
+		}
 	}
+
+	// remove os-daemon.sock
+	os.Remove(fmt.Sprintf("%s/proc/obs-daemon.sock", rootPath))
+
 	// 0. For foreground process, just call core function directly
 	if foreground {
 		// the existance of pidFile is unnecessary but confusing - thus for FG mode,
