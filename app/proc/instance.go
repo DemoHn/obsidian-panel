@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/DemoHn/obsidian-panel/infra"
-	"github.com/DemoHn/obsidian-panel/pkg/cmdspliter"
 	"github.com/DemoHn/obsidian-panel/util"
 )
 
@@ -118,7 +117,7 @@ func (ih *InstanceHandler) StopInstance(procSign string, signal syscall.Signal) 
 // been executed and running, rootPath is empty or not, etc...
 func startProcess(rootPath string, inst Instance) (*exec.Cmd, error) {
 	// get command
-	prog, args, err := cmdspliter.SplitCommand(inst.command)
+	prog, args, err := SplitCommand(inst.command)
 	if err != nil {
 		return nil, err
 	}
