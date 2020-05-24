@@ -1,4 +1,4 @@
-package proc
+package client
 
 import (
 	"reflect"

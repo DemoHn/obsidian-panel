@@ -19,7 +19,6 @@ func MigrateDown(db *sql.DB, step int) error {
 }
 
 // MigrateInit -
-func MigrateInit(db *sql.DB) error {
-	_, err := dbmigrate.Init(db)
-	return err
+func MigrateInit(db *sql.DB) (bool, error) {
+	return dbmigrate.Init(db)
 }

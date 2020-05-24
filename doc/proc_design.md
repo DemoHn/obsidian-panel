@@ -91,6 +91,168 @@ proc file map table:
 |timestamp | - | X | X | - | - |
 |stop      | - | - | - | X | - |
 
-### proc auto-restart background thread
+### proc auto-restart background thread (TODO)
 
 will constantly check if a process has been exited (per **15** seconds)
+
+### API design
+
+1. Add instance config
+
+url: `POST /proc/add-instance`
+
+request params:
+
+| param | required | example | description |
+| ----- | -------- | ---- | ---- |
+| procSign | true | sys-api-server | the only identifier for one instance. must be *unique* |
+| name | true | API server | a readable name of the instance |
+| command | true | `./obs sys:proc api-server` | execution command  |
+| directory | false | `/home/user/xxx` | command execution working directory (if null, it's the directory under which `./obs` is exeucted) |
+| env | false | {a: 1, b: 2} | additional env settings |
+| autoRestart | false | true | will auto restart if terminated accidentially `(default: true)` |
+| stdoutLogFile | false | `/data/log/proc/proc1-access.log` | where to log stdout data `(default: $rootPath/$procSign.log)`|
+| stderrLogFile | false | `/data/log/proc/proc1-error.log` | where to log stderr data `(default: $rootPath/$procSign.log)`|
+| maxRetry | false | 1 | max time to retry, valid only when _autoRestart=true_ `(0 for unlimited)`|
+
+response data:
+
+```json
+{
+  "instance": {
+    "procSign": "<proc-sign>",
+    "name": <name>,
+    "command": "...cmd",
+    "directory": "/home/data/obs",      
+    "env": {},
+    "autoRestart": true,
+    "maxRetry": 10,
+    "stdoutLogFile": "<concrete stdout logFile>",
+    "stderrLogFile": "<concrete stderr logFile>",
+    "createdAt": <ts>,
+    "updatedAt": <ts>
+  }
+}
+```
+
+2. List all instances
+
+url: `GET /proc/list-instances`
+
+request params:
+
+| param | required | example | description |
+|----|----|----|----|
+| page | false | 1 | `(default: 1)`|
+| count | false | 20 | `(default: 20)`|
+
+response data:
+
+```json
+{
+  "page": 1,
+  "count": 20,
+  "totalCount": 40,
+  "list": [
+    {
+      "procSign": "<proc-sign>",
+      "name": <name>,
+      "command": "...cmd",
+      "directory": "/home/data/obs",      
+      "env": {},
+      "autoRestart": true,
+      "maxRetry": 10,
+      "stdoutLogFile": "<concrete stdout logFile>",
+      "stderrLogFile": "<concrete stderr logFile>",
+      "createdAt": <ts>,
+      "updatedAt": <ts>
+    },
+    ...
+  ]
+}
+```
+
+3. Edit Instance
+
+url: `POST /proc/edit-instance`
+
+request params:
+
+| param | required | example | description |
+| ----- | -------- | ---- | ---- |
+| procSign | true | sys-api-server | the only identifier for one instance. must be *unique* |
+| name | false | API server | a readable name of the instance |
+| command | false | `./obs sys:proc api-server` | execution command  |
+| directory | false | `/home/user/xxx` | command execution working directory (if null, it's the directory under which `./obs` is exeucted) |
+| env | false | {a: 1, b: 2} | additional env settings |
+| autoRestart | false | true | will auto restart if terminated accidentially `(default: true)` |
+| stdoutLogFile | false | `/data/log/proc/proc1-access.log` | where to log stdout data `(default: $rootPath/$procSign.log)`|
+| stderrLogFile | false | `/data/log/proc/proc1-error.log` | where to log stderr data `(default: $rootPath/$procSign.log)`|
+| maxRetry | false | 1 | max time to retry, valid only when _autoRestart=true_ `(0 for unlimited)`|
+
+response data:
+
+```json
+{
+  "instance": {
+    "procSign": "<proc-sign>",
+    "name": <name>,
+    "command": "...cmd",
+    "directory": "/home/data/obs",      
+    "env": {},
+    "autoRestart": true,
+    "maxRetry": 10,
+    "stdoutLogFile": "<concrete stdout logFile>",
+    "stderrLogFile": "<concrete stderr logFile>",
+    "createdAt": <ts>,
+    "updatedAt": <ts>
+  }
+}
+```
+
+4. Control Instance
+
+url: `POST /proc/control-instance`
+
+request params:
+
+| param | required | example | description |
+| ----- | -------- | ---- | ---- |
+| procSign | true | sys-api-server | the unique process sign |
+| op | true | `start`| valid values: `start, stop, restart` |
+
+response data:
+
+```json
+{
+  "op": <start | stop | restart>,
+  "success": true,
+  "data": 0,  // for `stop`, it's exitCode
+  "failReason": "..."
+}
+```
+
+5. Stat Instance
+
+url: `GET /proc/stat-instance`
+
+request params:
+
+| param | required | example | description |
+| ----- | -------- | ---- | ---- |
+| procSign | true | sys-api-server | the unique process sign |
+
+response data:
+
+```json
+{
+  "procSign": <procSign>,
+  "stat": {
+    "status": <init | starting | running | stopped | terminated>,
+    "pid": <number, =0 when not running>,
+    "cpu": "0.12345634",        
+    "memory": 12343425, // <in bytes>
+    "elapsed": 1234 // <in secs>
+  }
+}
+```

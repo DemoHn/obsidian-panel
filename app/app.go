@@ -8,6 +8,7 @@ import (
 	"github.com/DemoHn/obsidian-panel/app/account"
 	"github.com/DemoHn/obsidian-panel/app/config"
 	"github.com/DemoHn/obsidian-panel/app/proc"
+	procClient "github.com/DemoHn/obsidian-panel/app/proc/client"
 	"github.com/DemoHn/obsidian-panel/app/sqlc"
 	"github.com/DemoHn/obsidian-panel/infra"
 )
@@ -19,8 +20,8 @@ var (
 )
 
 const (
-	dtUser     = "admin"
-	dtPassword = "0bs-pane1"
+	dtUser     = "admin"     // default admin user
+	dtPassword = "0bs-pane1" // deafult admin password
 )
 
 // App - new app data
@@ -70,7 +71,8 @@ func Start(app *App, foreground bool) error {
 	infra.SetMainLoggerLevel(app.debug)
 	// I. migrate up
 	infra.Log.Info("establish db schema...")
-	if err := sqlc.MigrateInit(app.db); err != nil {
+	needInit, err := sqlc.MigrateInit(app.db)
+	if err != nil {
 		return err
 	}
 	// II. Load config
@@ -78,9 +80,15 @@ func Start(app *App, foreground bool) error {
 	if err := app.cfg.Load(); err != nil {
 		return err
 	}
-	// III. set default admin user/password
-	if err := account.RegisterAdminNS(app.db, dtUser, dtPassword); err != nil {
-		return err
+
+	if needInit {
+		// III. inject default data
+		if err := account.RegisterAdminNS(app.db, dtUser, dtPassword); err != nil {
+			return err
+		}
+		if err := procClient.InsertSysProcess(app.db); err != nil {
+			return err
+		}
 	}
 
 	return proc.StartDaemon(app.rootPath, app.debug, foreground)
@@ -100,7 +108,7 @@ func FindRootDB(rootPath string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	sqlFile := fmt.Sprintf("%s/root.db", path)
+	sqlFile := fmt.Sprintf("%s/sql/root.db", path)
 	return sqlc.OpenDB(sqlFile)
 }
 

@@ -13,6 +13,22 @@ type InstanceReq struct {
 	MaxRetry      int               `json:"maxRetry"`
 }
 
+// InstanceRsp -
+type InstanceRsp struct {
+	ProcSign      string            `json:"procSign"`
+	Name          string            `json:"name"`
+	Command       string            `json:"command"`
+	Directory     string            `json:"directory"`
+	Env           map[string]string `json:"env"`
+	AutoRestart   bool              `json:"autoRestart"`
+	StdoutLogFile string            `json:"stdoutLogFile"`
+	StderrLogFile string            `json:"stderrLogFile"`
+	MaxRetry      int               `json:"maxRetry"`
+	Protected     bool              `json:"protected"`
+	CreatedAt     int               `json:"createdAt"`
+	UpdatedAt     int               `json:"updatedAt"`
+}
+
 // AddInstanceReq - add instance and start request
 type AddInstanceReq struct {
 	Override bool        `json:"override"`

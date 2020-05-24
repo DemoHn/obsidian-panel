@@ -1,11 +1,13 @@
-package proc
+package client
 
 import (
 	"database/sql"
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/DemoHn/obsidian-panel/app/proc"
 	"github.com/DemoHn/obsidian-panel/util"
 )
 
@@ -18,34 +20,38 @@ var (
 		"command",
 		"directory",
 		"env",
+		"auto_start",
 		"auto_restart",
 		"protected",
 		"stdout_logfile",
 		"stderr_logfile",
 		"max_retry",
+		"created_at",
+		"updated_at",
 	}
-
-	fullCols = append([]string{"id"}, cols...)
 )
 
 // InsertToProcConfig - insert instance data to proc_config table
-func InsertToProcConfig(db *sql.DB, instReq InstanceReq) error {
+func InsertToProcConfig(db *sql.DB, instReq proc.InstanceReq) error {
 	var keys = strings.Join(cols, ",")
 	var tpls = strings.Join(util.Repeat("?", len(cols)), ",")
 
 	var stmt = fmt.Sprintf("insert into %s (%s) values (%s)", tableName, keys, tpls)
-
+	var nowT = time.Now().Unix()
 	var args = []interface{}{
 		instReq.Name,
 		instReq.ProcSign,
 		instReq.Command,
 		instReq.Directory,
 		stringifyEnv(instReq.Env),
+		true,
 		instReq.AutoRestart,
 		false,
 		instReq.StdoutLogFile,
 		instReq.StderrLogFile,
 		instReq.MaxRetry,
+		nowT,
+		nowT,
 	}
 	if _, err := db.Exec(stmt, args...); err != nil {
 		return err
@@ -53,40 +59,60 @@ func InsertToProcConfig(db *sql.DB, instReq InstanceReq) error {
 	return nil
 }
 
-// full edit - edit one proc config
-func editProcFonfig(db *sql.DB, id int, procInst *Instance) (sql.Result, error) {
+// EditProcConfig - full edit - edit one proc config
+func EditProcConfig(db *sql.DB, procSign string, instReq proc.InstanceReq) (sql.Result, error) {
 	updateKeys := []string{}
 	for _, col := range cols {
-		updateKeys = append(updateKeys, fmt.Sprintf("%s = ?", col))
+		// exclude created_at
+		if col != "created_at" && col != "proc_sign" {
+			updateKeys = append(updateKeys, fmt.Sprintf("%s = ?", col))
+		}
 	}
-	var stmt = fmt.Sprintf("update %s set %s where id = ?", tableName, strings.Join(updateKeys, ","))
-	return db.Exec(stmt)
+	var stmt = fmt.Sprintf("update %s set %s where proc_sign = ?", tableName, strings.Join(updateKeys, ","))
+	var nowT = time.Now().Unix()
+	var args = []interface{}{
+		instReq.Name,
+		instReq.Command,
+		instReq.Directory,
+		stringifyEnv(instReq.Env),
+		true,
+		instReq.AutoRestart,
+		false,
+		instReq.StdoutLogFile,
+		instReq.StderrLogFile,
+		instReq.MaxRetry,
+		nowT,
+	}
+	return db.Exec(stmt, args...)
 }
 
 // ListAllConfigs -
-func ListAllConfigs(db *sql.DB) ([]Instance, error) {
-	var stmt = fmt.Sprintf("select %s from %s", strings.Join(fullCols, ","), tableName)
-	insts := []Instance{}
+func ListAllConfigs(db *sql.DB) ([]proc.InstanceRsp, error) {
+	var stmt = fmt.Sprintf("select %s from %s", strings.Join(cols, ","), tableName)
+	insts := []proc.InstanceRsp{}
 	rows, err := db.Query(stmt)
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
-		var inst Instance
+		var inst proc.InstanceRsp
 		var strEnv string
+		var autoStart bool // TODO
 		var args = []interface{}{
-			&inst.id,
-			&inst.name,
-			&inst.procSign,
-			&inst.command,
-			&inst.directory,
+			&inst.Name,
+			&inst.ProcSign,
+			&inst.Command,
+			&inst.Directory,
 			&strEnv,
-			&inst.autoRestart,
-			&inst.protected,
-			&inst.stdoutLogFile,
-			&inst.stderrLogFile,
-			&inst.maxRetry,
+			&autoStart,
+			&inst.AutoRestart,
+			&inst.Protected,
+			&inst.StdoutLogFile,
+			&inst.StderrLogFile,
+			&inst.MaxRetry,
+			&inst.CreatedAt,
+			&inst.UpdatedAt,
 		}
 		if err := rows.Scan(args...); err != nil {
 			return nil, err
@@ -95,11 +121,32 @@ func ListAllConfigs(db *sql.DB) ([]Instance, error) {
 		if err != nil {
 			return nil, err
 		}
-		inst.env = envMap
+		inst.Env = envMap
 
 		insts = append(insts, inst)
 	}
 	return insts, nil
+}
+
+// InsertSysProcess - insert system process that should be registered by default
+func InsertSysProcess(db *sql.DB) error {
+	defaultInsts := []proc.InstanceReq{
+		{
+			Name:        "API server",
+			ProcSign:    "sys-api-server",
+			Command:     "./obs sys:proc api-server",
+			Env:         map[string]string{},
+			AutoRestart: true,
+			MaxRetry:    9999, // TODO: set unlimited int the future
+		},
+	}
+
+	for _, inst := range defaultInsts {
+		if err := InsertToProcConfig(db, inst); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // format

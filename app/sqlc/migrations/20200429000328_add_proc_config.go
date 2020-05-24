@@ -27,7 +27,9 @@ func UpT20200429000328(db *sql.DB) error {
 		protected integer default '0' not null, -- if the proc config is unchangable, usually for system process
 		stdout_logfile text,
 		stderr_logfile text,
-		max_retry integer default '0' not null -- max retry attempts since restart fails, 0 means unlimited
+		max_retry integer default '0' not null, -- max retry attempts since restart fails, 0 means unlimited
+		created_at integer not null,
+		updated_at integer not null
 	)`, pTableName)
 	if _, err := db.Exec(createStmt); err != nil {
 		return err
