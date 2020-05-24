@@ -15,8 +15,8 @@ import (
 var (
 	tableName = "proc_config"
 	cols      = []string{
-		"proc_sign",
 		"name",
+		"proc_sign",
 		"command",
 		"directory",
 		"env",
@@ -82,15 +82,16 @@ func EditProcConfig(db *sql.DB, procSign string, instReq proc.InstanceReq) (sql.
 		instReq.StderrLogFile,
 		instReq.MaxRetry,
 		nowT,
+		procSign,
 	}
 	return db.Exec(stmt, args...)
 }
 
 // ListAllConfigs -
-func ListAllConfigs(db *sql.DB) ([]proc.InstanceRsp, error) {
-	var stmt = fmt.Sprintf("select %s from %s", strings.Join(cols, ","), tableName)
+func ListAllConfigs(db *sql.DB, page int, count int) ([]proc.InstanceRsp, error) {
+	var stmt = fmt.Sprintf("select %s from %s limit ? offset ?", strings.Join(cols, ","), tableName)
 	insts := []proc.InstanceRsp{}
-	rows, err := db.Query(stmt)
+	rows, err := db.Query(stmt, count, (page-1)*count)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +127,50 @@ func ListAllConfigs(db *sql.DB) ([]proc.InstanceRsp, error) {
 		insts = append(insts, inst)
 	}
 	return insts, nil
+}
+
+// CountTotalList -
+func CountTotalList(db *sql.DB) (int, error) {
+	var count int
+	if err := db.QueryRow(fmt.Sprintf("select count(*) from %s", tableName)).Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// GetProcConfig -
+func GetProcConfig(db *sql.DB, procSign string) (proc.InstanceRsp, error) {
+	var stmt = fmt.Sprintf("select %s from %s where proc_sign = ?", strings.Join(cols, ","), tableName)
+
+	var inst proc.InstanceRsp
+	var strEnv string
+	var autoStart bool // TODO
+	var args = []interface{}{
+		&inst.Name,
+		&inst.ProcSign,
+		&inst.Command,
+		&inst.Directory,
+		&strEnv,
+		&autoStart,
+		&inst.AutoRestart,
+		&inst.Protected,
+		&inst.StdoutLogFile,
+		&inst.StderrLogFile,
+		&inst.MaxRetry,
+		&inst.CreatedAt,
+		&inst.UpdatedAt,
+	}
+	if err := db.QueryRow(stmt, procSign).Scan(args...); err != nil {
+		return proc.InstanceRsp{}, err
+	}
+
+	envMap, err := parseEnv(strEnv)
+	if err != nil {
+		return proc.InstanceRsp{}, err
+	}
+	inst.Env = envMap
+
+	return inst, nil
 }
 
 // InsertSysProcess - insert system process that should be registered by default
