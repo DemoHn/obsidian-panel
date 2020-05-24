@@ -70,7 +70,7 @@ func Start(app *App, foreground bool) error {
 	infra.SetMainLoggerLevel(app.debug)
 	// I. migrate up
 	infra.Log.Info("establish db schema...")
-	if err := sqlc.MigrateUp(app.db); err != nil {
+	if err := sqlc.MigrateInit(app.db); err != nil {
 		return err
 	}
 	// II. Load config

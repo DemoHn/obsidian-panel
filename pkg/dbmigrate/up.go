@@ -36,7 +36,7 @@ func upMigrations(db *sql.DB, migrations []*Migration) error {
 				return e
 			}
 			// add item to migration_history
-			var createStmt = `insert into migration_history (version) values (?)`
+			var createStmt = fmt.Sprintf("insert into %s (version) values (?)", tableName)
 			_, e = db.Exec(createStmt, mg.Version)
 			return e
 		})

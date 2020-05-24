@@ -37,7 +37,7 @@ func downMigrations(db *sql.DB, migrations []*Migration) error {
 			}
 
 			// delete stmt
-			var deleteStmt = `delete from migration_history where version = ?`
+			var deleteStmt = fmt.Sprintf("delete from %s where version = ?", tableName)
 			_, e = db.Exec(deleteStmt, mg.Version)
 			return e
 		})

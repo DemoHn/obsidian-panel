@@ -5,6 +5,11 @@ package dbmigrate
 
 import (
 	"database/sql"
+	"fmt"
+)
+
+const (
+	tableName = "migration_history"
 )
 
 type migrationFunc func(db *sql.DB) error
@@ -54,11 +59,11 @@ func initMigrationTable(db *sql.DB) error {
 	var err error
 	// DB statements
 	// db name: migration_history
-	var createTableStmt = `create table if not exists 
-	migration_history (
+	var createTableStmt = fmt.Sprintf(`create table if not exists %s
+	(
 		id integer primary key autoincrement,
 		version text not null
-	)`
+	)`, tableName)
 
 	if _, err = db.Exec(createTableStmt); err != nil {
 		return err
@@ -79,7 +84,7 @@ func readMigrationTable(db *sql.DB, isAsc bool) ([]string, error) {
 	}
 
 	// query data
-	var queryStmt = `select id,version from migration_history order by ?`
+	var queryStmt = fmt.Sprintf("select id,version from %s order by ?", tableName)
 	if rows, err = db.Query(queryStmt, orderStr); err != nil {
 		return nil, err
 	}
