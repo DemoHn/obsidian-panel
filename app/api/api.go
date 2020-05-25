@@ -1,10 +1,9 @@
 package api
 
 import (
-	"database/sql"
 	"fmt"
 
-	"github.com/DemoHn/obsidian-panel/app/config"
+	"github.com/DemoHn/obsidian-panel/app"
 	"github.com/DemoHn/obsidian-panel/infra"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -14,7 +13,10 @@ import (
 var server *echo.Echo
 
 // StartServer - start server process
-func StartServer(cfg *config.Config, db *sql.DB) error {
+func StartServer(appI *app.App) error {
+	cfg := appI.GetConfig()
+	db := appI.GetDB()
+	rootPath := appI.GetRootPath()
 	// I. use auth middlewares
 	// II. get config
 	host, err := cfg.Find("rpc.host")
@@ -34,7 +36,7 @@ func StartServer(cfg *config.Config, db *sql.DB) error {
 	// III. load routes
 	bindAccountAPIs(server, db, "v1")
 	bindConfigAPIs(cfg, db, "v1")
-	bindProcAPIs(db, "v1")
+	bindProcAPIs(rootPath, db, "v1")
 	return server.Start(address)
 }
 

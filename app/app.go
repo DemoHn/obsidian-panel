@@ -11,6 +11,7 @@ import (
 	procClient "github.com/DemoHn/obsidian-panel/app/proc/client"
 	"github.com/DemoHn/obsidian-panel/app/sqlc"
 	"github.com/DemoHn/obsidian-panel/infra"
+	"github.com/DemoHn/obsidian-panel/util"
 )
 
 // declare input params
@@ -35,7 +36,7 @@ type App struct {
 // New - new appInstance
 func New(rootPath string, debug bool) (*App, error) {
 	// I. get root path
-	path, err := findRootPath(rootPath)
+	path, err := util.FindRootPath(rootPath)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +65,11 @@ func (ap *App) GetConfig() *config.Config {
 // GetDB -
 func (ap *App) GetDB() *sql.DB {
 	return ap.db
+}
+
+// GetRootPath -
+func (ap *App) GetRootPath() string {
+	return ap.rootPath
 }
 
 // Start - start app
@@ -104,38 +110,12 @@ func Stop(app *App) error {
 
 // FindRootDB -
 func FindRootDB(rootPath string) (*sql.DB, error) {
-	path, err := findRootPath(rootPath)
+	path, err := util.FindRootPath(rootPath)
 	if err != nil {
 		return nil, err
 	}
 	sqlFile := fmt.Sprintf("%s/sql/root.db", path)
 	return sqlc.OpenDB(sqlFile)
-}
-
-//// helpers
-func findRootPath(rootPath string) (string, error) {
-	// priority:
-	// 1. $rootPath
-	// 2. $HOME/.obs-root
-
-	// if rootPath is not empty, the directory must exists!
-	if rootPath != "" {
-		if _, err := os.Stat(rootPath); err != nil {
-			return "", err
-		}
-	} else {
-		// read $HOME
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		homePath := fmt.Sprintf("%s/.obs-root", home)
-		if err := os.MkdirAll(homePath, os.ModePerm); err != nil {
-			return "", err
-		}
-		rootPath = homePath
-	}
-	return rootPath, nil
 }
 
 func initDirs(rootPath string) error {

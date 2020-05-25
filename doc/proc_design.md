@@ -174,7 +174,7 @@ response data:
 
 3. Edit Instance
 
-url: `POST /proc/edit-instance`
+url: `POST /proc/edit-instance/:procSign`
 
 request params:
 
@@ -210,9 +210,35 @@ response data:
 }
 ```
 
-4. Control Instance
+4. Get One Instance
 
-url: `POST /proc/control-instance`
+url: `GET /proc/get-instance/:procSign`
+
+request params:
+
+response data:
+
+```json
+{
+  "instance": {
+    "procSign": "<proc-sign>",
+    "name": <name>,
+    "command": "...cmd",
+    "directory": "/home/data/obs",      
+    "env": {},
+    "autoRestart": true,
+    "maxRetry": 10,
+    "stdoutLogFile": "<concrete stdout logFile>",
+    "stderrLogFile": "<concrete stderr logFile>",
+    "createdAt": <ts>,
+    "updatedAt": <ts>
+  }
+}
+```
+
+5. Control Instance
+
+url: `POST /proc/control-instance/:procSign`
 
 request params:
 
@@ -232,15 +258,9 @@ response data:
 }
 ```
 
-5. Stat Instance
+6. Stat Instance
 
-url: `GET /proc/stat-instance`
-
-request params:
-
-| param | required | example | description |
-| ----- | -------- | ---- | ---- |
-| procSign | true | sys-api-server | the unique process sign |
+url: `GET /proc/stat-instance/:procSign`
 
 response data:
 

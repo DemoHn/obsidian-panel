@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/DemoHn/obsidian-panel/app/account"
 	"github.com/DemoHn/obsidian-panel/app/proc"
@@ -11,7 +12,24 @@ import (
 	"github.com/labstack/echo"
 )
 
-func bindProcAPIs(db *sql.DB, version string) {
+// CtrlInstRsp -
+type CtrlInstRsp struct {
+	Op         string `json:"op"`
+	Success    bool   `json:"success"`
+	Data       int    `json:"data"`
+	FailReason string `json:"failReason"`
+}
+
+// PidInfoRsp -
+type PidInfoRsp struct {
+	Status  string `json:"status"`
+	Pid     int    `json:"pid"`
+	CPU     string `json:"cpu"`
+	Memory  int64  `json:"memory"`
+	Elapsed int64  `json:"elapsed"`
+}
+
+func bindProcAPIs(rootPath string, db *sql.DB, version string) {
 	var prefix = fmt.Sprintf("/api/%s/proc", version)
 	router := server.Group(prefix, Auth(db, account.ADMIN))
 
@@ -21,14 +39,12 @@ func bindProcAPIs(db *sql.DB, version string) {
 	router.GET("/list-instances", listInstancesHandler(db))
 	// edit instance config
 	router.POST("/edit-instance/:procSign", editInstanceHandler(db))
-
 	// get one instance
 	router.GET("/get-instance/:procSign", getInstanceHandler(db))
-
 	// start/stop/restart instance
-	router.POST("/control-instance", controlInstanceHandler(db))
+	router.POST("/control-instance/:procSign", controlInstanceHandler(rootPath, db))
 	// stat (get current instance info)
-	router.GET("/stat-instance", statInstanceHandler(db))
+	router.GET("/stat-instance/:procSign", statInstanceHandler(rootPath, db))
 }
 
 // protected = 0 only
@@ -135,14 +151,79 @@ func getInstanceHandler(db *sql.DB) echo.HandlerFunc {
 	}
 }
 
-func controlInstanceHandler(db *sql.DB) echo.HandlerFunc {
+func controlInstanceHandler(rootPath string, db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		req := struct {
+			Op string `json:"op"  validate:"oneof=start,stop,restart"`
+		}{}
+		procSign := c.Param("procSign")
+		if err := c.Bind(&req); err != nil {
+			return err
+		}
+		if err := c.Validate(&req); err != nil {
+			return err
+		}
+
+		switch req.Op {
+		case "start":
+			var out proc.StartRsp
+			if err := procClient.SendRequest(rootPath, "Master.Start", procSign, &out); err != nil {
+				return c.JSON(http.StatusOK, CtrlInstRsp{"start", false, 0, err.Error()})
+			}
+			return c.JSON(http.StatusOK, CtrlInstRsp{"start", true, out.Pid, ""})
+		case "stop":
+			var out proc.StopRsp
+			if err := procClient.SendRequest(rootPath, "Master.Stop", procSign, &out); err != nil {
+				return c.JSON(http.StatusOK, CtrlInstRsp{"stop", false, 0, err.Error()})
+			}
+			return c.JSON(http.StatusOK, CtrlInstRsp{"stop", true, out.ReturnCode, ""})
+		case "restart":
+			var out proc.StartRsp
+			if err := procClient.SendRequest(rootPath, "Master.Restart", procSign, &out); err != nil {
+				return c.JSON(http.StatusOK, CtrlInstRsp{"start", false, 0, err.Error()})
+			}
+			return c.JSON(http.StatusOK, CtrlInstRsp{"start", true, out.Pid, ""})
+		}
 		return nil
 	}
 }
 
-func statInstanceHandler(db *sql.DB) echo.HandlerFunc {
+func statInstanceHandler(rootPath string, db *sql.DB) echo.HandlerFunc {
+	var formatStatus = func(s int) string {
+		switch s {
+		case 0:
+			return "init"
+		case 1:
+			return "starting"
+		case 2:
+			return "running"
+		case 3:
+			return "stopped"
+		default:
+			return "terminated"
+		}
+	}
+
 	return func(c echo.Context) error {
-		return nil
+		procSign := c.Param("procSign")
+
+		var out proc.InfoRsp
+		if err := procClient.SendRequest(rootPath, "Master.GetInfo", procSign, &out); err != nil {
+			return err
+		}
+
+		return c.JSON(http.StatusOK, struct {
+			ProcSign string     `json:"procSign"`
+			Stat     PidInfoRsp `json:"stat"`
+		}{
+			procSign,
+			PidInfoRsp{
+				Status:  formatStatus(out.Status),
+				Pid:     out.Pid,
+				CPU:     strconv.FormatFloat(out.CPU, 'f', 4, 64),
+				Memory:  out.Memory,
+				Elapsed: out.Elapsed,
+			},
+		})
 	}
 }
