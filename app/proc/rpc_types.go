@@ -66,6 +66,15 @@ type DataRsp struct {
 }
 
 func exportInstanceFromReq(req InstanceReq) Instance {
+	logFile := req.StdoutLogFile
+	if logFile == "" {
+		logFile = "$rootPath/$procSign.log"
+	}
+	errFile := req.StderrLogFile
+	if errFile == "" {
+		errFile = "$rootPath/$procSign.log"
+	}
+
 	return Instance{
 		name:          req.Name,
 		procSign:      req.ProcSign,
@@ -74,8 +83,8 @@ func exportInstanceFromReq(req InstanceReq) Instance {
 		env:           req.Env,
 		autoRestart:   req.AutoRestart,
 		maxRetry:      req.MaxRetry,
-		stdoutLogFile: req.StdoutLogFile,
-		stderrLogFile: req.StderrLogFile,
+		stdoutLogFile: logFile,
+		stderrLogFile: errFile,
 		protected:     false,
 	}
 }

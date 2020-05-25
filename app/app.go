@@ -97,7 +97,13 @@ func Start(app *App, foreground bool) error {
 		}
 	}
 
-	return proc.StartDaemon(app.rootPath, app.debug, foreground)
+	if err := proc.StartDaemon(app.rootPath, app.debug, foreground); err != nil {
+		return err
+	}
+	if !foreground {
+		return loadAndStartSysProc(app.rootPath, app.db)
+	}
+	return nil
 }
 
 // Stop -
@@ -129,4 +135,36 @@ func initDirs(rootPath string) error {
 		}
 	}
 	return nil
+}
+
+func loadAndStartSysProc(rootPath string, db *sql.DB) error {
+	var out1 proc.DataRsp
+	var out2 proc.StartRsp
+	insts, err := procClient.ListAllConfigs(db, 0, 0)
+	if err != nil {
+		return err
+	}
+
+	instReqs := []proc.InstanceReq{}
+	// transform instRsp -> instReq
+	for _, ist := range insts {
+		instReqs = append(instReqs, proc.InstanceReq{
+			ProcSign:      ist.ProcSign,
+			Name:          ist.Name,
+			Command:       ist.Command,
+			Directory:     ist.Directory,
+			Env:           ist.Env,
+			AutoRestart:   ist.AutoRestart,
+			StdoutLogFile: ist.StdoutLogFile,
+			StderrLogFile: ist.StderrLogFile,
+			MaxRetry:      ist.MaxRetry,
+		})
+	}
+	// load all config
+	if err := procClient.SendRequest(rootPath, "Master.LoadConfig", instReqs, &out1); err != nil {
+		return err
+	}
+	// start sys-api-server
+	// TODO: more decent way to manage sys process
+	return procClient.SendRequest(rootPath, "Master.Start", "sys-api-server", &out2)
 }

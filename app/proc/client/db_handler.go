@@ -89,9 +89,17 @@ func EditProcConfig(db *sql.DB, procSign string, instReq proc.InstanceReq) (sql.
 
 // ListAllConfigs -
 func ListAllConfigs(db *sql.DB, page int, count int) ([]proc.InstanceRsp, error) {
-	var stmt = fmt.Sprintf("select %s from %s limit ? offset ?", strings.Join(cols, ","), tableName)
 	insts := []proc.InstanceRsp{}
-	rows, err := db.Query(stmt, count, (page-1)*count)
+	var qArgs []interface{}
+	var stmt string
+	if count > 0 {
+		stmt = fmt.Sprintf("select %s from %s limit ? offset ?", strings.Join(cols, ","), tableName)
+		qArgs = []interface{}{count, (page - 1) * count}
+	} else {
+		stmt = fmt.Sprintf("select %s from %s", strings.Join(cols, ","), tableName)
+		qArgs = []interface{}{}
+	}
+	rows, err := db.Query(stmt, qArgs...)
 	if err != nil {
 		return nil, err
 	}
