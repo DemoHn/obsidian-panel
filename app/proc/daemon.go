@@ -118,7 +118,7 @@ func registerCmd(rootPath string, debug bool) (*os.File, *exec.Cmd, error) {
 	}
 
 	// II. set env
-	cmd.Env = append(cmd.Env,
+	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("OBS_DAEMON_ROOTPATH=%s", rootPath),
 		fmt.Sprintf("OBS_DAEMON_DEBUG_MODE=%s", bool2str(debug)),
 	)

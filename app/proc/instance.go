@@ -216,7 +216,7 @@ func setCwd(cmd *exec.Cmd, rootPath string, inst Instance) error {
 }
 
 func setEnv(cmd *exec.Cmd, env map[string]string) {
-	envStrs := []string{}
+	envStrs := os.Environ()
 	for k, v := range env {
 		envStrs = append(envStrs, fmt.Sprintf("%s=%s", k, v))
 	}

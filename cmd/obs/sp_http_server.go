@@ -1,6 +1,9 @@
 package obs
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/DemoHn/obsidian-panel/app"
 	"github.com/DemoHn/obsidian-panel/app/api"
 	"github.com/DemoHn/obsidian-panel/infra"
@@ -11,6 +14,8 @@ var httpServerCmd = &cobra.Command{
 	Use:   "api-server",
 	Short: "start internal api-server (HTTP) to control the panel",
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("===========")
+		fmt.Println(os.Environ())
 		appI, err := app.New(rootDir, debug)
 		if err != nil {
 			infra.LogT.PrintError(err)

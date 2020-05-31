@@ -202,9 +202,11 @@ func StartMaster(master *Master, done chan<- bool) error {
 				// to prevent instances updated/deleted
 				if ok {
 					retryCount := f.ReadRetryCount(procSign)
-					if inst.autoRestart && retryCount <= inst.maxRetry {
-						go restartHandler(master, procSign)
-						break
+					if inst.autoRestart {
+						if inst.maxRetry == 0 || retryCount <= inst.maxRetry {
+							go restartHandler(master, procSign)
+							break
+						}
 					}
 				}
 			}
