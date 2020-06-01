@@ -21,14 +21,15 @@ type Master struct {
 
 // NewMaster - new master controller
 func NewMaster(sockFile string, rootPath string) (*Master, error) {
-	master := &Master{
-		sockFile:        sockFile,
-		server:          new(http.Server),
-		InstanceHandler: NewInstanceHandler(rootPath),
-	}
 	// check rootPath
 	if rootPath == "" {
 		return nil, fmt.Errorf("rootPath of daemon should not be empty")
+	}
+	master := &Master{
+		sockFile:        sockFile,
+		server:          new(http.Server),
+		rootPath:        rootPath,
+		InstanceHandler: NewInstanceHandler(rootPath),
 	}
 
 	if err := rpc.Register(master); err != nil {

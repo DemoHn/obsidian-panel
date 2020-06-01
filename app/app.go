@@ -166,5 +166,9 @@ func loadAndStartSysProc(rootPath string, db *sql.DB) error {
 	}
 	// start sys-api-server
 	// TODO: more decent way to manage sys process
-	return procClient.SendRequest(rootPath, "Master.Start", "sys-api-server", &out2)
+	if err := procClient.SendRequest(rootPath, "Master.Start", "sys-api-server", &out2); err != nil {
+		return err
+	}
+	infra.Log.Info("start api-server success")
+	return nil
 }

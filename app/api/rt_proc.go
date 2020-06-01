@@ -34,11 +34,11 @@ func bindProcAPIs(rootPath string, db *sql.DB, version string) {
 	router := server.Group(prefix, Auth(db, account.ADMIN))
 
 	// add instance config to db
-	router.POST("/add-instance", addInstanceHandler(db))
+	router.POST("/add-instance", addInstanceHandler(rootPath, db))
 	// list all instances config
 	router.GET("/list-instances", listInstancesHandler(db))
 	// edit instance config
-	router.POST("/edit-instance/:procSign", editInstanceHandler(db))
+	router.POST("/edit-instance/:procSign", editInstanceHandler(rootPath, db))
 	// get one instance
 	router.GET("/get-instance/:procSign", getInstanceHandler(db))
 	// start/stop/restart instance
@@ -48,7 +48,7 @@ func bindProcAPIs(rootPath string, db *sql.DB, version string) {
 }
 
 // protected = 0 only
-func addInstanceHandler(db *sql.DB) echo.HandlerFunc {
+func addInstanceHandler(rootPath string, db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := proc.InstanceReq{
 			AutoRestart: true, // set default value
@@ -64,6 +64,14 @@ func addInstanceHandler(db *sql.DB) echo.HandlerFunc {
 			return err
 		}
 
+		addReq := proc.AddInstanceReq{
+			Override: false,
+			Instance: req,
+		}
+		var out proc.DataRsp
+		if err := procClient.SendRequest(rootPath, "Master.AddConfig", addReq, &out); err != nil {
+			return err
+		}
 		inst, err := procClient.GetProcConfig(db, req.ProcSign)
 		if err != nil {
 			return err
@@ -102,7 +110,7 @@ func listInstancesHandler(db *sql.DB) echo.HandlerFunc {
 	}
 }
 
-func editInstanceHandler(db *sql.DB) echo.HandlerFunc {
+func editInstanceHandler(rootPath string, db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		procSign := c.Param("procSign")
 		// then retrieve existing data from DB
@@ -127,6 +135,15 @@ func editInstanceHandler(db *sql.DB) echo.HandlerFunc {
 		if _, uerr := procClient.EditProcConfig(db, procSign, req); uerr != nil {
 			return uerr
 		}
+		addReq := proc.AddInstanceReq{
+			Override: true,
+			Instance: req,
+		}
+		var out proc.DataRsp
+		if err := procClient.SendRequest(rootPath, "Master.AddConfig", addReq, &out); err != nil {
+			return err
+		}
+
 		newInst, err := procClient.GetProcConfig(db, procSign)
 		if err != nil {
 			return err
@@ -154,7 +171,7 @@ func getInstanceHandler(db *sql.DB) echo.HandlerFunc {
 func controlInstanceHandler(rootPath string, db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := struct {
-			Op string `json:"op"  validate:"oneof=start,stop,restart"`
+			Op string `json:"op" validate:"oneof=start stop restart"`
 		}{}
 		procSign := c.Param("procSign")
 		if err := c.Bind(&req); err != nil {
